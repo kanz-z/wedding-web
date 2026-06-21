@@ -152,6 +152,11 @@ body {
   margin: 0;
 }
 
+.home h6 {
+  font-size: 3rem;
+  margin: 0;
+}
+
 /* info */
 .info {
   background-color: var(--bg);
@@ -229,7 +234,7 @@ body {
   font-size: 1.2rem;
 } */
 
-.timeline {
+/* .timeline {
   list-style: none;
   padding: 1.4rem 0;
   margin-top: 1rem;
@@ -277,44 +282,44 @@ body {
   position: relative;
   border-radius: 8px;
   background-color: #fff;
-}
-.timeline li .timeline-panel::before {
+} */
+/* .timeline li .timeline-panel::before {
   content: '';
   display: inline-block;
   position: absolute;
-  border-top: 15px solid transparent; /* trik membuat panel segitiga */
-  border-left: 15px solid#ccc; /* trik membuat panel segitiga */
-  border-right: 0 solid#ccc; /* trik membuat panel segitiga */
-  border-bottom: 15px solid transparent; /* trik membuat panel segitiga */
-  top: 80px; /* trik membuat panel segitiga */
-  right: -15px; /* trik membuat panel segitiga */
+  border-top: 15px solid transparent; 
+  border-left: 15px solid#ccc; 
+  border-right: 0 solid#ccc; 
+  border-bottom: 15px solid transparent; 
+  top: 80px; 
+  right: -15px; 
 }
 .timeline li .timeline-panel::after {
   content: '';
   position: absolute;
   display: inline-block;
-  border-top: 14px solid transparent; /* trik membuat panel segitiga */
-  border-left: 14px solid#fff; /* trik membuat panel segitiga */
-  border-right: 0 solid#fff; /* trik membuat panel segitiga */
-  border-bottom: 14px solid transparent; /* trik membuat panel segitiga */
-  top: 81px; /* trik membuat panel segitiga */
-  right: -13px; /* trik membuat panel segitiga */
+  border-top: 14px solid transparent; 
+  border-left: 14px solid#fff; 
+  border-right: 0 solid#fff; 
+  border-bottom: 14px solid transparent; 
+  top: 81px; 
+  right: -13px; 
 }
 .timeline li.timeline-inverted .timeline-panel {
-  float: right; /* memindahkan panel ke kanan */
+  float: right;
 }
 .timeline li.timeline-inverted .timeline-panel::before {
-  border-left-width: 0; /* membalikkan posisi segitiga */
-  border-right-width: 15px; /* membalikkan posisi segitiga */
-  left: -15px; /* membalikkan posisi segitiga */
-  right: auto; /* membalikkan posisi segitiga */
+  border-left-width: 0; 
+  border-right-width: 15px; 
+  left: -15px; 
+  right: auto; 
 }
 .timeline li.timeline-inverted .timeline-panel::after {
-  border-left-width: 0; /* membalikkan posisi segitiga */
-  border-right-width: 14px; /* membalikkan posisi segitiga */
-  left: -13px; /* membalikkan posisi segitiga */
-  right: auto; /* membalikkan posisi segitiga */
-}
+  border-left-width: 0; 
+  border-right-width: 14px; 
+  left: -13px; 
+  right: auto; 
+} */ 
 
 /* gallery */
 /* .gallery {
