@@ -19,7 +19,7 @@ The project is live and accessible via the link below:
 - CSS3
 - JavaScript
 - Google Sheets API (for form submissions)
-- GitHub Pages (for hosting)
+- Netlify (for hosting)
 
 ## How To Use
 
@@ -40,6 +40,9 @@ The design and Google Sheets integration is inspired by the following repositori
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-# wedding-web
+## Credit
 
-Reza &amp; Ashila
+This project is based on the original template by
+[elix-stack](https://github.com/elix-stack).
+
+The template has been modified and customized for this project.
