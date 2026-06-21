@@ -7,7 +7,7 @@
 
 body {
   font-size: 1.2rem;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   min-height: 4000px;
 }
 
@@ -35,10 +35,11 @@ body {
   text-shadow: var(--shadow);
 }
 .hero h1 {
-  font-family: 'Sacramento', cursive;
+  font-family: 'Playfair Display', serif;
   font-weight: 6rem;
   font-size: 6rem;
   margin-top: 30px;
+  font-style: italic;
 }
 .hero h4 {
   font-size: 1.6rem;
@@ -66,9 +67,10 @@ body {
 }
 .mynavbar .navbar-brand,
 .mynavbar .offcanvas-title {
-  font-family: 'Sacramento', cursive;
+  font-family: 'Playfair Display', serif;
   font-size: 3.2rem;
   font-weight: bold;
+  font-style: italic;
 }
 .mynavbar .nav-link {
   text-transform: uppercase;
@@ -91,7 +93,7 @@ body {
 .rsvp h2,
 .gifts h2 {
   color: var(--pink);
-  font-family: 'Sacramento';
+  font-family: 'Playfair Display';
   font-size: 5rem;
   font-weight: bold;
 }
@@ -111,7 +113,8 @@ body {
 .home .couple .avatar {
   width: 100px;
   height: 100px;
-  font-family: 'Sacramento', cursive;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
   font-size: 3rem;
   font-weight: bold;
   color: white;
@@ -121,10 +124,10 @@ body {
 }
 
 .home .couple {
-  margin-top: 75px;
+  margin-top: 1em;
 }
 .home .couple h3 {
-  font-family: 'Sacramento';
+  font-family: 'Playfair Display';
   font-size: 3rem;
   font-weight: bold;
   color: var(--pink);
