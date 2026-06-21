@@ -4,6 +4,7 @@
   --shadow: 0 2px 2px rgba(0 0 0 / 0.5);
   --transparant: rgba(0, 0, 0, 0.319);
 }
+
 body {
   font-size: 1.2rem;
   font-family: 'Work Sans', sans-serif;
@@ -17,7 +18,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url(img/prewed1.jpg);
+  background: linear-gradient(160deg, #2b2b2b 0%, #0a0a0a 60%, var(--pink) 150%);
   background-size: cover; /* Membuat gambar menutupi area hero */
   background-repeat: no-repeat; /* Mencegah gambar berulang */
   background-position: center; /* Memusatkan gambar */
@@ -27,7 +28,6 @@ body {
 .hero {
   position: relative;
   min-height: 100vh;
-  background-color: var(--transparant);
 }
 .hero h1,
 .hero h4,
@@ -77,8 +77,6 @@ body {
   overflow: hidden;
 }
 .home {
-  background-image: url(img/floraPattern1.png);
-  background-size: cover;
   min-height: 100vh;
   margin-top: -6rem;
   padding-top: 15rem;
@@ -87,8 +85,9 @@ body {
 
 .home h2,
 .info h2,
-.story h2,
-.gallery h2,
+.cd h2,
+/* .story h2, */
+/* .gallery h2, */
 .rsvp h2,
 .gifts h2 {
   color: var(--pink);
@@ -109,6 +108,18 @@ body {
   color: #666;
 }
 
+.home .couple .avatar {
+  width: 100px;
+  height: 100px;
+  font-family: 'Sacramento', cursive;
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, var(--pink), #ad1d63);
+  border: 3px solid white;
+  box-shadow: var(--shadow);
+}
+
 .home .couple {
   margin-top: 75px;
 }
@@ -118,9 +129,7 @@ body {
   font-weight: bold;
   color: var(--pink);
 }
-.home .couple img {
-  width: 100%;
-}
+
 .home .heart {
   width: 50px;
   height: 50px;
@@ -129,12 +138,18 @@ body {
   border-radius: 50%;
   box-shadow: var(--shadow);
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%) translateY(65px);
+  /* Kalkulasi langsung memotong tepat setengah lebar elemen (25px) */
+  left: calc(50% - 25px);
+  /* Gunakan margin-top sebagai pengganti mutlak translateY(65px) */
+  /* margin-top: 65px; */
 }
 .home .heart i {
   margin: auto;
   color: var(--pink);
+}
+
+.home .heart li i {
+  margin: 0;
 }
 
 /* info */
@@ -170,16 +185,28 @@ body {
   font-weight: 300;
 }
 
+.cd {
+  background-color: var(--bg);
+  color: azure;
+  padding-top: 10rem;
+  padding-bottom: 2rem;
+}
+
+.cd p {
+  margin-bottom: 3rem;
+}
+
 /* story */
-.story,
-.gallery,
+/* .cd, */
+/* .story, */
+/* .gallery, */
 .rsvp,
 .gifts {
   padding-top: 10rem;
   padding-bottom: 8rem;
 }
-.story span,
-.gallery span,
+/* .story span, */
+/* .gallery span, */
 .gifts span {
   text-transform: uppercase;
   color: #666;
@@ -188,13 +215,20 @@ body {
   display: block;
   margin-bottom: 1rem;
 }
-.story p,
-.gallery p,
+/* .story p, */
+/* .gallery p, */
+.cd,
 .rsvp p,
 .gifts p {
   font-size: 1rem;
   font-weight: 300;
 }
+
+/* .gifts #rekening-info p {
+  font-weight: 400;
+  font-size: 1.2rem;
+} */
+
 .timeline {
   list-style: none;
   padding: 1.4rem 0;
@@ -283,9 +317,9 @@ body {
 }
 
 /* gallery */
-.gallery {
+/* .gallery {
   background-color: #f5f5f538;
-}
+} */
 
 /* rsvp */
 .rsvp {
@@ -350,6 +384,13 @@ footer li {
   align-items: center; /* bikin muter ditengah-tengah */
   line-height: 0; /* bikin muter ditengah-tengah */
 }
+
+.container-form {
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
 @keyframes muter {
   form {
     transform: rotate(0);
@@ -362,9 +403,9 @@ footer li {
 /* media query */
 /* extra large */
 @media (max-width: 1200px) {
-  .home .heart {
+  /* .home .heart {
     transform: translateX(-50%) translateY(45px);
-  }
+  } */
   .timeline li .timeline-image {
     left: 25px;
     margin-left: 85px;
@@ -461,6 +502,12 @@ footer li {
   .timeline li .timeline-panel::after {
     top: 31px;
   }
+
+  .home .couple .avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2.4rem;
+  }
 }
 
 /* mobile phone */
@@ -495,6 +542,9 @@ footer li {
 @media (max-width: 460px) {
   html {
     font-size: 55%;
+  }
+  html .home {
+    min-height: 0;
   }
   .simply-countdown-circle > .simply-section {
     padding: 6px;

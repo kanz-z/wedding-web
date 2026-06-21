@@ -14,16 +14,16 @@
     <!-- simply countdown -->
     <link rel="stylesheet" href="countdown/circle.css" />
     <script src="countdown/simplyCountdown.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
   </head>
   <body>
     <!-- bagian hero -->
     <section id="hero" class="hero w-100 h-100 p-3 mx-auto text-center d-flex justify-content-center align-items-center text-white">
-      <main>
-        <h4>Kepada Yth.<span>Bapak/Ibu/Saudara/i, </span></h4>
+      <main data-aos="fade-up">
+        <!-- <h4>Kepada Yth.<span>Bapak/Ibu/Saudara/i, </span></h4> -->
+        <p style="font-size: 1.1rem; font-weight: 400;">You're Specially Invited to the Wedding of</p>
         <h1>Reza & Ashila</h1>
-        <p>Akan melangsungkan resepsi pernikan dalam:</p>
-        <!-- nanti ada countdown disini -->
-        <div id="countdown" class="countdown simply-countdown-circle mt-4 mb-4"></div>
+        <p style="font-size: larger; font-weight: 500;">August 22<sup>nd</sup> 2026</p>
         <a href="#home" class="btn mt-4" btn-lg onClick="enableScroll()">Lihat Undangan</a>
       </main>
     </section>
@@ -35,7 +35,7 @@
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
           <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Reza & Ashila</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -44,6 +44,7 @@
               <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="#home">Home</a>
                 <a class="nav-link" href="#info">Info</a>
+                <a class="nav-link" href="#cd">Countdown</a>
                 <a class="nav-link" href="#rsvp">RSVP</a>
                 <a class="nav-link" href="#gifts">Gifts</a>
               </div>
@@ -55,48 +56,72 @@
     <section id="home" class="home">
       <div class="container">
         <div class="row justify-content-center">
-          <div class="col-md-8 text-center">
+          <div class="col-md-8 text-center" data-aos="fade-up">
             <h2>Acara Pernikahan</h2>
             <h3>Diselenggarakan pada 22 Agustus 2026 di Sardonoharjo</h3>
             <p>Oleh karena itu, dengan segala hormat, kami bermaksud untuk mengundang Bapak/Ibu/Saudara/i, untuk hadir pada acara pernikahan kami.</p>
           </div>
 
-          <div class="row couple">
-            <!-- pengantin Pria -->
-            <div class="col-lg-6">
-              <div class="row">
-                <div class="col-8 text-end">
-                  <h3>Muhamad Reza Ramadhan</h3>
-                  <p>Putra dari Bpk. Dwi Hastono <br> dan <br> Ibu Andriani</p>
-                </div>
-                <div class="col-4">
-                  <img src="img/pengantinPria.png" alt="pengantinPria" class="img-responsive rounded-circle">
-                </div>
+      <div class="row couple align-items-center">
+        <!-- pengantin Pria -->
+        <div class="col-lg-6" data-aos="fade-right">
+          <div class="row align-items-center">
+            <div class="col-8 text-end">
+              <h3>Muhamad Reza Ramadhan</h3>
+              <p>Putra dari Bpk. Dwi Hastono <br> dan <br> Ibu Andriani</p>
+              <li style="list-style-type: none;"><a href="https://https://www.instagram.com/skyaa20/" style="color: inherit; text-decoration: none;"><i class="bi bi-instagram m-2"></i>@skyaa20</a></li>
+            </div>
+            <div class="col-4">
+              <div class="rounded-circle d-flex align-items-center justify-content-center avatar mx-auto" style="width:100px;height:100px;">
+                <h6>
+                  R
+                </h6>
               </div>
             </div>
-            <span class="heart"><i class="bi bi-heart-fill"></i></span>
-            <!-- pengantin Wanita -->
-            <div class="col-lg-6">
-              <div class="row">
-                <div class="col-4">
-                  <img src="img/pengantinWanita.png" alt="pengantinWanita" class="img-responsive rounded-circle">
-                </div>
-                <div class="col-8">
-                  <h3>Ashila Luqyana Danurdoro</h3>
-                  <p>Putri dari Bpk. Danurdoro Anindito <br> dan <br> Ibu Sulistiani Jati Septiana</p>
-                </div>
+          </div>
+        </div>
+
+        <span class="heart" data-aos="zoom-in" data-aos-delay="200"><i class="bi bi-heart-fill"></i></span>
+
+        <!-- pengantin Wanita -->
+        <div class="col-lg-6" data-aos="fade-left">
+          <div class="row align-items-center">
+            <div class="col-4">
+              <div class="rounded-circle d-flex align-items-center justify-content-center avatar mx-auto" style="width:100px;height:100px;">
+                <h6>
+                  A
+                </h6>
               </div>
+            </div>
+            <div class="col-8">
+              <h3>Ashila Luqyana Danurdoro</h3>
+              <p>Putri dari Bpk. Danurdoro Anindito <br> dan <br> Ibu Sulistiani Jati Septiana</p>
+              <li style="list-style-type: none;"><a href="https://Instagram.com/chikoelrion" style="color: inherit; text-decoration: none;"><i class="bi bi-instagram m-2"></i>@chikoelrion</a></li>
             </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- countdown -->
+     <section class="cd" id="cd">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="text-center" data-aos="fade-up">
+            <h2>Save The Date</h2>
+            <p>August 22<sup>nd</sup> 2026</p>
+            <!-- nanti ada countdown disini -->
+            <div id="countdown" class="countdown simply-countdown-circle" style="margin: .75em;"></div>
+          </div>
+        </div>
+      </div>
+     </section>
+
     <!-- bagian info -->
     <section id="info" class="info">
       <div class="container">
         <div class="row justify-content-center">
-          <div class="col-md-8 col-10 text-center">
+          <div class="col-md-8 col-10 text-center" data-aos="fade-up">
             <h2>Informasi Acara</h2>
             <p class="alamat">Alamat: <br>RIVEA Riverside Cafe and Space <br>Jl. Pandanaran, Pencar Sari, Sardonoharjo, Kec. Ngaglik, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55581</p>
             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.8573642559645!2d110.39850627029689!3d-7.698452301273465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a5f0039b89c13%3A0x2991cc900570ede5!2sRIVEA%20Riverside%20Cafe%20and%20Space!5e0!3m2!1sid!2sid!4v1781880009290!5m2!1sid!2sid" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -105,7 +130,7 @@
           </div>
         </div>
         <div class="row justify-content-center mt-4">
-          <div class="col-md-5 col-10">
+          <div class="col-md-5 col-10" data-aos="fade-right">
             <div class="card text-center text-bg-light mb-5">
               <div class="card-header">
                 Akad Nikah
@@ -114,7 +139,7 @@
                 <div class="row justify-content-center">
                   <div class="col-md-6">
                     <i class="bi bi-clock d-block"></i>
-                    <span>10.00 - 12.30</span>
+                    <span>10.00 - 12.00</span>
                   </div>
                   <div class="col-md-6">
                     <i class="bi bi-calendar3 d-block"></i>
@@ -127,7 +152,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-5 col-10">
+          <div class="col-md-5 col-10" data-aos="fade-left">
             <div class="card text-center text-bg-light">
               <div class="card-header">
                 Resepsi
@@ -272,15 +297,19 @@
 
     <!-- rsvp -->
      <section id="rsvp" class="rsvp">
-      <div class="container">
+      <div class="container container-form">
         <div class="row justify-content-center">
-          <div class="col-md-8 col-10 text-center">
+          <div class="col-md-8 col-10 text-center" data-aos="fade-up">
             <h2>Konfirmasi Kehadiran</h2>
             <p>Isi form di bawah ini untuk melakukan konfirmasi kehadiran.</p>
           </div>
 
-          <form class="row row-cols-md-auto g-3 align-items-center justify-content-center" method="POST" 
+          <form class="row row-cols-md-auto g-3 align-items-center justify-content-center" data-aos="fade-up" data-aos-delay="100" method="POST" 
           action="https://script.google.com/macros/s/AKfycbzSBN6ahtnvM0zVf7RsvXzsGTlv4ILlkE2eN8UkoVeW1hJxJZDr6C9dQdkGVzscZTtwGg/exec" id="my-form">
+            <div style="position:absolute; left:-9999px;" aria-hidden="true">
+              <label for="website">Website</label>
+              <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
             <div class="col-12">
               
               <div class="mb-3">
@@ -344,7 +373,7 @@
      <section id="gifts" class="gifts">
       <div class="container">
         <div class="row justify-content-center">
-          <div class="col-md-8 col-10 text-center">
+          <div class="col-md-8 col-10 text-center" data-aos="fade-up">
             <span>ungkapan tanda kasih</span>
             <h2>Kirim Hadiah</h2>
             <!-- <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quasi, eum.</p> -->
@@ -352,7 +381,7 @@
         </div>
 
         <div class="row justify-content-center text-center">
-          <div class="col-md-6">
+          <div class="col-md-6" data-aos="zoom-in">
             <ul class="list-group">
               <li class="list-group-item">
                <div class="fw-bold">BCA</div>  
@@ -360,8 +389,18 @@
               </li>
               <li class="list-group-item">
                 <div class="fw-bold">Saweria</div>
-                <p><a href="https://saweria.co/ChikoeL">ChikoeL</a> - Ashila</p>
+                <a href="https://saweria.co/ChikoeL">ChikoeL</a> - ASHILA
               </li>
+              <!-- <li class="list-group-item">
+                <div class="fw-bold">
+                  BCA
+                  <div class="col-12 text-center">
+                    <button class="btn btn-outline-primary" id="show-rekening">Tampilkan Nomor Rekening</button>
+                    <div id="rekening-info" class="mt-3" style="display:none;"></div> 
+                  </div>
+                  <div id="rekening-info" class="mt-3" style="display:none;"></div>
+                </div>
+              </li> -->
             </ul>
           </div>
         </div>
@@ -375,7 +414,7 @@
               <small class="block">&copy;2026 Wedding Team Production. All Rights Reserved.</small>
               
               <ul class="mt-3">
-                <li><a href="https://Instagram.com/chikoelrion"><i class="bi bi-instagram"></i></a></li>
+                
                 <!-- <li><a href="#"><i class="bi bi-youtube"></i></a></li>
                 <li><a href="#"><i class="bi bi-twitter"></i></a></li>
                 <li><a href="#"><i class="bi bi-facebook"></i></a></li>
@@ -504,27 +543,50 @@
     </script>
 
     <!-- js penanganan pengembalian hasil form -->
-     <script>
+    <script>
       window.addEventListener("load", function () {
         const form = document.getElementById("my-form");
+        const submitBtn = form.querySelector("button.btn-primary");
+        const originalBtnText = submitBtn.textContent;
 
         form.addEventListener("submit", function (e) {
           e.preventDefault();
 
           const data = new FormData(form);
-          const action = e.target.action;
+          const action = form.action;
+
+          // kunci tombol biar nggak double submit
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Mengirim...";
 
           fetch(action, {
             method: "POST",
             body: data,
           })
-            .then(() => {
-              alert("Konfirmasi kehadiran, Success!");
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Server merespon dengan status " + response.status);
+              }
+              return response.json();
+            })
+            .then((result) => {
+              if (result.result === "error") {
+                throw new Error(result.message || "Terjadi kesalahan");
+              }
+              alert("Konfirmasi kehadiran berhasil dikirim. Terima kasih!");
+              form.reset();
+            })
+            .catch((error) => {
+              console.error("Gagal mengirim form:", error);
+              alert(error.message || "Maaf, terjadi kesalahan saat mengirim konfirmasi. Silakan coba lagi.");
+            })
+            .finally(() => {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalBtnText;
             });
         });
       });
-
-     </script>
+    </script>
 
      <!-- js menamai undangan sesuai nama tamu -->
      <script>
@@ -538,6 +600,47 @@
 
       document.querySelector('#nama').value = nama;
      </script>
+
+     <!-- close offcanvas setelah click anchor -->
+     <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const offcanvasEl = document.getElementById('offcanvasNavbar');
+        const offcanvasInstance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+        const navLinks = offcanvasEl.querySelectorAll('.nav-link');
+
+        navLinks.forEach(function (link) {
+          link.addEventListener('click', function () {
+            offcanvasInstance.hide();
+          });
+        });
+      });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+    <script>
+      AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,   // animasi cuma main sekali agar tidak replay setiap scroll naik-turun
+        offset: 80,
+        
+      });
+      window.addEventListener('load', function() {
+          AOS.refresh();
+      });
+    </script>
+
+    <!-- <script>
+      document.getElementById('show-rekening').addEventListener('click', function () {
+        const info = document.getElementById('rekening-info');
+        info.innerHTML = `
+          <p>8614023870 - a.n. ASHILA LUQYANA DANURDORO</p>
+        `;
+        info.style.display = 'block';
+        this.remove();
+      });
+    </script> -->
 
   </body>
 </html>
