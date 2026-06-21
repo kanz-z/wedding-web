@@ -12,7 +12,7 @@ The project is live and accessible via the link below:
 - **Event Details**: Displays event information like date, time, and location.
 - **RSVP Form**: Allows guests to RSVP for the wedding via a form connected to Google Sheets.
 - **Responsive Design**: Optimised for both mobile and desktop devices.
-  
+
 ## Technology Used
 
 - HTML5
@@ -39,3 +39,7 @@ The design and Google Sheets integration is inspired by the following repositori
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+# wedding-web
+
+Reza &amp; Ashila
