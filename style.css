@@ -156,7 +156,7 @@ body {
   background-color: var(--bg);
   color: azure;
   padding-top: 10rem;
-  padding-bottom: 8rem;
+  padding-bottom: 1rem;
 }
 .info .alamat {
   font-size: 1.1rem;
@@ -187,12 +187,20 @@ body {
 .cd {
   background-color: var(--bg);
   color: azure;
-  padding-top: 10rem;
+  padding-top: 3rem;
   padding-bottom: 2rem;
 }
 
 .cd p {
-  margin-bottom: 3rem;
+  font-family: "Playfair Display", serif;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.cd h6 {
+  font-family: "Playfair Display", serif;
+  font-size: 2.5rem;
+  font-weight: 300;
 }
 
 /* story */
@@ -216,7 +224,7 @@ body {
 }
 /* .story p, */
 /* .gallery p, */
-.cd,
+/* .cd p, */
 .rsvp p,
 .gifts p {
   font-size: 1rem;
@@ -526,6 +534,9 @@ footer li {
   }
   html .home {
     min-height: 0;
+  }
+  .info .informasi {
+    margin-bottom: 1rem;
   }
   .simply-countdown-circle > .simply-section {
     padding: 30px;
