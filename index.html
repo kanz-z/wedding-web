@@ -263,7 +263,7 @@
           <div class="text-center" data-aos="fade-up">
             <h2>Save The Date</h2>
             <h6>Sabtu</h6>
-            <p>22 | Agustus | 2026</p>
+            <p>22 | 08 | 2026</p>
             <!-- nanti ada countdown disini -->
             <div
               id="countdown"
@@ -376,6 +376,7 @@
           id="carouselIndicators"
           class="carousel slide carousel-dark"
           data-bs-ride="carousel"
+          data-aos="zoom-in"
         >
           <!-- Indikator Bootstrap 5 menggunakan tag <button>, bukan <ol><li> -->
           <div class="carousel-indicators">
@@ -628,7 +629,6 @@
           const data = new FormData(form);
           const action = form.action;
 
-          // kunci tombol biar nggak double submit
           submitBtn.disabled = true;
           submitBtn.textContent = "Mengirim...";
 
@@ -735,6 +735,50 @@
       window.addEventListener("load", function () {
         AOS.refresh();
       });
+    </script>
+
+    <!-- connect supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const supabaseUrl = "https://liyfsapgadickknsfbus.supabase.co";
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWZzYXBnYWRpY2trbnNmYnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDIwNDMsImV4cCI6MjA5NzY3ODA0M30.aQ37-_9-wl2pbDtqKSavOvrsUU-F-sIzv6g3hG23dHw";
+      const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+      async function fetchGuest(guestSlug) {
+        const { data, error } = await supabaseClient.rpc("get_guest_by_slug", {
+          guest_slug: guestSlug,
+        });
+        if (error) throw error;
+        return data;
+      }
+      async function fetchGuest(guestSlug) {
+        const { data, error } = await supabaseClient.rpc("get_guest_by_slug", {
+          guest_slug: guestSlug,
+        });
+        if (error) throw error;
+        return data;
+      }
+      async function submitRSVP(
+        guestId,
+        namaInput,
+        jumlahInput,
+        statusInput,
+        pesanInput,
+      ) {
+        const { error } = await supabaseClient
+          .from("rsvps")
+          .insert([
+            {
+              guest_id: guestId,
+              nama: namaInput,
+              jumlah_hadir: jumlahInput,
+              status: statusInput,
+              pesan: pesanInput,
+            },
+          ]);
+
+        if (error) throw error;
+      }
     </script>
   </body>
 </html>

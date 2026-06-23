@@ -250,9 +250,15 @@ body {
 
 .carousel-item {
   transition:
-    transform 1.2s ease-in-out,
-    opacity 1.2s ease-in-out;
+    transform 0.6s ease-in-out,
+    opacity 0.6s ease-in-out;
   opacity: 0;
+}
+
+.carousel-item.active,
+.carousel-item-next.carousel-item-start,
+.carousel-item-prev.carousel-item-end {
+  opacity: 1;
 }
 
 /* .gifts #rekening-info p {
@@ -336,7 +342,7 @@ body {
 
 /* footer */
 footer {
-  padding: 3rem;
+  padding: 5rem;
   background-color: var(--pink);
   color: white;
 }
