@@ -5,6 +5,12 @@
   --transparant: rgba(0, 0, 0, 0.319);
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-size: 1.2rem;
   font-family: "Inter", sans-serif;
@@ -231,101 +237,27 @@ body {
   font-weight: 300;
 }
 
+.gifts {
+  padding: 50px 0;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  padding: 20px;
+}
+
+.carousel-item {
+  transition:
+    transform 1.2s ease-in-out,
+    opacity 1.2s ease-in-out;
+  opacity: 0;
+}
+
 /* .gifts #rekening-info p {
   font-weight: 400;
   font-size: 1.2rem;
-} */
-
-/* .timeline {
-  list-style: none;
-  padding: 1.4rem 0;
-  margin-top: 1rem;
-  position: relative;
-}
-.timeline::before {
-  content: '';
-  top: 0;
-  bottom: 0;
-  position: absolute;
-  width: 1px;
-  background-color: #a4a2a2;
-  left: 50%;
-}
-.timeline li {
-  margin-bottom: 1.5rem;
-  position: relative;
-  overflow: hidden;
-}
-.timeline::before,
-.timeline::after {
-  content: '';
-  display: table;
-}
-.timeline::after {
-  clear: both;
-}
-.timeline li .timeline-image {
-  width: 160px;
-  height: 160px;
-  background-color: #ccc;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-.timeline li .timeline-panel {
-  width: 40%;
-  float: left;
-  border: 1px solid #ccc;
-  padding: 2rem;
-  position: relative;
-  border-radius: 8px;
-  background-color: #fff;
-} */
-/* .timeline li .timeline-panel::before {
-  content: '';
-  display: inline-block;
-  position: absolute;
-  border-top: 15px solid transparent; 
-  border-left: 15px solid#ccc; 
-  border-right: 0 solid#ccc; 
-  border-bottom: 15px solid transparent; 
-  top: 80px; 
-  right: -15px; 
-}
-.timeline li .timeline-panel::after {
-  content: '';
-  position: absolute;
-  display: inline-block;
-  border-top: 14px solid transparent; 
-  border-left: 14px solid#fff; 
-  border-right: 0 solid#fff; 
-  border-bottom: 14px solid transparent; 
-  top: 81px; 
-  right: -13px; 
-}
-.timeline li.timeline-inverted .timeline-panel {
-  float: right;
-}
-.timeline li.timeline-inverted .timeline-panel::before {
-  border-left-width: 0; 
-  border-right-width: 15px; 
-  left: -15px; 
-  right: auto; 
-}
-.timeline li.timeline-inverted .timeline-panel::after {
-  border-left-width: 0; 
-  border-right-width: 14px; 
-  left: -13px; 
-  right: auto; 
-} */
-
-/* gallery */
-/* .gallery {
-  background-color: #f5f5f538;
 } */
 
 /* rsvp */
@@ -340,6 +272,9 @@ body {
 }
 .rsvp form label {
   color: white;
+}
+.rsvp form textarea.form-control {
+  resize: vertical;
 }
 .rsvp button {
   background-color: var(--pink);
@@ -455,37 +390,7 @@ footer li {
 }
 
 /* media query */
-/* extra large */
-@media (max-width: 1200px) {
-  /* .home .heart {
-    transform: translateX(-50%) translateY(45px);
-  } */
-  .timeline li .timeline-image {
-    left: 25px;
-    margin-left: 85px;
-    width: 190px;
-    height: 190px;
-  }
-  .timeline li .timeline-panel {
-    width: 70%;
-    float: right;
-    transform: translateX(-25px);
-  }
-  .timeline li .timeline-panel::before {
-    border-left-width: 0;
-    border-right-width: 15px;
-    left: -15px;
-    right: auto;
-    top: 30px;
-  }
-  .timeline li .timeline-panel::after {
-    border-left-width: 0;
-    border-right-width: 14px;
-    left: -13px;
-    right: auto;
-    top: 31px;
-  }
-}
+
 /* laptop */
 @media (max-width: 992px) {
   html {
@@ -496,34 +401,6 @@ footer li {
   }
   .home .heart {
     display: none;
-  }
-  .timeline::before {
-    left: 60px;
-  }
-  .timeline li .timeline-image {
-    left: 15px;
-    margin-left: 70px;
-    width: 155px;
-    height: 155px;
-  }
-  .timeline li .timeline-panel {
-    width: 70%;
-    float: right;
-    transform: translateX(-15px);
-  }
-  .timeline li .timeline-panel::before {
-    border-left-width: 0;
-    border-right-width: 15px;
-    left: -15px;
-    right: auto;
-    top: 30px;
-  }
-  .timeline li .timeline-panel::after {
-    border-left-width: 0;
-    border-right-width: 14px;
-    left: -13px;
-    right: auto;
-    top: 31px;
   }
 }
 
@@ -546,29 +423,6 @@ footer li {
     font-size: 1.5rem;
     text-align: center;
   }
-  .timeline li .timeline-image {
-    width: 110px;
-    height: 110px;
-    left: 0;
-    top: 15px;
-  }
-  .timeline li .timeline-panel {
-    width: 70%;
-    transform: translateX(-8px);
-  }
-  .timeline li .timeline-panel::before {
-    top: 30px;
-  }
-  .timeline li .timeline-panel::after {
-    top: 31px;
-  }
-
-  /* .home .couple .avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 2.4rem;
-  } */
-
   .audio-icon-wrapper {
     margin-bottom: 1.5em;
   }
@@ -586,23 +440,6 @@ footer li {
     padding: 10px;
     margin: 2px;
   }
-  .timeline li .timeline-image {
-    width: 115px;
-    height: 115px;
-    left: 0;
-    top: 5px;
-  }
-  .timeline li .timeline-panel {
-    width: 55%;
-    transform: translateX(-20px);
-    padding: 2%;
-  }
-  .timeline li .timeline-panel::before {
-    top: 30px;
-  }
-  .timeline li .timeline-panel::after {
-    top: 31px;
-  }
 }
 
 /* small mobile phone */
@@ -616,44 +453,5 @@ footer li {
   .simply-countdown-circle > .simply-section {
     padding: 6px;
     margin: 1px;
-  }
-  .timeline li .timeline-image {
-    width: 90px;
-    height: 90px;
-    left: 0;
-    top: 1.5px;
-  }
-  .timeline li .timeline-panel {
-    width: 60%;
-    transform: translateX(-15px);
-    padding: 1.5%;
-  }
-  .timeline li .timeline-panel::before {
-    top: 28px;
-  }
-  .timeline li .timeline-panel::after {
-    top: 29px;
-  }
-}
-
-@media (max-width: 380px) {
-  .timeline li .timeline-image {
-    width: 80px;
-    height: 80px;
-    left: 0;
-    top: 12px;
-  }
-
-  .timeline li .timeline-panel {
-    width: 55%;
-    transform: translateX(-15px);
-    padding: 0.6%;
-  }
-  .timeline li .timeline-panel .timeline-heading h3,
-  .timeline li .timeline-panel .timeline-heading span {
-    padding: 0.5%;
-  }
-  .timeline li .timeline-panel .timeline-body p {
-    font-size: 80%;
   }
 }
