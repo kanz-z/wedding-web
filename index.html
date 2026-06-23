@@ -765,17 +765,15 @@
         statusInput,
         pesanInput,
       ) {
-        const { error } = await supabaseClient
-          .from("rsvps")
-          .insert([
-            {
-              guest_id: guestId,
-              nama: namaInput,
-              jumlah_hadir: jumlahInput,
-              status: statusInput,
-              pesan: pesanInput,
-            },
-          ]);
+        const { error } = await supabaseClient.from("rsvps").insert([
+          {
+            guest_id: guestId,
+            nama: namaInput,
+            jumlah_hadir: jumlahInput,
+            status: statusInput,
+            pesan: pesanInput,
+          },
+        ]);
 
         if (error) throw error;
       }
