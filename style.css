@@ -14,7 +14,6 @@ body {
 body {
   font-size: 1.2rem;
   font-family: "Inter", sans-serif;
-  min-height: 4000px;
 }
 
 .hero::before {
@@ -166,6 +165,7 @@ body {
 }
 .info .alamat {
   font-size: 1.1rem;
+  margin-top: 2rem;
 }
 .info .description {
   font-size: 1rem;
@@ -387,7 +387,7 @@ footer li {
 }
 
 @keyframes muter {
-  form {
+  from {
     transform: rotate(0);
   }
   to {

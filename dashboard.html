@@ -83,7 +83,7 @@
       }
 
       /* ---------- loading (initial session check) ---------- */
-      .boot {
+      /* .boot {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
@@ -104,7 +104,7 @@
         to {
           transform: rotate(360deg);
         }
-      }
+      } */
 
       /* ---------- login ---------- */
       #login-screen .wrap {
@@ -427,10 +427,10 @@
   </head>
   <body>
     <!-- ---------- boot / session check ---------- -->
-    <div id="boot-screen" class="screen active boot">
+    <!-- <div id="boot-screen" class="screen active boot">
       <div class="spinner" aria-hidden="true"></div>
       <span>Memeriksa sesi…</span>
-    </div>
+    </div> -->
 
     <!-- ---------- login ---------- -->
     <div id="login-screen" class="screen">
@@ -545,7 +545,7 @@
         var toastTimer = null;
 
         // ---------- dom refs ----------
-        var bootScreen = document.getElementById("boot-screen");
+        // var bootScreen = document.getElementById("boot-screen");
         var loginScreen = document.getElementById("login-screen");
         var dashScreen = document.getElementById("dashboard-screen");
 
@@ -570,10 +570,11 @@
 
         // ---------- screen switching ----------
         function showScreen(name) {
-          [bootScreen, loginScreen, dashScreen].forEach(function (el) {
+          [loginScreen, dashScreen].forEach(function (el) {
+            // bootScreen di hapus sementara
             el.classList.remove("active");
           });
-          if (name === "boot") bootScreen.classList.add("active");
+          // if (name === "boot") bootScreen.classList.add("active");
           if (name === "login") loginScreen.classList.add("active");
           if (name === "dashboard") dashScreen.classList.add("active");
         }
