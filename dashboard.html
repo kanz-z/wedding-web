@@ -612,13 +612,10 @@
         // untuk user yang bukan admin.
         function verifyAdmin(user) {
           return sb
-            .from("admin_users")
-            .select("role")
-            .eq("id", user.id)
-            .single()
+            .rpc("check_current_admin") // << Memanggil orang dalam
             .then(function (res) {
               if (res.error || !res.data) return false;
-              return true;
+              return res.data; // jawaban: 0/1
             })
             .catch(function () {
               return false;
