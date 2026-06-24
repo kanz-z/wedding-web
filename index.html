@@ -764,6 +764,7 @@
         jumlahInput,
         statusInput,
         pesanInput,
+        noWaInput,
       ) {
         const { error } = await supabaseClient.from("rsvps").insert([
           {
@@ -772,6 +773,7 @@
             jumlah_hadir: jumlahInput,
             status: statusInput,
             pesan: pesanInput,
+            noWa: noWaInput,
           },
         ]);
 

@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Halaman internal admin: jangan diindeks mesin pencari, jangan ditautkan dari nav publik -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin · Guestbook Reza &amp; Ashila</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital@1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <style>
+      :root {
+        --pink: #f14e95;
+        --pink-dim: #b53a70;
+        --bg: #0a0a0a;
+        --panel: rgba(255, 255, 255, 0.05);
+        --panel-border: rgba(255, 255, 255, 0.12);
+        --ink: #f3f3f3;
+        --ink-muted: #9a9a9a;
+        --danger: #ff6b7a;
+        --radius: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100vh;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      a {
+        color: var(--pink);
+      }
+
+      .brand {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        color: var(--pink);
+        margin: 0;
+      }
+
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--pink);
+        outline-offset: 2px;
+      }
+
+      .screen {
+        display: none;
+      }
+      .screen.active {
+        display: block;
+      }
+
+      /* ---------- loading (initial session check) ---------- */
+      .boot {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        color: var(--ink-muted);
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 3px solid var(--panel-border);
+        border-top-color: var(--pink);
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ---------- login ---------- */
+      #login-screen .wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+      .login-card {
+        width: 100%;
+        max-width: 380px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: var(--radius);
+        padding: 2.25rem 2rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+      .login-card h1 {
+        font-size: 1.7rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.15rem;
+      }
+      .login-card .sub {
+        color: var(--ink-muted);
+        font-size: 0.85rem;
+        margin-bottom: 1.75rem;
+      }
+      .field {
+        margin-bottom: 1.1rem;
+      }
+      .field label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+        color: #d6d6d6;
+      }
+      .field input {
+        width: 100%;
+        background: #141414;
+        border: 1px solid var(--panel-border);
+        border-radius: 9px;
+        padding: 0.65rem 0.8rem;
+        color: var(--ink);
+        font-size: 0.95rem;
+      }
+      .field input:focus {
+        border-color: var(--pink);
+      }
+      .btn-primary {
+        width: 100%;
+        background: var(--pink);
+        color: white;
+        border: 1px solid var(--pink);
+        border-radius: 9px;
+        padding: 0.7rem 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-top: 0.4rem;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: transparent;
+        color: var(--pink);
+      }
+      .login-error {
+        background: rgba(255, 107, 122, 0.12);
+        border: 1px solid rgba(255, 107, 122, 0.4);
+        color: var(--danger);
+        font-size: 0.85rem;
+        border-radius: 9px;
+        padding: 0.6rem 0.75rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
+      .login-error.show {
+        display: block;
+      }
+      .login-hint {
+        margin-top: 1.4rem;
+        font-size: 0.78rem;
+        color: var(--ink-muted);
+        text-align: center;
+      }
+
+      /* ---------- dashboard ---------- */
+      #dashboard-screen .container {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 1.75rem 1.25rem 4rem;
+      }
+      .topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .topbar h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+      .topbar .who {
+        color: var(--ink-muted);
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--panel-border);
+        color: var(--ink);
+        border-radius: 9px;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+      }
+      .btn-ghost:hover:not(:disabled) {
+        border-color: var(--pink);
+        color: var(--pink);
+      }
+
+      .stats {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+      }
+      .stat-chip {
+        flex: 1;
+        min-width: 100px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        text-align: center;
+      }
+      .stat-chip .num {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: block;
+      }
+      .stat-chip .label {
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1.1rem;
+        flex-wrap: wrap;
+      }
+      .filters {
+        display: inline-flex;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 3px;
+        gap: 2px;
+      }
+      .filters button {
+        background: transparent;
+        border: none;
+        color: var(--ink-muted);
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+      }
+      .filters button.active {
+        background: var(--pink);
+        color: white;
+      }
+
+      .list-status {
+        text-align: center;
+        color: var(--ink-muted);
+        padding: 2.5rem 1rem;
+        font-size: 0.9rem;
+        display: none;
+      }
+      .list-status.show {
+        display: block;
+      }
+      .list-status .retry {
+        display: inline-block;
+        margin-top: 0.75rem;
+        background: transparent;
+        border: 1px solid var(--panel-border);
+        color: var(--pink);
+        border-radius: 8px;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.82rem;
+      }
+
+      #list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+      .entry-card {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-left: 3px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 0.9rem 1.05rem;
+      }
+      .entry-card.is-approved {
+        border-left-color: var(--pink);
+      }
+      .entry-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.35rem;
+      }
+      .entry-name {
+        font-weight: 600;
+      }
+      .entry-date {
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+      }
+      .badge {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid var(--panel-border);
+        color: var(--ink-muted);
+      }
+      .badge.approved {
+        color: var(--pink);
+        border-color: var(--pink);
+      }
+      .entry-msg {
+        color: #d8d8d8;
+        font-size: 0.92rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin-bottom: 0.65rem;
+      }
+      .entry-foot {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .btn-toggle {
+        background: transparent;
+        border: 1px solid var(--panel-border);
+        color: var(--ink);
+        border-radius: 8px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.78rem;
+      }
+      .btn-toggle.action-hide {
+        border-color: rgba(255, 107, 122, 0.4);
+        color: var(--danger);
+      }
+      .btn-toggle.action-show {
+        border-color: var(--pink);
+        color: var(--pink);
+      }
+      .btn-toggle:hover:not(:disabled) {
+        opacity: 0.8;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translate(-50%, 20px);
+        background: #1c1c1c;
+        border: 1px solid var(--panel-border);
+        color: var(--ink);
+        padding: 0.6rem 1.1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        opacity: 0;
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+        pointer-events: none;
+        z-index: 50;
+        max-width: 90vw;
+        text-align: center;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .toast.error {
+        border-color: rgba(255, 107, 122, 0.5);
+        color: var(--danger);
+      }
+
+      @media (max-width: 480px) {
+        .login-card {
+          padding: 1.75rem 1.4rem;
+        }
+        .topbar {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ---------- boot / session check ---------- -->
+    <div id="boot-screen" class="screen active boot">
+      <div class="spinner" aria-hidden="true"></div>
+      <span>Memeriksa sesi…</span>
+    </div>
+
+    <!-- ---------- login ---------- -->
+    <div id="login-screen" class="screen">
+      <div class="wrap">
+        <div class="login-card">
+          <h1 class="brand"><i class="bi bi-envelope-heart-fill"></i> Admin</h1>
+          <div class="sub">Guestbook — Reza &amp; Ashila</div>
+
+          <div id="login-error" class="login-error" role="alert"></div>
+
+          <form id="login-form" novalidate>
+            <div class="field">
+              <label for="login-email">Email</label>
+              <input
+                type="email"
+                id="login-email"
+                name="email"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <button type="submit" id="login-submit" class="btn-primary">
+              Masuk
+            </button>
+          </form>
+
+          <div class="login-hint">
+            Lupa password? Minta pemilik akun me-reset lewat Supabase Dashboard.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- dashboard ---------- -->
+    <div id="dashboard-screen" class="screen">
+      <div class="container">
+        <div class="topbar">
+          <div>
+            <h1 class="brand">Guestbook</h1>
+            <div class="who">Masuk sebagai <span id="who-email"></span></div>
+          </div>
+          <button id="logout-btn" class="btn-ghost" type="button">
+            <i class="bi bi-box-arrow-right"></i> Keluar
+          </button>
+        </div>
+
+        <div class="stats">
+          <div class="stat-chip">
+            <span class="num" id="stat-total">0</span>
+            <span class="label">Total</span>
+          </div>
+          <div class="stat-chip">
+            <span class="num" id="stat-approved">0</span>
+            <span class="label">Tampil</span>
+          </div>
+          <div class="stat-chip">
+            <span class="num" id="stat-pending">0</span>
+            <span class="label">Menunggu</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="filters" role="group" aria-label="Filter pesan">
+            <button type="button" class="active" data-filter="all">
+              Semua
+            </button>
+            <button type="button" data-filter="pending">Menunggu</button>
+            <button type="button" data-filter="approved">Tampil</button>
+          </div>
+          <button id="refresh-btn" class="btn-ghost" type="button">
+            <i class="bi bi-arrow-clockwise"></i> Muat ulang
+          </button>
+        </div>
+
+        <div id="list-status" class="list-status"></div>
+        <div id="list-container"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- ====== Supabase client ======
+         Anon key di bawah ini AMAN ditaruh di client (sama seperti di
+         index.html) — yang menjaga data adalah RLS policy di database,
+         bukan kerahasiaan key ini. JANGAN PERNAH menaruh service_role
+         key di file ini atau file client manapun. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      (function () {
+        "use strict";
+
+        var SUPABASE_URL = "https://liyfsapgadickknsfbus.supabase.co";
+        var SUPABASE_ANON_KEY =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWZzYXBnYWRpY2trbnNmYnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDIwNDMsImV4cCI6MjA5NzY3ODA0M30.aQ37-_9-wl2pbDtqKSavOvrsUU-F-sIzv6g3hG23dHw";
+
+        var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ---------- state ----------
+        var currentUser = null;
+        var entries = [];
+        var currentFilter = "all";
+        var toastTimer = null;
+
+        // ---------- dom refs ----------
+        var bootScreen = document.getElementById("boot-screen");
+        var loginScreen = document.getElementById("login-screen");
+        var dashScreen = document.getElementById("dashboard-screen");
+
+        var loginForm = document.getElementById("login-form");
+        var loginEmail = document.getElementById("login-email");
+        var loginPassword = document.getElementById("login-password");
+        var loginError = document.getElementById("login-error");
+        var loginSubmit = document.getElementById("login-submit");
+
+        var whoEmail = document.getElementById("who-email");
+        var logoutBtn = document.getElementById("logout-btn");
+        var refreshBtn = document.getElementById("refresh-btn");
+
+        var statTotal = document.getElementById("stat-total");
+        var statApproved = document.getElementById("stat-approved");
+        var statPending = document.getElementById("stat-pending");
+
+        var filterBtns = document.querySelectorAll(".filters button");
+        var listStatus = document.getElementById("list-status");
+        var listContainer = document.getElementById("list-container");
+        var toastEl = document.getElementById("toast");
+
+        // ---------- screen switching ----------
+        function showScreen(name) {
+          [bootScreen, loginScreen, dashScreen].forEach(function (el) {
+            el.classList.remove("active");
+          });
+          if (name === "boot") bootScreen.classList.add("active");
+          if (name === "login") loginScreen.classList.add("active");
+          if (name === "dashboard") dashScreen.classList.add("active");
+        }
+
+        // ---------- toast ----------
+        function showToast(message, isError) {
+          clearTimeout(toastTimer);
+          toastEl.textContent = message;
+          toastEl.classList.toggle("error", !!isError);
+          toastEl.classList.add("show");
+          toastTimer = setTimeout(function () {
+            toastEl.classList.remove("show");
+          }, 3200);
+        }
+
+        // ---------- login error ----------
+        function setLoginError(message) {
+          if (!message) {
+            loginError.textContent = "";
+            loginError.classList.remove("show");
+            return;
+          }
+          loginError.textContent = message;
+          loginError.classList.add("show");
+        }
+
+        function setLoginLoading(isLoading) {
+          loginSubmit.disabled = isLoading;
+          loginSubmit.textContent = isLoading ? "Memproses…" : "Masuk";
+        }
+
+        // ---------- auth helpers ----------
+        // Cek apakah user yang login terdaftar di tabel admin_users.
+        // Ini lapisan UX saja -- penjaga sesungguhnya tetap RLS di database,
+        // jadi meskipun cek ini dilewati, query data tetap akan kosong/ditolak
+        // untuk user yang bukan admin.
+        function verifyAdmin(user) {
+          return sb
+            .from("admin_users")
+            .select("role")
+            .eq("id", user.id)
+            .single()
+            .then(function (res) {
+              if (res.error || !res.data) return false;
+              return true;
+            })
+            .catch(function () {
+              return false;
+            });
+        }
+
+        function enterDashboard(user) {
+          currentUser = user;
+          whoEmail.textContent = user.email || "";
+          showScreen("dashboard");
+          fetchGuestbook();
+        }
+
+        async function init() {
+          try {
+            var sessionRes = await sb.auth.getSession();
+            if (sessionRes.error) throw sessionRes.error;
+            var session = sessionRes.data && sessionRes.data.session;
+            if (session && session.user) {
+              var isAdmin = await verifyAdmin(session.user);
+              if (isAdmin) {
+                enterDashboard(session.user);
+                return;
+              }
+              await sb.auth.signOut();
+            }
+          } catch (err) {
+            console.error("Gagal memeriksa sesi:", err);
+          }
+          showScreen("login");
+        }
+
+        // ---------- login submit ----------
+        loginForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          setLoginError(null);
+
+          var email = loginEmail.value.trim();
+          var password = loginPassword.value;
+          if (!email || !password) {
+            setLoginError("Email dan password wajib diisi.");
+            return;
+          }
+
+          setLoginLoading(true);
+          try {
+            var res = await sb.auth.signInWithPassword({
+              email: email,
+              password: password,
+            });
+            if (res.error) {
+              setLoginError("Email atau password salah.");
+              return;
+            }
+            var isAdmin = await verifyAdmin(res.data.user);
+            if (!isAdmin) {
+              await sb.auth.signOut();
+              setLoginError("Akun ini belum terdaftar sebagai admin.");
+              return;
+            }
+            loginForm.reset();
+            enterDashboard(res.data.user);
+          } catch (err) {
+            console.error("Login error:", err);
+            setLoginError("Tidak bisa terhubung ke server. Coba lagi.");
+          } finally {
+            setLoginLoading(false);
+          }
+        });
+
+        // ---------- logout ----------
+        logoutBtn.addEventListener("click", async function () {
+          logoutBtn.disabled = true;
+          try {
+            await sb.auth.signOut();
+          } catch (err) {
+            console.error("Logout error:", err);
+          }
+          currentUser = null;
+          entries = [];
+          logoutBtn.disabled = false;
+          showScreen("login");
+        });
+
+        // ---------- fetch guestbook ----------
+        async function fetchGuestbook() {
+          setListStatus("loading");
+          try {
+            var res = await sb
+              .from("guestbook")
+              .select("id, nama, pesan, is_approved, created_at")
+              .order("created_at", { ascending: false })
+              .limit(500);
+            if (res.error) throw res.error;
+            entries = res.data || [];
+            renderAll();
+          } catch (err) {
+            console.error("Gagal memuat guestbook:", err);
+            setListStatus("error");
+          }
+        }
+
+        function setListStatus(kind) {
+          listStatus.innerHTML = "";
+          listStatus.classList.remove("show");
+
+          if (kind === "loading") {
+            listStatus.textContent = "Memuat pesan…";
+            listStatus.classList.add("show");
+            listContainer.innerHTML = "";
+          } else if (kind === "error") {
+            var msg = document.createElement("div");
+            msg.textContent =
+              "Gagal memuat data guestbook. Periksa koneksi internet Anda.";
+            var retry = document.createElement("button");
+            retry.type = "button";
+            retry.className = "retry";
+            retry.textContent = "Coba lagi";
+            retry.addEventListener("click", fetchGuestbook);
+            listStatus.appendChild(msg);
+            listStatus.appendChild(retry);
+            listStatus.classList.add("show");
+            listContainer.innerHTML = "";
+          } else if (kind === "empty") {
+            listStatus.textContent =
+              currentFilter === "pending"
+                ? "Tidak ada pesan yang menunggu moderasi."
+                : currentFilter === "approved"
+                  ? "Belum ada pesan yang ditampilkan ke publik."
+                  : "Belum ada pesan guestbook.";
+            listStatus.classList.add("show");
+          }
+        }
+
+        // ---------- render ----------
+        function formatDate(iso) {
+          try {
+            var d = new Date(iso);
+            return d.toLocaleString("id-ID", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            });
+          } catch (e) {
+            return iso;
+          }
+        }
+
+        function updateStats() {
+          var total = entries.length;
+          var approved = entries.filter(function (e) {
+            return e.is_approved;
+          }).length;
+          statTotal.textContent = String(total);
+          statApproved.textContent = String(approved);
+          statPending.textContent = String(total - approved);
+        }
+
+        function getFiltered() {
+          if (currentFilter === "pending") {
+            return entries.filter(function (e) {
+              return !e.is_approved;
+            });
+          }
+          if (currentFilter === "approved") {
+            return entries.filter(function (e) {
+              return e.is_approved;
+            });
+          }
+          return entries;
+        }
+
+        function buildCard(entry) {
+          var card = document.createElement("div");
+          card.className =
+            "entry-card" + (entry.is_approved ? " is-approved" : "");
+
+          var head = document.createElement("div");
+          head.className = "entry-head";
+
+          var nameWrap = document.createElement("div");
+          var nameEl = document.createElement("span");
+          nameEl.className = "entry-name";
+          nameEl.textContent = entry.nama || "(tanpa nama)"; // textContent -> aman dari XSS
+          var dateEl = document.createElement("div");
+          dateEl.className = "entry-date";
+          dateEl.textContent = formatDate(entry.created_at);
+          nameWrap.appendChild(nameEl);
+          nameWrap.appendChild(dateEl);
+
+          var badge = document.createElement("span");
+          badge.className = "badge" + (entry.is_approved ? " approved" : "");
+          badge.textContent = entry.is_approved ? "Tampil" : "Menunggu";
+
+          head.appendChild(nameWrap);
+          head.appendChild(badge);
+
+          var msg = document.createElement("div");
+          msg.className = "entry-msg";
+          msg.textContent = entry.pesan || ""; // textContent -> aman dari XSS
+
+          var foot = document.createElement("div");
+          foot.className = "entry-foot";
+          var toggleBtn = document.createElement("button");
+          toggleBtn.type = "button";
+          toggleBtn.className =
+            "btn-toggle " + (entry.is_approved ? "action-hide" : "action-show");
+          toggleBtn.textContent = entry.is_approved
+            ? "Sembunyikan dari publik"
+            : "Tampilkan ke publik";
+          toggleBtn.addEventListener("click", function () {
+            toggleApproval(entry, toggleBtn);
+          });
+          foot.appendChild(toggleBtn);
+
+          card.appendChild(head);
+          card.appendChild(msg);
+          card.appendChild(foot);
+          return card;
+        }
+
+        function renderAll() {
+          updateStats();
+          var filtered = getFiltered();
+
+          listContainer.innerHTML = "";
+          if (filtered.length === 0) {
+            setListStatus("empty");
+            return;
+          }
+          setListStatus(null);
+          listStatus.classList.remove("show");
+
+          filtered.forEach(function (entry) {
+            listContainer.appendChild(buildCard(entry));
+          });
+        }
+
+        // ---------- toggle approval ----------
+        async function toggleApproval(entry, btnEl) {
+          var newValue = !entry.is_approved;
+          btnEl.disabled = true;
+          var originalText = btnEl.textContent;
+          btnEl.textContent = "Memproses…";
+
+          try {
+            var res = await sb
+              .from("guestbook")
+              .update({ is_approved: newValue })
+              .eq("id", entry.id);
+            if (res.error) throw res.error;
+
+            entry.is_approved = newValue;
+            showToast(
+              newValue
+                ? "Pesan ditampilkan ke publik."
+                : "Pesan disembunyikan dari publik.",
+              false,
+            );
+            renderAll();
+          } catch (err) {
+            console.error("Gagal memperbarui status:", err);
+            showToast("Gagal memperbarui status. Coba lagi.", true);
+            btnEl.disabled = false;
+            btnEl.textContent = originalText;
+          }
+        }
+
+        // ---------- filters & refresh ----------
+        filterBtns.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            filterBtns.forEach(function (b) {
+              b.classList.remove("active");
+            });
+            btn.classList.add("active");
+            currentFilter = btn.dataset.filter;
+            renderAll();
+          });
+        });
+
+        refreshBtn.addEventListener("click", fetchGuestbook);
+
+        // ---------- go ----------
+        init();
+      })();
+    </script>
+  </body>
+</html>
