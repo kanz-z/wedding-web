@@ -1,6 +1,10 @@
 OVERVIEW.md
 qr.html
 supabase_schema.sql
+supabase_migration_v2.sql
 SQL_SCHEMA_DATABASE.md
 /graphify-out
 tree.md
+TASK.md
+image.png
+AGENTS.md

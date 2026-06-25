@@ -1,14 +1,14 @@
 .simply-countdown-circle {
-  --sc-circle-primary: #6366f1;
-  --sc-circle-secondary: #818cf8;
-  --sc-circle-bg: #1e1b4b;
+  --sc-circle-primary: #f14e95;
+  --sc-circle-secondary: #d43d7e;
+  --sc-circle-bg: #1a1a1a;
   --sc-circle-text: #fff;
 
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1.5rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Playfair Display', serif;
 }
 
 .simply-countdown-circle > .simply-section {

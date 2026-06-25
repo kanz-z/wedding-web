@@ -3,44 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Halaman internal admin: jangan diindeks mesin pencari, jangan ditautkan dari nav publik -->
     <meta name="robots" content="noindex, nofollow" />
-    <title>Admin · Guestbook Reza &amp; Ashila</title>
-
+    <title>Admin · Reza &amp; Ashila</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital@1&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
       :root {
         --pink: #f14e95;
         --pink-dim: #b53a70;
         --bg: #0a0a0a;
-        --panel: rgba(255, 255, 255, 0.05);
-        --panel-border: rgba(255, 255, 255, 0.12);
+        --panel: rgba(255,255,255,0.05);
+        --panel-border: rgba(255,255,255,0.12);
         --ink: #f3f3f3;
         --ink-muted: #9a9a9a;
         --danger: #ff6b7a;
+        --success: #4ade80;
         --radius: 14px;
+        --nav-w: 240px;
       }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        margin: 0;
-        min-height: 100vh;
-      }
-
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100vh; }
       body {
         background: var(--bg);
         color: var(--ink);
@@ -48,557 +32,530 @@
         font-size: 15px;
         line-height: 1.5;
       }
+      a { color: var(--pink); }
+      button { font-family: inherit; cursor: pointer; }
+      button:disabled { cursor: not-allowed; opacity: 0.6; }
+      :focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+      .brand { font-family: "Playfair Display", serif; font-style: italic; color: var(--pink); margin: 0; }
 
-      a {
-        color: var(--pink);
-      }
-
-      .brand {
-        font-family: "Playfair Display", serif;
-        font-style: italic;
-        color: var(--pink);
-        margin: 0;
-      }
-
-      button {
-        font-family: inherit;
-        cursor: pointer;
-      }
-
-      button:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-
-      :focus-visible {
-        outline: 2px solid var(--pink);
-        outline-offset: 2px;
-      }
-
-      .screen {
-        display: none;
-      }
-      .screen.active {
-        display: block;
-      }
-
-      /* ---------- loading (initial session check) ---------- */
-      /* .boot {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        color: var(--ink-muted);
-      }
-      .spinner {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: 3px solid var(--panel-border);
-        border-top-color: var(--pink);
-        animation: spin 0.8s linear infinite;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      } */
+      /* ---------- screen ---------- */
+      .screen { display: none; }
+      .screen.active { display: flex; }
 
       /* ---------- login ---------- */
-      #login-screen .wrap {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1.5rem;
-      }
+      #login-screen { min-height: 100vh; align-items: center; justify-content: center; padding: 1.5rem; }
       .login-card {
-        width: 100%;
-        max-width: 380px;
-        background: var(--panel);
-        border: 1px solid var(--panel-border);
-        border-radius: var(--radius);
-        padding: 2.25rem 2rem;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+        width: 100%; max-width: 380px;
+        background: var(--panel); border: 1px solid var(--panel-border);
+        border-radius: var(--radius); padding: 2.25rem 2rem;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45);
       }
-      .login-card h1 {
-        font-size: 1.7rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.15rem;
-      }
-      .login-card .sub {
-        color: var(--ink-muted);
-        font-size: 0.85rem;
-        margin-bottom: 1.75rem;
-      }
-      .field {
-        margin-bottom: 1.1rem;
-      }
-      .field label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 500;
-        margin-bottom: 0.4rem;
-        color: #d6d6d6;
-      }
+      .login-card h1 { font-size: 1.7rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.15rem; }
+      .login-card .sub { color: var(--ink-muted); font-size: 0.85rem; margin-bottom: 1.75rem; }
+      .field { margin-bottom: 1.1rem; }
+      .field label { display: block; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.4rem; color: #d6d6d6; }
       .field input {
-        width: 100%;
-        background: #141414;
-        border: 1px solid var(--panel-border);
-        border-radius: 9px;
-        padding: 0.65rem 0.8rem;
-        color: var(--ink);
-        font-size: 0.95rem;
+        width: 100%; background: #141414; border: 1px solid var(--panel-border);
+        border-radius: 9px; padding: 0.65rem 0.8rem; color: var(--ink); font-size: 0.95rem;
       }
-      .field input:focus {
-        border-color: var(--pink);
-      }
+      .field input:focus { border-color: var(--pink); }
       .btn-primary {
-        width: 100%;
-        background: var(--pink);
-        color: white;
-        border: 1px solid var(--pink);
-        border-radius: 9px;
-        padding: 0.7rem 1rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        margin-top: 0.4rem;
-        transition:
-          background 0.2s,
-          color 0.2s;
+        width: 100%; background: var(--pink); color: white;
+        border: 1px solid var(--pink); border-radius: 9px;
+        padding: 0.7rem 1rem; font-weight: 600; font-size: 0.95rem; margin-top: 0.4rem;
+        transition: background 0.2s, color 0.2s;
       }
-      .btn-primary:hover:not(:disabled) {
-        background: transparent;
-        color: var(--pink);
-      }
+      .btn-primary:hover:not(:disabled) { background: transparent; color: var(--pink); }
       .login-error {
-        background: rgba(255, 107, 122, 0.12);
-        border: 1px solid rgba(255, 107, 122, 0.4);
-        color: var(--danger);
-        font-size: 0.85rem;
-        border-radius: 9px;
-        padding: 0.6rem 0.75rem;
-        margin-bottom: 1rem;
-        display: none;
+        background: rgba(255,107,122,0.12); border: 1px solid rgba(255,107,122,0.4);
+        color: var(--danger); font-size: 0.85rem; border-radius: 9px;
+        padding: 0.6rem 0.75rem; margin-bottom: 1rem; display: none;
       }
-      .login-error.show {
-        display: block;
-      }
-      .login-hint {
-        margin-top: 1.4rem;
-        font-size: 0.78rem;
-        color: var(--ink-muted);
-        text-align: center;
-      }
+      .login-error.show { display: block; }
+      .login-hint { margin-top: 1.4rem; font-size: 0.78rem; color: var(--ink-muted); text-align: center; }
 
-      /* ---------- dashboard ---------- */
-      #dashboard-screen .container {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 1.75rem 1.25rem 4rem;
+      /* ---------- layout ---------- */
+      #dashboard-screen { min-height: 100vh; }
+      .side-nav {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: var(--nav-w); background: #0d0d0d;
+        border-right: 1px solid var(--panel-border);
+        display: flex; flex-direction: column;
+        z-index: 100; overflow-y: auto;
+        transition: transform 0.3s ease;
       }
-      .topbar {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
+      .side-nav-brand {
+        padding: 1.5rem 1.25rem 1rem;
+        border-bottom: 1px solid var(--panel-border);
       }
-      .topbar h1 {
-        font-size: 1.5rem;
-        margin: 0;
+      .side-nav-brand h2 { font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem; }
+      .side-nav-brand .sub { font-size: 0.72rem; color: var(--ink-muted); margin-top: 0.2rem; }
+      .side-nav-menu { flex: 1; padding: 0.75rem 0; display: flex; flex-direction: column; }
+      .side-nav-menu a {
+        display: flex; align-items: center; gap: 0.65rem;
+        padding: 0.7rem 1.25rem; color: var(--ink-muted);
+        text-decoration: none; font-size: 0.9rem;
+        transition: all 0.2s; position: relative;
       }
-      .topbar .who {
-        color: var(--ink-muted);
-        font-size: 0.8rem;
-        margin-top: 0.2rem;
+      .side-nav-menu a:hover { color: var(--ink); background: var(--panel); }
+      .side-nav-menu a.active {
+        color: var(--pink); background: rgba(241,78,149,0.08);
+        border-right: 3px solid var(--pink);
       }
-      .btn-ghost {
-        background: transparent;
-        border: 1px solid var(--panel-border);
-        color: var(--ink);
-        border-radius: 9px;
-        padding: 0.45rem 0.9rem;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        white-space: nowrap;
+      .side-nav-menu a i { font-size: 1.15rem; width: 20px; text-align: center; }
+      .nav-badge {
+        background: var(--pink); color: white; font-size: 0.65rem;
+        font-weight: 700; min-width: 18px; height: 18px;
+        border-radius: 999px; display: none;
+        align-items: center; justify-content: center;
+        margin-left: auto; padding: 0 5px;
       }
-      .btn-ghost:hover:not(:disabled) {
-        border-color: var(--pink);
-        color: var(--pink);
+      .nav-badge.show { display: flex; }
+      .side-nav-footer {
+        padding: 0.75rem 1.25rem 1.25rem;
+        border-top: 1px solid var(--panel-border);
       }
+      .side-nav-footer button {
+        width: 100%; background: transparent; border: 1px solid var(--panel-border);
+        color: var(--ink-muted); border-radius: 9px; padding: 0.55rem 0;
+        font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      }
+      .side-nav-footer button:hover { border-color: var(--danger); color: var(--danger); }
+      .main-content {
+        margin-left: var(--nav-w); padding: 1.75rem 2rem 3rem;
+        min-height: 100vh;
+      }
+      .hamburger {
+        display: none; position: fixed; top: 0.75rem; left: 0.75rem;
+        z-index: 110; background: var(--panel); border: 1px solid var(--panel-border);
+        color: var(--ink); border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 1.2rem;
+      }
+      .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
 
-      .stats {
-        display: flex;
-        gap: 0.75rem;
-        margin-bottom: 1.25rem;
-        flex-wrap: wrap;
+      /* ---------- shared ---------- */
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+      .metrics { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+      .metric-card {
+        flex: 1; min-width: 120px; background: var(--panel);
+        border: 1px solid var(--panel-border); border-radius: 12px;
+        padding: 1rem 1.15rem; text-align: center;
       }
-      .stat-chip {
-        flex: 1;
-        min-width: 100px;
-        background: var(--panel);
-        border: 1px solid var(--panel-border);
-        border-radius: 12px;
-        padding: 0.75rem 1rem;
-        text-align: center;
+      .metric-card .num { font-size: 1.8rem; font-weight: 700; display: block; }
+      .metric-card .label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+      .panel-box {
+        background: var(--panel); border: 1px solid var(--panel-border);
+        border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.25rem;
       }
-      .stat-chip .num {
-        font-size: 1.5rem;
-        font-weight: 700;
-        display: block;
+      .panel-box h3 {
+        font-size: 0.95rem; font-weight: 600; margin: 0 0 0.75rem;
+        display: flex; align-items: center; gap: 0.5rem;
       }
-      .stat-chip .label {
-        font-size: 0.72rem;
-        color: var(--ink-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+      .panel-box h3 i { color: var(--pink); }
+      .btn-sm {
+        background: transparent; border: 1px solid var(--panel-border);
+        color: var(--ink); border-radius: 8px; padding: 0.35rem 0.75rem;
+        font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;
       }
+      .btn-sm:hover:not(:disabled) { border-color: var(--pink); color: var(--pink); }
+      .btn-pink {
+        background: var(--pink); color: white; border: 1px solid var(--pink);
+        border-radius: 8px; padding: 0.35rem 0.85rem; font-size: 0.8rem;
+      }
+      .btn-pink:hover:not(:disabled) { background: transparent; color: var(--pink); }
+      .btn-danger {
+        background: transparent; color: var(--danger); border: 1px solid rgba(255,107,122,0.4);
+        border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.78rem;
+      }
+      .btn-danger:hover:not(:disabled) { background: rgba(255,107,122,0.1); }
 
-      .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        margin-bottom: 1.1rem;
-        flex-wrap: wrap;
-      }
-      .filters {
-        display: inline-flex;
-        background: var(--panel);
-        border: 1px solid var(--panel-border);
-        border-radius: 10px;
-        padding: 3px;
-        gap: 2px;
-      }
-      .filters button {
-        background: transparent;
-        border: none;
-        color: var(--ink-muted);
-        font-size: 0.8rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 8px;
-      }
-      .filters button.active {
-        background: var(--pink);
-        color: white;
-      }
-
-      .list-status {
-        text-align: center;
-        color: var(--ink-muted);
-        padding: 2.5rem 1rem;
-        font-size: 0.9rem;
-        display: none;
-      }
-      .list-status.show {
-        display: block;
-      }
-      .list-status .retry {
-        display: inline-block;
-        margin-top: 0.75rem;
-        background: transparent;
-        border: 1px solid var(--panel-border);
-        color: var(--pink);
-        border-radius: 8px;
-        padding: 0.4rem 0.9rem;
-        font-size: 0.82rem;
-      }
-
-      #list-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.65rem;
-      }
-      .entry-card {
-        background: var(--panel);
-        border: 1px solid var(--panel-border);
-        border-left: 3px solid var(--panel-border);
-        border-radius: 10px;
-        padding: 0.9rem 1.05rem;
-      }
-      .entry-card.is-approved {
-        border-left-color: var(--pink);
-      }
-      .entry-head {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-bottom: 0.35rem;
-      }
-      .entry-name {
-        font-weight: 600;
-      }
-      .entry-date {
-        font-size: 0.72rem;
-        color: var(--ink-muted);
+      .status-msg { text-align: center; color: var(--ink-muted); padding: 2rem 1rem; font-size: 0.9rem; display: none; }
+      .status-msg.show { display: block; }
+      .status-msg .retry {
+        display: inline-block; margin-top: 0.75rem; background: transparent;
+        border: 1px solid var(--panel-border); color: var(--pink);
+        border-radius: 8px; padding: 0.4rem 0.9rem; font-size: 0.82rem; cursor: pointer;
       }
       .badge {
-        font-size: 0.68rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        border: 1px solid var(--panel-border);
-        color: var(--ink-muted);
+        font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
+        padding: 0.2rem 0.55rem; border-radius: 999px;
+        border: 1px solid var(--panel-border); color: var(--ink-muted);
+        display: inline-block;
       }
-      .badge.approved {
-        color: var(--pink);
-        border-color: var(--pink);
-      }
-      .entry-msg {
-        color: #d8d8d8;
-        font-size: 0.92rem;
-        white-space: pre-wrap;
-        word-break: break-word;
-        margin-bottom: 0.65rem;
-      }
-      .entry-foot {
-        display: flex;
-        justify-content: flex-end;
-      }
-      .btn-toggle {
-        background: transparent;
-        border: 1px solid var(--panel-border);
-        color: var(--ink);
-        border-radius: 8px;
-        padding: 0.35rem 0.8rem;
-        font-size: 0.78rem;
-      }
-      .btn-toggle.action-hide {
-        border-color: rgba(255, 107, 122, 0.4);
-        color: var(--danger);
-      }
-      .btn-toggle.action-show {
-        border-color: var(--pink);
-        color: var(--pink);
-      }
-      .btn-toggle:hover:not(:disabled) {
-        opacity: 0.8;
-      }
+      .badge.success { color: var(--success); border-color: var(--success); }
+      .badge.pink { color: var(--pink); border-color: var(--pink); }
+      .badge.warning { color: #fbbf24; border-color: #fbbf24; }
 
-      .toast {
-        position: fixed;
-        bottom: 1.25rem;
-        left: 50%;
-        transform: translate(-50%, 20px);
-        background: #1c1c1c;
-        border: 1px solid var(--panel-border);
-        color: var(--ink);
-        padding: 0.6rem 1.1rem;
-        border-radius: 999px;
+      /* ---------- table ---------- */
+      .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+      .data-table th {
+        text-align: left; padding: 0.6rem 0.75rem; color: var(--ink-muted);
+        font-weight: 500; font-size: 0.75rem; text-transform: uppercase;
+        letter-spacing: 0.04em; border-bottom: 1px solid var(--panel-border);
+      }
+      .data-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+      .data-table tr:hover { background: rgba(255,255,255,0.02); }
+      .table-wrap { overflow-x: auto; }
+
+      /* ---------- activity log ---------- */
+      .log-item {
+        display: flex; align-items: flex-start; gap: 0.6rem;
+        padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
         font-size: 0.85rem;
-        opacity: 0;
-        transition:
-          opacity 0.25s,
-          transform 0.25s;
-        pointer-events: none;
-        z-index: 50;
-        max-width: 90vw;
-        text-align: center;
       }
-      .toast.show {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-      .toast.error {
-        border-color: rgba(255, 107, 122, 0.5);
-        color: var(--danger);
-      }
+      .log-item:last-child { border-bottom: none; }
+      .log-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 0.4rem; flex-shrink: 0; }
+      .log-dot.rsvp { background: var(--pink); }
+      .log-dot.gb { background: var(--success); }
+      .log-dot.approval { background: #fbbf24; }
+      .log-time { color: var(--ink-muted); font-size: 0.72rem; white-space: nowrap; }
 
+      /* ---------- QR scanner ---------- */
+      #qr-reader { width: 100%; max-width: 400px; margin: 0 auto 1rem; border-radius: var(--radius); overflow: hidden; }
+      #qr-reader video { border-radius: var(--radius); }
+      .scan-result {
+        padding: 0.75rem 1rem; border-radius: 10px; font-weight: 600; text-align: center;
+        margin-bottom: 1rem; display: none;
+      }
+      .scan-result.success { display: block; background: rgba(74,222,128,0.12); color: var(--success); border: 1px solid rgba(74,222,128,0.3); }
+      .scan-result.error { display: block; background: rgba(255,107,122,0.12); color: var(--danger); border: 1px solid rgba(255,107,122,0.3); }
+      .scan-result.info { display: block; background: rgba(241,78,149,0.12); color: var(--pink); border: 1px solid rgba(241,78,149,0.3); }
+
+      /* ---------- toast ---------- */
+      .toast {
+        position: fixed; bottom: 1.25rem; left: 50%; transform: translate(-50%, 20px);
+        background: #1c1c1c; border: 1px solid var(--panel-border); color: var(--ink);
+        padding: 0.6rem 1.1rem; border-radius: 999px; font-size: 0.85rem;
+        opacity: 0; transition: opacity 0.25s, transform 0.25s;
+        pointer-events: none; z-index: 200; max-width: 90vw; text-align: center;
+      }
+      .toast.show { opacity: 1; transform: translate(-50%, 0); }
+      .toast.error { border-color: rgba(255,107,122,0.5); color: var(--danger); }
+
+      /* ---------- filters ---------- */
+      .filters {
+        display: inline-flex; background: var(--panel); border: 1px solid var(--panel-border);
+        border-radius: 10px; padding: 3px; gap: 2px;
+      }
+      .filters button {
+        background: transparent; border: none; color: var(--ink-muted);
+        font-size: 0.8rem; padding: 0.35rem 0.7rem; border-radius: 8px; cursor: pointer;
+      }
+      .filters button.active { background: var(--pink); color: white; }
+
+      /* ---------- search ---------- */
+      .search-box {
+        width: 100%; background: #141414; border: 1px solid var(--panel-border);
+        border-radius: 9px; padding: 0.55rem 0.75rem; color: var(--ink); font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+      }
+      .search-box:focus { border-color: var(--pink); outline: none; }
+
+      /* ---------- modal ---------- */
+      .modal-overlay {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+        z-index: 150; align-items: center; justify-content: center;
+      }
+      .modal-overlay.show { display: flex; }
+      .modal-box {
+        background: #1a1a1a; border: 1px solid var(--panel-border);
+        border-radius: var(--radius); padding: 1.5rem; max-width: 420px;
+        width: 90%; max-height: 80vh; overflow-y: auto;
+      }
+      .modal-box h3 { margin: 0 0 0.75rem; font-size: 1.1rem; color: var(--pink); }
+      .modal-box label { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 0.3rem; }
+      .modal-box input, .modal-box select {
+        width: 100%; background: #141414; border: 1px solid var(--panel-border);
+        border-radius: 8px; padding: 0.5rem 0.7rem; color: var(--ink); font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+      }
+      .modal-box input:focus, .modal-box select:focus { border-color: var(--pink); outline: none; }
+      .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem; }
+
+      /* ---------- responsive ---------- */
+      @media (max-width: 768px) {
+        .side-nav { transform: translateX(-100%); }
+        .side-nav.open { transform: translateX(0); }
+        .main-content { margin-left: 0; padding: 1rem 1rem 3rem; }
+        .hamburger { display: block; }
+        .overlay.open { display: block; }
+        .metrics { flex-direction: column; }
+      }
       @media (max-width: 480px) {
-        .login-card {
-          padding: 1.75rem 1.4rem;
-        }
-        .topbar {
-          flex-direction: column;
-        }
+        .login-card { padding: 1.75rem 1.4rem; }
+        .data-table { font-size: 0.78rem; }
       }
     </style>
   </head>
   <body>
-    <!-- ---------- boot / session check ---------- -->
-    <!-- <div id="boot-screen" class="screen active boot">
-      <div class="spinner" aria-hidden="true"></div>
-      <span>Memeriksa sesi…</span>
-    </div> -->
-
-    <!-- ---------- login ---------- -->
-    <div id="login-screen" class="screen">
-      <div class="wrap">
-        <div class="login-card">
-          <h1 class="brand"><i class="bi bi-envelope-heart-fill"></i> Admin</h1>
-          <div class="sub">Guestbook — Reza &amp; Ashila</div>
-
-          <div id="login-error" class="login-error" role="alert"></div>
-
-          <form id="login-form" novalidate>
-            <div class="field">
-              <label for="login-email">Email</label>
-              <input
-                type="email"
-                id="login-email"
-                name="email"
-                autocomplete="username"
-                required
-              />
-            </div>
-            <div class="field">
-              <label for="login-password">Password</label>
-              <input
-                type="password"
-                id="login-password"
-                name="password"
-                autocomplete="current-password"
-                required
-              />
-            </div>
-            <button type="submit" id="login-submit" class="btn-primary">
-              Masuk
-            </button>
-          </form>
-
-          <div class="login-hint">
-            Lupa password? Minta pemilik akun me-reset lewat Supabase Dashboard.
+    <!-- login -->
+    <div id="login-screen" class="screen active">
+      <div class="login-card">
+        <h1 class="brand"><i class="bi bi-envelope-heart-fill"></i> Admin</h1>
+        <div class="sub">Dashboard — Reza &amp; Ashila</div>
+        <div id="login-error" class="login-error" role="alert"></div>
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" name="email" autocomplete="username" required />
           </div>
-        </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" autocomplete="current-password" required />
+          </div>
+          <button type="submit" id="login-submit" class="btn-primary">Masuk</button>
+        </form>
+        <div class="login-hint">Lupa password? Minta pemilik akun me-reset lewat Supabase Dashboard.</div>
       </div>
     </div>
 
-    <!-- ---------- dashboard ---------- -->
+    <!-- dashboard -->
     <div id="dashboard-screen" class="screen">
-      <div class="container">
-        <div class="topbar">
-          <div>
-            <h1 class="brand">Guestbook</h1>
-            <div class="who">Masuk sebagai <span id="who-email"></span></div>
-          </div>
-          <button id="logout-btn" class="btn-ghost" type="button">
+      <div class="overlay" id="overlay"></div>
+      <button class="hamburger" id="hamburger" type="button" aria-label="Menu">
+        <i class="bi bi-list"></i>
+      </button>
+
+      <nav class="side-nav" id="sideNav">
+        <div class="side-nav-brand">
+          <h2 class="brand"><i class="bi bi-heart-fill"></i> Reza &amp; Ashila</h2>
+          <div class="sub" id="who-email"></div>
+        </div>
+        <div class="side-nav-menu">
+          <a href="#" class="active" data-tab="tab-overview">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+          <a href="#" data-tab="tab-tamu">
+            <i class="bi bi-people-fill"></i> Tamu &amp; RSVP
+            <span class="nav-badge" id="badge-approval">0</span>
+          </a>
+          <a href="#" data-tab="tab-guestbook">
+            <i class="bi bi-chat-heart-fill"></i> Guestbook
+          </a>
+          <a href="#" data-tab="tab-scanner">
+            <i class="bi bi-qr-code-scan"></i> QR Scanner
+          </a>
+          <a href="#" data-tab="tab-admin">
+            <i class="bi bi-shield-lock-fill"></i> Admin
+          </a>
+        </div>
+        <div class="side-nav-footer">
+          <button id="logout-btn" type="button">
             <i class="bi bi-box-arrow-right"></i> Keluar
           </button>
         </div>
+      </nav>
 
-        <div class="stats">
-          <div class="stat-chip">
-            <span class="num" id="stat-total">0</span>
-            <span class="label">Total</span>
+      <div class="main-content">
+        <!-- Tab 1: Overview -->
+        <div class="tab-panel active" id="tab-overview">
+          <h2 class="brand" style="margin-bottom:1.25rem;">Dashboard</h2>
+          <div class="metrics" id="overview-metrics">
+            <div class="metric-card"><span class="num" id="met-total">-</span><span class="label">Total Undangan</span></div>
+            <div class="metric-card"><span class="num" id="met-hadir">-</span><span class="label">Hadir</span></div>
+            <div class="metric-card"><span class="num" id="met-absen">-</span><span class="label">Tidak Hadir</span></div>
+            <div class="metric-card"><span class="num" id="met-msg">-</span><span class="label">Ucapan</span></div>
           </div>
-          <div class="stat-chip">
-            <span class="num" id="stat-approved">0</span>
-            <span class="label">Tampil</span>
+          <div class="panel-box">
+            <h3><i class="bi bi-pie-chart-fill"></i> Status RSVP</h3>
+            <div style="display:flex;align-items:center;gap:2rem;justify-content:center;flex-wrap:wrap;">
+              <canvas id="pieChart" width="180" height="180" style="max-width:180px;"></canvas>
+              <div id="pie-legend" style="font-size:0.85rem;"></div>
+            </div>
+            <div id="overview-status" class="status-msg">Belum ada data RSVP</div>
           </div>
-          <div class="stat-chip">
-            <span class="num" id="stat-pending">0</span>
-            <span class="label">Menunggu</span>
+          <div class="panel-box">
+            <h3><i class="bi bi-clock-history"></i> Aktivitas Terbaru</h3>
+            <div id="activity-log"></div>
+            <div id="activity-empty" class="status-msg">Belum ada aktivitas</div>
+          </div>
+          <div id="overview-error" class="status-msg" style="color:var(--danger);">
+            Gagal memuat data. <span class="retry" onclick="loadOverview()">Coba lagi</span>
           </div>
         </div>
 
-        <div class="toolbar">
-          <div class="filters" role="group" aria-label="Filter pesan">
-            <button type="button" class="active" data-filter="all">
-              Semua
+        <!-- Tab 2: Tamu & RSVP -->
+        <div class="tab-panel" id="tab-tamu">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+            <h2 class="brand" style="margin:0;">Tamu &amp; RSVP</h2>
+            <div style="display:flex;gap:0.5rem;">
+              <button class="btn-pink" id="btn-add-guest" onclick="showGuestModal()">
+                <i class="bi bi-plus-lg"></i> Tambah Tamu
+              </button>
+              <button class="btn-sm" onclick="loadTamuRSVP()">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="approval-section" class="panel-box" style="display:none;">
+            <h3><i class="bi bi-hourglass-split"></i> Approval Pending</h3>
+            <div id="approval-list"></div>
+            <div id="approval-empty" class="status-msg">Tidak ada yang perlu disetujui</div>
+          </div>
+
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+            <input class="search-box" id="tamu-search" placeholder="Cari nama tamu..." style="max-width:280px;margin-bottom:0;" oninput="renderTamuTable()" />
+            <div class="filters" role="group">
+              <button class="active" data-filter="all" onclick="setTamuFilter('all',this)">Semua</button>
+              <button data-filter="Hadir" onclick="setTamuFilter('Hadir',this)">Hadir</button>
+              <button data-filter="Tidak Hadir" onclick="setTamuFilter('Tidak Hadir',this)">Absen</button>
+              <button data-filter="null" onclick="setTamuFilter('null',this)">Belum</button>
+              <button data-filter="pending" onclick="setTamuFilter('pending',this)">Pending</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama</th><th>WA</th><th>Kuota</th><th>Status</th><th>Hadir</th><th>Check-in</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tamu-tbody"></tbody>
+            </table>
+          </div>
+          <div id="tamu-status" class="status-msg">
+            Gagal memuat data. <span class="retry" onclick="loadTamuRSVP()">Coba lagi</span>
+          </div>
+          <div id="tamu-empty" class="status-msg">Belum ada data tamu</div>
+        </div>
+
+        <!-- Tab 3: Guestbook -->
+        <div class="tab-panel" id="tab-guestbook">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+            <h2 class="brand" style="margin:0;">Guestbook</h2>
+            <button class="btn-sm" onclick="loadGuestbook()"><i class="bi bi-arrow-clockwise"></i> Muat ulang</button>
+          </div>
+          <div class="filters" style="margin-bottom:1rem;">
+            <button class="active" data-filter="all" onclick="setGbFilter('all',this)">Semua</button>
+            <button data-filter="pending" onclick="setGbFilter('pending',this)">Menunggu</button>
+            <button data-filter="approved" onclick="setGbFilter('approved',this)">Tampil</button>
+          </div>
+          <div id="gb-list"></div>
+          <div id="gb-status" class="status-msg"></div>
+          <div id="gb-empty" class="status-msg">Belum ada ucapan</div>
+        </div>
+
+        <!-- Tab 4: QR Scanner -->
+        <div class="tab-panel" id="tab-scanner">
+          <h2 class="brand" style="margin-bottom:1rem;">QR Scanner</h2>
+          <div class="panel-box">
+            <h3><i class="bi bi-camera-fill"></i> Scan QR Tamu</h3>
+            <div id="qr-reader"></div>
+            <div id="scan-result" class="scan-result"></div>
+            <button class="btn-sm" id="btn-start-scan" onclick="startScanner()">
+              <i class="bi bi-play-fill"></i> Mulai Scan
             </button>
-            <button type="button" data-filter="pending">Menunggu</button>
-            <button type="button" data-filter="approved">Tampil</button>
+            <button class="btn-sm" id="btn-stop-scan" onclick="stopScanner()" style="display:none;">
+              <i class="bi bi-stop-fill"></i> Berhenti
+            </button>
           </div>
-          <button id="refresh-btn" class="btn-ghost" type="button">
-            <i class="bi bi-arrow-clockwise"></i> Muat ulang
-          </button>
+          <div class="panel-box">
+            <h3><i class="bi bi-search"></i> Check-in Manual</h3>
+            <input class="search-box" id="manual-search" placeholder="Cari nama tamu..." />
+            <div id="manual-results" style="margin-top:0.5rem;"></div>
+          </div>
+          <div class="panel-box">
+            <h3><i class="bi bi-list-check"></i> Check-in Hari Ini</h3>
+            <div id="checkin-log"></div>
+            <div id="checkin-empty" class="status-msg">Belum ada check-in</div>
+          </div>
         </div>
 
-        <div id="list-status" class="list-status"></div>
-        <div id="list-container"></div>
+        <!-- Tab 5: Admin -->
+        <div class="tab-panel" id="tab-admin">
+          <h2 class="brand" style="margin-bottom:1rem;">Pengaturan Admin</h2>
+          <div class="panel-box">
+            <h3><i class="bi bi-people-fill"></i> Daftar Admin</h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Email</th><th>Role</th></tr></thead>
+                <tbody id="admin-tbody"></tbody>
+              </table>
+            </div>
+            <div id="admin-status" class="status-msg"></div>
+            <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:0.75rem;">
+              Tambah admin baru harus melalui Supabase Dashboard &gt; Authentication &gt; Users, lalu INSERT manual ke tabel admin_users.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <!-- ====== Supabase client ======
-         Anon key di bawah ini AMAN ditaruh di client (sama seperti di
-         index.html) — yang menjaga data adalah RLS policy di database,
-         bukan kerahasiaan key ini. JANGAN PERNAH menaruh service_role
-         key di file ini atau file client manapun. -->
+    <!-- guest modal -->
+    <div class="modal-overlay" id="guest-modal">
+      <div class="modal-box">
+        <h3 id="guest-modal-title">Tambah Tamu</h3>
+        <form id="guest-form" novalidate>
+          <input type="hidden" id="gf-id" />
+          <label for="gf-name">Nama</label>
+          <input type="text" id="gf-name" required />
+          <label for="gf-slug">Slug (untuk URL ?n=)</label>
+          <input type="text" id="gf-slug" required />
+          <label for="gf-pronoun">Sapaan (Bpk/Ibu/dll)</label>
+          <input type="text" id="gf-pronoun" />
+          <label for="gf-count">Kuota</label>
+          <input type="number" id="gf-count" min="1" value="1" required />
+          <div class="modal-actions">
+            <button type="button" class="btn-sm" onclick="closeGuestModal()">Batal</button>
+            <button type="submit" class="btn-pink">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
       (function () {
         "use strict";
 
         var SUPABASE_URL = "https://liyfsapgadickknsfbus.supabase.co";
-        var SUPABASE_ANON_KEY =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWZzYXBnYWRpY2trbnNmYnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDIwNDMsImV4cCI6MjA5NzY3ODA0M30.aQ37-_9-wl2pbDtqKSavOvrsUU-F-sIzv6g3hG23dHw";
-
+        var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWZzYXBnYWRpY2trbnNmYnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDIwNDMsImV4cCI6MjA5NzY3ODA0M30.aQ37-_9-wl2pbDtqKSavOvrsUU-F-sIzv6g3hG23dHw";
         var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ---------- state ----------
         var currentUser = null;
-        var entries = [];
-        var currentFilter = "all";
         var toastTimer = null;
 
-        // ---------- dom refs ----------
-        // var bootScreen = document.getElementById("boot-screen");
+        // dom refs
         var loginScreen = document.getElementById("login-screen");
         var dashScreen = document.getElementById("dashboard-screen");
-
         var loginForm = document.getElementById("login-form");
-        var loginEmail = document.getElementById("login-email");
-        var loginPassword = document.getElementById("login-password");
         var loginError = document.getElementById("login-error");
         var loginSubmit = document.getElementById("login-submit");
-
         var whoEmail = document.getElementById("who-email");
-        var logoutBtn = document.getElementById("logout-btn");
-        var refreshBtn = document.getElementById("refresh-btn");
-
-        var statTotal = document.getElementById("stat-total");
-        var statApproved = document.getElementById("stat-approved");
-        var statPending = document.getElementById("stat-pending");
-
-        var filterBtns = document.querySelectorAll(".filters button");
-        var listStatus = document.getElementById("list-status");
-        var listContainer = document.getElementById("list-container");
         var toastEl = document.getElementById("toast");
+        var sideNav = document.getElementById("sideNav");
+        var overlay = document.getElementById("overlay");
+        var hamburger = document.getElementById("hamburger");
 
-        // ---------- screen switching ----------
+        // state
+        var allTamu = [];
+        var tamuFilter = "all";
+        var tamuSearch = "";
+        var allGb = [];
+        var gbFilter = "all";
+        var html5QrScanner = null;
+
+        // ---------- helpers ----------
         function showScreen(name) {
-          [loginScreen, dashScreen].forEach(function (el) {
-            // bootScreen di hapus sementara
-            el.classList.remove("active");
-          });
-          // if (name === "boot") bootScreen.classList.add("active");
-          if (name === "login") loginScreen.classList.add("active");
-          if (name === "dashboard") dashScreen.classList.add("active");
+          loginScreen.classList.toggle("active", name === "login");
+          dashScreen.classList.toggle("active", name === "dashboard");
         }
 
-        // ---------- toast ----------
         function showToast(message, isError) {
           clearTimeout(toastTimer);
           toastEl.textContent = message;
           toastEl.classList.toggle("error", !!isError);
           toastEl.classList.add("show");
-          toastTimer = setTimeout(function () {
-            toastEl.classList.remove("show");
-          }, 3200);
+          toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 3200);
         }
 
-        // ---------- login error ----------
         function setLoginError(message) {
-          if (!message) {
-            loginError.textContent = "";
-            loginError.classList.remove("show");
-            return;
-          }
-          loginError.textContent = message;
-          loginError.classList.add("show");
+          loginError.textContent = message || "";
+          loginError.classList.toggle("show", !!message);
         }
 
         function setLoginLoading(isLoading) {
@@ -606,28 +563,37 @@
           loginSubmit.textContent = isLoading ? "Memproses…" : "Masuk";
         }
 
-        // ---------- auth helpers ----------
-        // Cek apakah user yang login terdaftar di tabel admin_users.
-        // Ini lapisan UX saja -- penjaga sesungguhnya tetap RLS di database,
-        // jadi meskipun cek ini dilewati, query data tetap akan kosong/ditolak
-        // untuk user yang bukan admin.
+        function formatDate(iso) {
+          try { return new Date(iso).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }); }
+          catch (e) { return iso; }
+        }
+
+        function formatTime(iso) {
+          try { return new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }); }
+          catch (e) { return iso; }
+        }
+
+        function escapeHtml(str) {
+          var d = document.createElement("div");
+          d.textContent = str || "";
+          return d.innerHTML;
+        }
+
+        // ---------- auth ----------
         function verifyAdmin(user) {
-          return sb
-            .rpc("check_current_admin") // << Memanggil orang dalam
-            .then(function (res) {
-              if (res.error || !res.data) return false;
-              return res.data; // jawaban: 0/1
-            })
-            .catch(function () {
-              return false;
-            });
+          return sb.rpc("check_current_admin").then(function (res) {
+            return !!(res.data);
+          }).catch(function () { return false; });
         }
 
         function enterDashboard(user) {
           currentUser = user;
           whoEmail.textContent = user.email || "";
           showScreen("dashboard");
-          fetchGuestbook();
+          loadOverview();
+          loadTamuRSVP();
+          loadGuestbook();
+          loadCheckinLog();
         }
 
         async function init() {
@@ -637,268 +603,537 @@
             var session = sessionRes.data && sessionRes.data.session;
             if (session && session.user) {
               var isAdmin = await verifyAdmin(session.user);
-              if (isAdmin) {
-                enterDashboard(session.user);
-                return;
-              }
+              if (isAdmin) { enterDashboard(session.user); return; }
               await sb.auth.signOut();
             }
-          } catch (err) {
-            console.error("Gagal memeriksa sesi:", err);
-          }
+          } catch (err) { console.error("Session check failed:", err); }
           showScreen("login");
         }
 
-        // ---------- login submit ----------
         loginForm.addEventListener("submit", async function (e) {
           e.preventDefault();
           setLoginError(null);
-
-          var email = loginEmail.value.trim();
-          var password = loginPassword.value;
-          if (!email || !password) {
-            setLoginError("Email dan password wajib diisi.");
-            return;
-          }
-
+          var email = document.getElementById("login-email").value.trim();
+          var password = document.getElementById("login-password").value;
+          if (!email || !password) { setLoginError("Email dan password wajib diisi."); return; }
           setLoginLoading(true);
           try {
-            var res = await sb.auth.signInWithPassword({
-              email: email,
-              password: password,
-            });
-            if (res.error) {
-              setLoginError("Email atau password salah.");
-              return;
-            }
+            var res = await sb.auth.signInWithPassword({ email: email, password: password });
+            if (res.error) { setLoginError("Email atau password salah."); return; }
             var isAdmin = await verifyAdmin(res.data.user);
-            if (!isAdmin) {
-              await sb.auth.signOut();
-              setLoginError("Akun ini belum terdaftar sebagai admin.");
-              return;
-            }
+            if (!isAdmin) { await sb.auth.signOut(); setLoginError("Akun ini belum terdaftar sebagai admin."); return; }
             loginForm.reset();
             enterDashboard(res.data.user);
-          } catch (err) {
-            console.error("Login error:", err);
-            setLoginError("Tidak bisa terhubung ke server. Coba lagi.");
-          } finally {
-            setLoginLoading(false);
-          }
+          } catch (err) { setLoginError("Tidak bisa terhubung ke server. Coba lagi."); }
+          finally { setLoginLoading(false); }
         });
 
-        // ---------- logout ----------
-        logoutBtn.addEventListener("click", async function () {
-          logoutBtn.disabled = true;
-          try {
-            await sb.auth.signOut();
-          } catch (err) {
-            console.error("Logout error:", err);
-          }
+        // ---------- side-nav ----------
+        function switchTab(tabId) {
+          document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.remove("active"); });
+          document.querySelectorAll(".side-nav-menu a").forEach(function (a) { a.classList.remove("active"); });
+          document.getElementById(tabId).classList.add("active");
+          var link = document.querySelector('.side-nav-menu a[data-tab="' + tabId + '"]');
+          if (link) link.classList.add("active");
+          // lazy load
+          if (tabId === "tab-overview") loadOverview();
+          if (tabId === "tab-tamu") loadTamuRSVP();
+          if (tabId === "tab-guestbook") loadGuestbook();
+          if (tabId === "tab-admin") loadAdminList();
+          // ponytail: close mobile sidebar after tab switch
+          sideNav.classList.remove("open");
+          overlay.classList.remove("open");
+        }
+
+        document.querySelectorAll(".side-nav-menu a").forEach(function (a) {
+          a.addEventListener("click", function (e) { e.preventDefault(); switchTab(this.dataset.tab); });
+        });
+
+        hamburger.addEventListener("click", function () {
+          sideNav.classList.toggle("open");
+          overlay.classList.toggle("open");
+        });
+        overlay.addEventListener("click", function () {
+          sideNav.classList.remove("open");
+          overlay.classList.remove("open");
+        });
+
+        // logout
+        document.getElementById("logout-btn").addEventListener("click", async function () {
+          this.disabled = true;
+          try { await sb.auth.signOut(); } catch (err) {}
           currentUser = null;
-          entries = [];
-          logoutBtn.disabled = false;
+          this.disabled = false;
+          if (html5QrScanner) { html5QrScanner.stop().catch(function () {}); html5QrScanner = null; }
           showScreen("login");
         });
 
-        // ---------- fetch guestbook ----------
-        async function fetchGuestbook() {
-          setListStatus("loading");
+        // ========== TAB 1: OVERVIEW ==========
+        async function loadOverview() {
+          document.getElementById("overview-error").style.display = "none";
           try {
-            var res = await sb
-              .from("guestbook")
-              .select("id, nama, pesan, is_approved, created_at")
-              .order("created_at", { ascending: false })
-              .limit(500);
-            if (res.error) throw res.error;
-            entries = res.data || [];
-            renderAll();
+            var [rsvpRes, gbRes] = await Promise.all([
+              sb.from("rsvps").select("status, jumlah_hadir, nama, created_at").order("created_at", { ascending: false }),
+              sb.from("guestbook").select("nama, pesan, created_at").eq("is_approved", true).order("created_at", { ascending: false }).limit(5)
+            ]);
+            if (rsvpRes.error) throw rsvpRes.error;
+            var rsvps = rsvpRes.data || [];
+            var hadir = rsvps.filter(function (r) { return r.status === "Hadir"; });
+            var absen = rsvps.filter(function (r) { return r.status === "Tidak Hadir"; });
+
+            document.getElementById("met-total").textContent = rsvps.length;
+            document.getElementById("met-hadir").textContent = hadir.length;
+            document.getElementById("met-absen").textContent = absen.length;
+            document.getElementById("met-msg").textContent = (gbRes.data || []).length;
+
+            drawPieChart(hadir.length, absen.length);
+            document.getElementById("overview-status").style.display = rsvps.length === 0 ? "block" : "none";
+
+            // activity log
+            var log = document.getElementById("activity-log");
+            log.innerHTML = "";
+            var recent = rsvps.slice(0, 5);
+            if (recent.length === 0 && (gbRes.data || []).length === 0) {
+              document.getElementById("activity-empty").style.display = "block";
+            } else {
+              document.getElementById("activity-empty").style.display = "none";
+              recent.forEach(function (r) {
+                var div = document.createElement("div");
+                div.className = "log-item";
+                div.innerHTML = '<div class="log-dot rsvp"></div>' +
+                  '<div style="flex:1;"><strong>' + escapeHtml(r.nama) + '</strong> — ' + r.status + ' (' + r.jumlah_hadir + ' org)</div>' +
+                  '<div class="log-time">' + formatDate(r.created_at) + '</div>';
+                log.appendChild(div);
+              });
+              (gbRes.data || []).forEach(function (g) {
+                var div = document.createElement("div");
+                div.className = "log-item";
+                div.innerHTML = '<div class="log-dot gb"></div>' +
+                  '<div style="flex:1;"><strong>' + escapeHtml(g.nama) + '</strong> — ' + escapeHtml(g.pesan.substring(0, 60)) + '</div>' +
+                  '<div class="log-time">' + formatDate(g.created_at) + '</div>';
+                log.appendChild(div);
+              });
+            }
           } catch (err) {
-            console.error("Gagal memuat guestbook:", err);
-            setListStatus("error");
+            console.error("Overview error:", err);
+            document.getElementById("overview-error").style.display = "block";
           }
         }
 
-        function setListStatus(kind) {
-          listStatus.innerHTML = "";
-          listStatus.classList.remove("show");
+        function drawPieChart(hadir, absen) {
+          var canvas = document.getElementById("pieChart");
+          var ctx = canvas.getContext("2d");
+          var total = hadir + absen;
+          ctx.clearRect(0, 0, 180, 180);
+          if (total === 0) return;
 
-          if (kind === "loading") {
-            listStatus.textContent = "Memuat pesan…";
-            listStatus.classList.add("show");
-            listContainer.innerHTML = "";
-          } else if (kind === "error") {
-            var msg = document.createElement("div");
-            msg.textContent =
-              "Gagal memuat data guestbook. Periksa koneksi internet Anda.";
-            var retry = document.createElement("button");
-            retry.type = "button";
-            retry.className = "retry";
-            retry.textContent = "Coba lagi";
-            retry.addEventListener("click", fetchGuestbook);
-            listStatus.appendChild(msg);
-            listStatus.appendChild(retry);
-            listStatus.classList.add("show");
-            listContainer.innerHTML = "";
-          } else if (kind === "empty") {
-            listStatus.textContent =
-              currentFilter === "pending"
-                ? "Tidak ada pesan yang menunggu moderasi."
-                : currentFilter === "approved"
-                  ? "Belum ada pesan yang ditampilkan ke publik."
-                  : "Belum ada pesan guestbook.";
-            listStatus.classList.add("show");
-          }
+          var cx = 90, cy = 90, r = 70;
+          var hadirAngle = (hadir / total) * 2 * Math.PI;
+
+          // Hadir slice
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + hadirAngle);
+          ctx.fillStyle = "#f14e95";
+          ctx.fill();
+
+          // Absen slice
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, r, -Math.PI / 2 + hadirAngle, -Math.PI / 2 + 2 * Math.PI);
+          ctx.fillStyle = "#444";
+          ctx.fill();
+
+          // center hole (donut)
+          ctx.beginPath();
+          ctx.arc(cx, cy, 35, 0, 2 * Math.PI);
+          ctx.fillStyle = "#0a0a0a";
+          ctx.fill();
+
+          // legend
+          document.getElementById("pie-legend").innerHTML =
+            '<div style="margin-bottom:0.35rem;"><span style="display:inline-block;width:12px;height:12px;background:#f14e95;border-radius:3px;vertical-align:middle;margin-right:8px;"></span>Hadir: <strong>' + hadir + '</strong></div>' +
+            '<div><span style="display:inline-block;width:12px;height:12px;background:#444;border-radius:3px;vertical-align:middle;margin-right:8px;"></span>Tidak Hadir: <strong>' + absen + '</strong></div>';
         }
 
-        // ---------- render ----------
-        function formatDate(iso) {
+        // ========== TAB 2: TAMU & RSVP ==========
+        async function loadTamuRSVP() {
+          document.getElementById("tamu-status").style.display = "none";
+          document.getElementById("tamu-empty").style.display = "none";
           try {
-            var d = new Date(iso);
-            return d.toLocaleString("id-ID", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            });
-          } catch (e) {
-            return iso;
-          }
-        }
-
-        function updateStats() {
-          var total = entries.length;
-          var approved = entries.filter(function (e) {
-            return e.is_approved;
-          }).length;
-          statTotal.textContent = String(total);
-          statApproved.textContent = String(approved);
-          statPending.textContent = String(total - approved);
-        }
-
-        function getFiltered() {
-          if (currentFilter === "pending") {
-            return entries.filter(function (e) {
-              return !e.is_approved;
-            });
-          }
-          if (currentFilter === "approved") {
-            return entries.filter(function (e) {
-              return e.is_approved;
-            });
-          }
-          return entries;
-        }
-
-        function buildCard(entry) {
-          var card = document.createElement("div");
-          card.className =
-            "entry-card" + (entry.is_approved ? " is-approved" : "");
-
-          var head = document.createElement("div");
-          head.className = "entry-head";
-
-          var nameWrap = document.createElement("div");
-          var nameEl = document.createElement("span");
-          nameEl.className = "entry-name";
-          nameEl.textContent = entry.nama || "(tanpa nama)"; // textContent -> aman dari XSS
-          var dateEl = document.createElement("div");
-          dateEl.className = "entry-date";
-          dateEl.textContent = formatDate(entry.created_at);
-          nameWrap.appendChild(nameEl);
-          nameWrap.appendChild(dateEl);
-
-          var badge = document.createElement("span");
-          badge.className = "badge" + (entry.is_approved ? " approved" : "");
-          badge.textContent = entry.is_approved ? "Tampil" : "Menunggu";
-
-          head.appendChild(nameWrap);
-          head.appendChild(badge);
-
-          var msg = document.createElement("div");
-          msg.className = "entry-msg";
-          msg.textContent = entry.pesan || ""; // textContent -> aman dari XSS
-
-          var foot = document.createElement("div");
-          foot.className = "entry-foot";
-          var toggleBtn = document.createElement("button");
-          toggleBtn.type = "button";
-          toggleBtn.className =
-            "btn-toggle " + (entry.is_approved ? "action-hide" : "action-show");
-          toggleBtn.textContent = entry.is_approved
-            ? "Sembunyikan dari publik"
-            : "Tampilkan ke publik";
-          toggleBtn.addEventListener("click", function () {
-            toggleApproval(entry, toggleBtn);
-          });
-          foot.appendChild(toggleBtn);
-
-          card.appendChild(head);
-          card.appendChild(msg);
-          card.appendChild(foot);
-          return card;
-        }
-
-        function renderAll() {
-          updateStats();
-          var filtered = getFiltered();
-
-          listContainer.innerHTML = "";
-          if (filtered.length === 0) {
-            setListStatus("empty");
-            return;
-          }
-          setListStatus(null);
-          listStatus.classList.remove("show");
-
-          filtered.forEach(function (entry) {
-            listContainer.appendChild(buildCard(entry));
-          });
-        }
-
-        // ---------- toggle approval ----------
-        async function toggleApproval(entry, btnEl) {
-          var newValue = !entry.is_approved;
-          btnEl.disabled = true;
-          var originalText = btnEl.textContent;
-          btnEl.textContent = "Memproses…";
-
-          try {
-            var res = await sb
-              .from("guestbook")
-              .update({ is_approved: newValue })
-              .eq("id", entry.id);
+            var res = await sb.from("rsvps").select("id, guest_id, nama, nomor_wa, jumlah_hadir, status, is_approved, checked_in, qr_token, created_at").order("created_at", { ascending: false }).limit(500);
             if (res.error) throw res.error;
-
-            entry.is_approved = newValue;
-            showToast(
-              newValue
-                ? "Pesan ditampilkan ke publik."
-                : "Pesan disembunyikan dari publik.",
-              false,
-            );
-            renderAll();
+            allTamu = res.data || [];
+            if (allTamu.length === 0) document.getElementById("tamu-empty").style.display = "block";
+            renderTamuTable();
+            loadApprovalPending();
           } catch (err) {
-            console.error("Gagal memperbarui status:", err);
-            showToast("Gagal memperbarui status. Coba lagi.", true);
-            btnEl.disabled = false;
-            btnEl.textContent = originalText;
+            console.error("Tamu error:", err);
+            document.getElementById("tamu-status").style.display = "block";
           }
         }
 
-        // ---------- filters & refresh ----------
-        filterBtns.forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            filterBtns.forEach(function (b) {
-              b.classList.remove("active");
-            });
-            btn.classList.add("active");
-            currentFilter = btn.dataset.filter;
-            renderAll();
+        function renderTamuTable() {
+          var tbody = document.getElementById("tamu-tbody");
+          tbody.innerHTML = "";
+          var search = (document.getElementById("tamu-search").value || "").toLowerCase();
+          var filtered = allTamu.filter(function (t) {
+            var matchSearch = !search || t.nama.toLowerCase().indexOf(search) !== -1;
+            var matchFilter = true;
+            if (tamuFilter === "pending") matchFilter = t.is_approved === false;
+            else if (tamuFilter !== "all") matchFilter = tamuFilter === "null" ? !t.status : t.status === tamuFilter;
+            return matchSearch && matchFilter;
           });
+
+          document.getElementById("tamu-empty").style.display = filtered.length === 0 ? "block" : "none";
+
+          filtered.forEach(function (t) {
+            var tr = document.createElement("tr");
+            tr.innerHTML =
+              '<td>' + escapeHtml(t.nama) + '</td>' +
+              '<td>' + escapeHtml(t.nomor_wa || "") + '</td>' +
+              '<td>' + t.jumlah_hadir + '</td>' +
+              '<td><span class="badge ' + (t.status === "Hadir" ? "pink" : t.status === "Tidak Hadir" ? "badge" : "warning") + '">' + (t.status || "Belum") + '</span>' +
+              (!t.is_approved ? ' <span class="badge warning">Pending</span>' : '') + '</td>' +
+              '<td>' + t.jumlah_hadir + '</td>' +
+              '<td>' + (t.checked_in ? '<span class="badge success">&#10003;</span>' : '-') + '</td>' +
+              '<td><button class="btn-sm" onclick="copyGuestLink(\'' + (t.nama) + '\',\'' + (t.qr_token || "") + '\')" title="Salin link">' +
+              '<i class="bi bi-link-45deg"></i></button></td>';
+            tbody.appendChild(tr);
+          });
+        }
+
+        function setTamuFilter(filter, btn) {
+          tamuFilter = filter;
+          document.querySelectorAll("#tab-tamu .filters button").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          renderTamuTable();
+        }
+
+        document.getElementById("tamu-search").addEventListener("input", renderTamuTable);
+
+        function copyGuestLink(nama, token) {
+          var link = "https://wedding-web-reza-shila-2026.netlify.app/?n=" + encodeURIComponent(nama);
+          if (token) link += "&token=" + token;
+          navigator.clipboard.writeText(link).then(function () {
+            showToast("Link tamu disalin!");
+          }).catch(function () {
+            prompt("Salin link ini:", link);
+          });
+        }
+
+        // approval
+        async function loadApprovalPending() {
+          var pending = allTamu.filter(function (t) { return !t.is_approved; });
+          var badge = document.getElementById("badge-approval");
+          badge.textContent = pending.length;
+          badge.classList.toggle("show", pending.length > 0);
+
+          var section = document.getElementById("approval-section");
+          var list = document.getElementById("approval-list");
+          section.style.display = pending.length > 0 ? "block" : "none";
+          list.innerHTML = "";
+
+          pending.forEach(function (t) {
+            var div = document.createElement("div");
+            div.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);flex-wrap:wrap;gap:0.5rem;";
+            div.innerHTML = '<span><strong>' + escapeHtml(t.nama) + '</strong> — ' + escapeHtml(t.nomor_wa) + ' — ' + t.jumlah_hadir + ' orang</span>';
+            var btn = document.createElement("button");
+            btn.className = "btn-pink";
+            btn.textContent = "Approve";
+            btn.addEventListener("click", function () { approveRSVP(t.id, btn); });
+            div.appendChild(btn);
+            list.appendChild(div);
+          });
+        }
+
+        async function approveRSVP(rsvpId, btn) {
+          btn.disabled = true;
+          btn.textContent = "Memproses...";
+          try {
+            var res = await sb.from("rsvps").update({ is_approved: true, card_sent_at: new Date().toISOString() }).eq("id", rsvpId);
+            if (res.error) throw res.error;
+            showToast("Tamu disetujui. Kirim kartu via WA ke nomor tamu.");
+            loadTamuRSVP();
+          } catch (err) {
+            showToast("Gagal approve. Coba lagi.", true);
+            btn.disabled = false;
+            btn.textContent = "Approve";
+          }
+        }
+
+        // guest CRUD
+        function showGuestModal(editData) {
+          document.getElementById("guest-modal").classList.add("show");
+          if (editData) {
+            document.getElementById("guest-modal-title").textContent = "Edit Tamu";
+            document.getElementById("gf-id").value = editData.id;
+            document.getElementById("gf-name").value = editData.name;
+            document.getElementById("gf-slug").value = editData.slug;
+            document.getElementById("gf-pronoun").value = editData.pronoun || "";
+            document.getElementById("gf-count").value = editData.invited_count;
+          } else {
+            document.getElementById("guest-modal-title").textContent = "Tambah Tamu";
+            document.getElementById("guest-form").reset();
+            document.getElementById("gf-id").value = "";
+            document.getElementById("gf-count").value = 1;
+          }
+        }
+
+        function closeGuestModal() {
+          document.getElementById("guest-modal").classList.remove("show");
+        }
+
+        document.getElementById("guest-form").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var id = document.getElementById("gf-id").value;
+          var data = {
+            name: document.getElementById("gf-name").value.trim(),
+            slug: document.getElementById("gf-slug").value.trim(),
+            pronoun: document.getElementById("gf-pronoun").value.trim() || null,
+            invited_count: parseInt(document.getElementById("gf-count").value) || 1,
+          };
+          if (!data.name || !data.slug) { showToast("Nama dan slug wajib diisi.", true); return; }
+
+          try {
+            var res;
+            if (id) {
+              res = await sb.from("guests").update(data).eq("id", id);
+            } else {
+              res = await sb.from("guests").insert([data]);
+            }
+            if (res.error) throw res.error;
+            showToast(id ? "Tamu diperbarui." : "Tamu ditambahkan.");
+            closeGuestModal();
+            loadTamuRSVP();
+          } catch (err) {
+            showToast("Gagal menyimpan tamu: " + (err.message || "unknown"), true);
+          }
         });
 
-        refreshBtn.addEventListener("click", fetchGuestbook);
+        document.getElementById("guest-modal").addEventListener("click", function (e) {
+          if (e.target === this) closeGuestModal();
+        });
 
-        // ---------- go ----------
+        // ========== TAB 3: GUESTBOOK ==========
+        async function loadGuestbook() {
+          document.getElementById("gb-status").classList.remove("show");
+          document.getElementById("gb-empty").style.display = "none";
+          try {
+            var res = await sb.from("guestbook").select("id, nama, pesan, is_approved, created_at").order("created_at", { ascending: false }).limit(500);
+            if (res.error) throw res.error;
+            allGb = res.data || [];
+            renderGbList();
+          } catch (err) {
+            document.getElementById("gb-status").textContent = "Gagal memuat guestbook.";
+            document.getElementById("gb-status").classList.add("show");
+          }
+        }
+
+        function renderGbList() {
+          var container = document.getElementById("gb-list");
+          container.innerHTML = "";
+          var filtered = allGb;
+          if (gbFilter === "pending") filtered = allGb.filter(function (e) { return !e.is_approved; });
+          else if (gbFilter === "approved") filtered = allGb.filter(function (e) { return e.is_approved; });
+
+          document.getElementById("gb-empty").style.display = filtered.length === 0 ? "block" : "none";
+
+          filtered.forEach(function (entry) {
+            var card = document.createElement("div");
+            card.style.cssText = "background:var(--panel);border:1px solid var(--panel-border);border-left:3px solid " + (entry.is_approved ? "var(--pink)" : "var(--panel-border)") + ";border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.65rem;";
+            card.innerHTML =
+              '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">' +
+              '<span style="font-weight:600;">' + escapeHtml(entry.nama) + '</span>' +
+              '<span style="font-size:0.72rem;color:var(--ink-muted);">' + formatDate(entry.created_at) + '</span></div>' +
+              '<div style="color:#d8d8d8;font-size:0.92rem;white-space:pre-wrap;word-break:break-word;margin-bottom:0.5rem;">' + escapeHtml(entry.pesan) + '</div>' +
+              '<div style="text-align:right;">' +
+              '<button class="' + (entry.is_approved ? "btn-danger" : "btn-sm") + '" data-id="' + entry.id + '" onclick="toggleGbApproval(\'' + entry.id + '\', ' + !entry.is_approved + ', this)">' +
+              (entry.is_approved ? "Sembunyikan" : "Tampilkan") + '</button></div>';
+            container.appendChild(card);
+          });
+        }
+
+        window.toggleGbApproval = async function (id, newVal, btn) {
+          btn.disabled = true;
+          var origText = btn.textContent;
+          btn.textContent = "Memproses...";
+          try {
+            var res = await sb.from("guestbook").update({ is_approved: newVal }).eq("id", id);
+            if (res.error) throw res.error;
+            var entry = allGb.find(function (e) { return e.id === id; });
+            if (entry) entry.is_approved = newVal;
+            renderGbList();
+            showToast(newVal ? "Pesan ditampilkan." : "Pesan disembunyikan.");
+          } catch (err) {
+            showToast("Gagal update.", true);
+            btn.disabled = false;
+            btn.textContent = origText;
+          }
+        };
+
+        function setGbFilter(filter, btn) {
+          gbFilter = filter;
+          document.querySelectorAll("#tab-guestbook .filters button").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          renderGbList();
+        }
+
+        // ========== TAB 4: QR SCANNER ==========
+        function startScanner() {
+          var resultEl = document.getElementById("scan-result");
+          resultEl.className = "scan-result";
+          resultEl.textContent = "";
+
+          if (!html5QrScanner) {
+            html5QrScanner = new Html5Qrcode("qr-reader");
+          }
+
+          document.getElementById("btn-start-scan").style.display = "none";
+          document.getElementById("btn-stop-scan").style.display = "inline-flex";
+
+          html5QrScanner.start(
+            { facingMode: "environment" },
+            { fps: 5, qrbox: { width: 250, height: 250 } },
+            onScanSuccess,
+            function () {} // ignore errors
+          ).catch(function (err) {
+            showToast("Gagal mengakses kamera: " + err, true);
+            document.getElementById("btn-start-scan").style.display = "inline-flex";
+            document.getElementById("btn-stop-scan").style.display = "none";
+          });
+        }
+
+        function stopScanner() {
+          if (html5QrScanner) {
+            html5QrScanner.stop().then(function () {
+              document.getElementById("btn-start-scan").style.display = "inline-flex";
+              document.getElementById("btn-stop-scan").style.display = "none";
+            }).catch(function () {});
+          }
+        }
+
+        async function onScanSuccess(decodedText) {
+          stopScanner();
+          var resultEl = document.getElementById("scan-result");
+          var token = decodedText.trim();
+
+          try {
+            var res = await sb.from("rsvps").select("id, nama, checked_in, jumlah_hadir").eq("qr_token", token).single();
+            if (res.error || !res.data) {
+              resultEl.className = "scan-result error";
+              resultEl.textContent = "Tamu tidak terdaftar";
+              return;
+            }
+
+            var tamu = res.data;
+            if (tamu.checked_in) {
+              var checkinRes = await sb.from("guest_checkins").select("checked_in_at").eq("rsvp_id", tamu.id).single();
+              var time = checkinRes.data ? formatTime(checkinRes.data.checked_in_at) : "sebelumnya";
+              resultEl.className = "scan-result info";
+              resultEl.textContent = escapeHtml(tamu.nama) + " — Sudah check-in pukul " + time;
+              return;
+            }
+
+            await sb.from("guest_checkins").insert([{ rsvp_id: tamu.id, method: "qr", guest_count_actual: tamu.jumlah_hadir }]);
+            await sb.from("rsvps").update({ checked_in: true }).eq("id", tamu.id);
+
+            resultEl.className = "scan-result success";
+            resultEl.textContent = escapeHtml(tamu.nama) + " — Check-in berhasil! (" + tamu.jumlah_hadir + " org)";
+            loadCheckinLog();
+            loadTamuRSVP();
+          } catch (err) {
+            console.error("Scan error:", err);
+            resultEl.className = "scan-result error";
+            resultEl.textContent = "Gagal memproses check-in";
+          }
+        }
+
+        // manual search
+        document.getElementById("manual-search").addEventListener("input", async function () {
+          var q = this.value.trim();
+          var results = document.getElementById("manual-results");
+          results.innerHTML = "";
+
+          if (q.length < 2) return;
+
+          try {
+            var res = await sb.from("rsvps").select("id, nama, checked_in, jumlah_hadir, status").ilike("nama", "%" + q + "%").limit(10);
+            if (res.error) throw res.error;
+            (res.data || []).forEach(function (t) {
+              var div = document.createElement("div");
+              div.style.cssText = "padding:0.5rem 0.75rem;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;margin-bottom:0.35rem;display:flex;justify-content:space-between;align-items:center;";
+              div.innerHTML = '<span>' + escapeHtml(t.nama) + ' — ' + t.jumlah_hadir + ' org ' + (t.checked_in ? '<span class="badge success">Checked-in</span>' : '<span class="badge">' + (t.status || "Belum") + '</span>') + '</span>';
+              if (!t.checked_in) {
+                var btn = document.createElement("button");
+                btn.className = "btn-pink";
+                btn.textContent = "Check-in";
+                btn.addEventListener("click", function () { manualCheckin(t, btn); });
+                div.appendChild(btn);
+              }
+              results.appendChild(div);
+            });
+          } catch (err) { console.error("Manual search error:", err); }
+        });
+
+        async function manualCheckin(tamu, btn) {
+          if (!confirm("Check-in " + tamu.nama + " (" + tamu.jumlah_hadir + " org)?")) return;
+          btn.disabled = true;
+          btn.textContent = "Memproses...";
+          try {
+            await sb.from("guest_checkins").insert([{ rsvp_id: tamu.id, method: "manual", guest_count_actual: tamu.jumlah_hadir }]);
+            await sb.from("rsvps").update({ checked_in: true }).eq("id", tamu.id);
+            showToast(escapeHtml(tamu.nama) + " berhasil check-in!");
+            document.getElementById("manual-search").value = "";
+            document.getElementById("manual-results").innerHTML = "";
+            loadCheckinLog();
+            loadTamuRSVP();
+          } catch (err) {
+            showToast("Gagal check-in.", true);
+            btn.disabled = false;
+            btn.textContent = "Check-in";
+          }
+        }
+
+        async function loadCheckinLog() {
+          var log = document.getElementById("checkin-log");
+          var empty = document.getElementById("checkin-empty");
+          try {
+            var res = await sb.from("guest_checkins").select("rsvp_id(nama), checked_in_at, method, guest_count_actual").order("checked_in_at", { ascending: false }).limit(20);
+            if (res.error) throw res.error;
+            var data = res.data || [];
+            log.innerHTML = "";
+            if (data.length === 0) { empty.style.display = "block"; return; }
+            empty.style.display = "none";
+            data.forEach(function (c) {
+              var div = document.createElement("div");
+              div.style.cssText = "padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;";
+              div.innerHTML = '<strong>' + escapeHtml((c.rsvp_id && c.rsvp_id.nama) || "?") + '</strong> — ' + c.guest_count_actual + ' org — <span class="badge ' + (c.method === "qr" ? "pink" : "") + '">' + c.method + '</span> <span style="color:var(--ink-muted);font-size:0.75rem;">' + formatTime(c.checked_in_at) + '</span>';
+              log.appendChild(div);
+            });
+          } catch (err) { console.error("Checkin log error:", err); }
+        }
+
+        // ========== TAB 5: ADMIN ==========
+        async function loadAdminList() {
+          var tbody = document.getElementById("admin-tbody");
+          var status = document.getElementById("admin-status");
+          try {
+            var res = await sb.from("admin_users").select("email, role");
+            if (res.error) throw res.error;
+            tbody.innerHTML = "";
+            (res.data || []).forEach(function (a) {
+              var tr = document.createElement("tr");
+              tr.innerHTML = '<td>' + escapeHtml(a.email) + '</td><td><span class="badge ' + (a.role === "admin" ? "pink" : "") + '">' + a.role + '</span></td>';
+              tbody.appendChild(tr);
+            });
+          } catch (err) {
+            status.textContent = "Gagal memuat daftar admin.";
+            status.style.display = "block";
+          }
+        }
+
+        // ========== init ==========
         init();
       })();
     </script>
