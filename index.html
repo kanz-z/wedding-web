@@ -62,14 +62,11 @@
     >
       <main data-aos="fade-up">
         <h4>Dear<span></span></h4>
-        <p style="font-size: 1.1rem; font-weight: 400">
-          You're Specially Invited to the Wedding of
-        </p>
+        <p class="subtitle">You're Specially Invited to the Wedding of</p>
         <h1>Reza & Ashila</h1>
         <a
           href="#home"
-          class="btn mt-4"
-          btn-lg
+          class="btn btn-lg mt-4"
           onClick="enableScroll(); showBottomNav();"
           >Lihat Undangan</a
         >
@@ -97,12 +94,22 @@
       <a href="#gifts" class="nav-item" data-section="gifts" title="Gifts">
         <i class="bi bi-gift-fill"></i>
       </a>
-      <a href="#guestbook-section" class="nav-item" data-section="guestbook-section" title="Ucapan">
+      <a
+        href="#guestbook-section"
+        class="nav-item"
+        data-section="guestbook-section"
+        title="Ucapan"
+      >
         <i class="bi bi-chat-heart-fill"></i>
       </a>
-      <a href="#thankyou" class="nav-item" data-section="thankyou" title="Terima Kasih">
+      <!-- <a
+        href="#thankyou"
+        class="nav-item"
+        data-section="thankyou"
+        title="Terima Kasih"
+      >
         <i class="bi bi-heart-fill"></i>
-      </a>
+      </a> -->
     </nav>
 
     <!-- bagian home -->
@@ -280,7 +287,7 @@
             <div
               id="countdown"
               class="countdown simply-countdown-circle"
-              style="margin: 3em"
+              style="margin: 3rem 0"
             ></div>
           </div>
         </div>
@@ -364,7 +371,9 @@
               </div>
 
               <div class="col-12">
-                <label for="pesan" class="form-label">Doa &amp; Ucapan</label>
+                <label for="pesan" class="form-label"
+                  >Doa &amp; Ucapan (Privat)</label
+                >
                 <textarea
                   class="form-control"
                   id="pesan"
@@ -376,7 +385,9 @@
               </div>
 
               <div class="col-12 text-center mt-2">
-                <button class="btn btn-primary px-5 m-3" type="submit">Kirim</button>
+                <button class="btn btn-primary px-5 m-3" type="submit">
+                  Kirim
+                </button>
               </div>
             </form>
           </div>
@@ -385,21 +396,58 @@
     </section>
 
     <!-- digital card (hidden, rendered via html2canvas) -->
-    <div id="digital-card" style="display:none; width:800px; height:500px; background:linear-gradient(135deg,#0a0a0a,#1a1a1a); color:#fff; padding:40px; font-family:'Playfair Display',serif; text-align:center; border:4px solid #f14e95; border-radius:16px; position:fixed; left:-9999px; top:0;">
-      <div style="font-size:14px;color:#f14e95;margin-bottom:8px;">UNDANGAN PERNIKAHAN</div>
-      <h2 style="font-size:36px;margin:0;color:#f14e95;" class="card-nama"></h2>
-      <div style="font-size:18px;margin:8px 0;" class="card-status"></div>
-      <div style="font-size:14px;color:#aaa;margin-bottom:20px;" class="card-kuota"></div>
-      <div style="display:flex;justify-content:center;align-items:center;gap:30px;">
-        <div style="text-align:left;font-size:14px;line-height:1.8;">
+    <div
+      id="digital-card"
+      style="
+        display: none;
+        width: 800px;
+        height: 500px;
+        background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+        color: #fff;
+        padding: 40px;
+        font-family: &quot;Playfair Display&quot;, serif;
+        text-align: center;
+        border: 4px solid #f14e95;
+        border-radius: 16px;
+        position: fixed;
+        left: -9999px;
+        top: 0;
+      "
+    >
+      <div style="font-size: 14px; color: #f14e95; margin-bottom: 8px">
+        UNDANGAN PERNIKAHAN
+      </div>
+      <h2
+        style="font-size: 36px; margin: 0; color: #f14e95"
+        class="card-nama"
+      ></h2>
+      <div style="font-size: 18px; margin: 8px 0" class="card-status"></div>
+      <div
+        style="font-size: 14px; color: #aaa; margin-bottom: 20px"
+        class="card-kuota"
+      ></div>
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 30px;
+        "
+      >
+        <div style="text-align: left; font-size: 14px; line-height: 1.8">
           <div><strong>Reza & Ashila</strong></div>
           <div>Sabtu, 22 Agustus 2026</div>
           <div>RIVEA Riverside Cafe and Space</div>
           <div>Ngaglik, Sleman, DIY</div>
         </div>
-        <div id="card-qr" style="background:#fff;padding:8px;border-radius:8px;"></div>
+        <div
+          id="card-qr"
+          style="background: #fff; padding: 8px; border-radius: 8px"
+        ></div>
       </div>
-      <div style="font-size:11px;color:#666;margin-top:20px;">Simpan kartu ini dan tunjukkan saat hari acara</div>
+      <div style="font-size: 11px; color: #666; margin-top: 20px">
+        Simpan kartu ini dan tunjukkan saat hari acara
+      </div>
     </div>
 
     <!-- gifts -->
@@ -409,25 +457,29 @@
           <div class="col-md-8 col-10 text-center" data-aos="fade-up">
             <span>ungkapan tanda kasih</span>
             <h2>Kirim Hadiah</h2>
-            <p>Doa Restu Anda adalah karunia yang sangat berarti. Namun jika memberi adalah ungkapan terima kasih, Anda dapat memberi hadiah melalui:</p>
+            <p>
+              Doa Restu Anda adalah karunia yang sangat berarti. Namun jika
+              memberi adalah ungkapan terima kasih, Anda dapat memberi hadiah
+              melalui:
+            </p>
           </div>
         </div>
         <div class="row justify-content-center g-3" data-aos="zoom-in">
           <div class="col-md-4 col-10">
-            <div class="card text-center" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.12);">
+            <div class="card text-center">
               <div class="card-body">
-                <h5 class="card-title" style="color:#f14e95;">BCA</h5>
+                <h5 class="card-title">BCA</h5>
                 <p class="card-text mb-1">1234567890</p>
-                <small class="text-muted">a.n. Ashila Luqyana Danurdoro</small>
+                <small>a.n. Ashila Luqyana Danurdoro</small>
               </div>
             </div>
           </div>
           <div class="col-md-4 col-10">
-            <div class="card text-center" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.12);">
+            <div class="card text-center">
               <div class="card-body">
-                <h5 class="card-title" style="color:#f14e95;">Mandiri</h5>
+                <h5 class="card-title">Mandiri</h5>
                 <p class="card-text mb-1">0987654321</p>
-                <small class="text-muted">a.n. Muhammad Reza Ramadhan</small>
+                <small>a.n. Muhammad Reza Ramadhan</small>
               </div>
             </div>
           </div>
@@ -447,28 +499,67 @@
             <form id="guestbook-form" class="row g-3">
               <div class="col-12">
                 <label for="gb-nama" class="form-label">Nama</label>
-                <input type="text" class="form-control" id="gb-nama" placeholder="Nama Anda" required />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="gb-nama"
+                  placeholder="Nama Anda"
+                  required
+                />
               </div>
               <div class="col-12">
                 <label for="gb-pesan" class="form-label">Ucapan</label>
-                <textarea class="form-control" id="gb-pesan" rows="3" maxlength="500" placeholder="Tulis ucapan & doa..." required></textarea>
-                <small class="text-muted" id="gb-counter">0/500</small>
+                <textarea
+                  class="form-control"
+                  id="gb-pesan"
+                  rows="3"
+                  maxlength="500"
+                  placeholder="Tulis ucapan & doa..."
+                  required
+                ></textarea>
+                <small id="gb-counter" style="color: white">0/500</small>
               </div>
               <div class="col-12 text-center">
-                <button type="submit" class="btn btn-primary px-5">Kirim Ucapan</button>
+                <button type="submit" class="btn btn-primary px-5">
+                  Kirim Ucapan
+                </button>
               </div>
             </form>
           </div>
           <div class="col-md-8 col-12 mt-4" data-aos="fade-up">
             <div id="gb-list"></div>
-            <div id="gb-loading" style="display:none;text-align:center;color:#aaa;">Memuat ucapan...</div>
-            <div id="gb-empty" style="display:none;text-align:center;color:#aaa;">Belum ada ucapan, jadilah yang pertama!</div>
-            <div id="gb-error" style="display:none;text-align:center;color:#f14e95;">
-              Gagal memuat ucapan.
-              <button class="btn btn-sm btn-outline-light mt-2" onclick="fetchGuestbook(0)">Coba lagi</button>
+            <div
+              id="gb-loading"
+              style="display: none; text-align: center; color: #aaa"
+            >
+              Memuat ucapan...
             </div>
-            <div id="gb-more" style="display:none;text-align:center;">
-              <button class="btn btn-sm btn-outline-light" onclick="fetchGuestbook(currentGbPage)">Muat lebih banyak</button>
+            <div
+              id="gb-empty"
+              style="display: none; text-align: center; color: #aaa"
+            >
+              Belum ada ucapan, jadilah yang pertama!
+            </div>
+            <div
+              id="gb-error"
+              style="display: none; text-align: center; color: #f14e95"
+              class="row justify-content-center"
+            >
+              Gagal memuat ucapan.
+              <button
+                class="btn btn-sm btn-outline-light mt-2"
+                onclick="fetchGuestbook(0)"
+              >
+                Coba lagi
+              </button>
+            </div>
+            <div id="gb-more" style="display: none; text-align: center">
+              <button
+                class="btn btn-sm btn-outline-light"
+                onclick="fetchGuestbook(currentGbPage)"
+              >
+                Muat lebih banyak
+              </button>
             </div>
           </div>
         </div>
@@ -481,7 +572,10 @@
         <div class="row justify-content-center">
           <div class="col-md-8 col-10 text-center" data-aos="fade-up">
             <h2>Terima Kasih</h2>
-            <p>Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu untuk pernikahan kami.</p>
+            <p>
+              Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i
+              berkenan hadir dan memberikan doa restu untuk pernikahan kami.
+            </p>
           </div>
         </div>
       </div>
@@ -641,7 +735,8 @@
           e.preventDefault();
 
           const namaInput = document.getElementById("nama").value.trim();
-          const jumlahInput = parseInt(document.getElementById("jumlah").value) || 1;
+          const jumlahInput =
+            parseInt(document.getElementById("jumlah").value) || 1;
           const statusInput = document.getElementById("status").value;
           const noWaInput = document.getElementById("noWA").value.trim();
           const pesanInput = document.getElementById("pesan").value.trim();
@@ -663,17 +758,31 @@
             }
 
             const rsvpResult = await submitRSVP(
-              guestId, namaInput, jumlahInput, statusInput, pesanInput, noWaInput
+              guestId,
+              namaInput,
+              jumlahInput,
+              statusInput,
+              pesanInput,
+              noWaInput,
             );
 
             if (pesanInput) {
-              await submitGuestbook(namaInput, pesanInput, rsvpResult.id).catch(function () {});
+              await submitGuestbook(namaInput, pesanInput, rsvpResult.id).catch(
+                function () {},
+              );
             }
 
             if (jumlahInput <= 2 && rsvpResult.is_approved) {
-              await renderDigitalCard(rsvpResult, namaInput, jumlahInput, statusInput);
+              await renderDigitalCard(
+                rsvpResult,
+                namaInput,
+                jumlahInput,
+                statusInput,
+              );
             } else if (jumlahInput > 2) {
-              alert("Permintaan Anda sedang ditinjau oleh panitia. Kartu undangan akan dikirim setelah disetujui.");
+              alert(
+                "Permintaan Anda sedang ditinjau oleh panitia. Kartu undangan akan dikirim setelah disetujui.",
+              );
             } else {
               alert("Konfirmasi kehadiran berhasil dikirim. Terima kasih!");
             }
@@ -682,7 +791,9 @@
             document.getElementById("nama").value = nama;
           } catch (error) {
             console.error("Gagal mengirim:", error);
-            alert(error.message || "Maaf, terjadi kesalahan. Silakan coba lagi.");
+            alert(
+              error.message || "Maaf, terjadi kesalahan. Silakan coba lagi.",
+            );
           } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = originalBtnText;
@@ -769,7 +880,26 @@
       var gbHasMore = true;
 
       // ponytail: daftar statis, tambahin kata baru sesuai kebutuhan
-      var KATA_KASAR = ["anjing","babi","bangsat","goblok","tolol","bodoh","kontol","memek","jancok","jancuk","ngentot","bajingan","brengsek","laknat","sialan","kampret","bego","setan"];
+      var KATA_KASAR = [
+        "anjing",
+        "babi",
+        "bangsat",
+        "goblok",
+        "tolol",
+        "bodoh",
+        "kontol",
+        "memek",
+        "jancok",
+        "jancuk",
+        "ngentot",
+        "bajingan",
+        "brengsek",
+        "laknat",
+        "sialan",
+        "kampret",
+        "bego",
+        "setan",
+      ];
 
       function sensorKataKasar(text) {
         var lower = text.toLowerCase();
@@ -819,7 +949,9 @@
           }
 
           currentGbPage = page + 1;
-          document.getElementById("gb-more").style.display = gbHasMore ? "block" : "none";
+          document.getElementById("gb-more").style.display = gbHasMore
+            ? "block"
+            : "none";
         } catch (err) {
           console.error("Gagal memuat ucapan:", err);
           document.getElementById("gb-error").style.display = "block";
@@ -834,9 +966,15 @@
           var div = document.createElement("div");
           div.className = "gb-entry";
           div.innerHTML =
-            '<div class="gb-name">' + escapeHtml(m.nama) + '</div>' +
-            '<div class="gb-msg">' + escapeHtml(m.pesan) + '</div>' +
-            '<div class="gb-time">' + formatWaktuRelatif(m.created_at) + '</div>';
+            '<div class="gb-name">' +
+            escapeHtml(m.nama) +
+            "</div>" +
+            '<div class="gb-msg">' +
+            escapeHtml(m.pesan) +
+            "</div>" +
+            '<div class="gb-time">' +
+            formatWaktuRelatif(m.created_at) +
+            "</div>";
           list.appendChild(div);
         });
       }
@@ -847,57 +985,65 @@
         return d.innerHTML;
       }
 
-      document.getElementById("guestbook-form").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        var namaEl = document.getElementById("gb-nama");
-        var pesanEl = document.getElementById("gb-pesan");
-        var errEl = document.createElement("div");
-        errEl.className = "gb-error-msg";
-        var existing = this.querySelector(".gb-error-msg");
-        if (existing) existing.remove();
+      document
+        .getElementById("guestbook-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var namaEl = document.getElementById("gb-nama");
+          var pesanEl = document.getElementById("gb-pesan");
+          var errEl = document.createElement("div");
+          errEl.className = "gb-error-msg";
+          var existing = this.querySelector(".gb-error-msg");
+          if (existing) existing.remove();
 
-        var nama = namaEl.value.trim();
-        var pesan = pesanEl.value.trim();
+          var nama = namaEl.value.trim();
+          var pesan = pesanEl.value.trim();
 
-        if (!nama || !pesan) {
-          errEl.textContent = "Nama dan ucapan wajib diisi.";
-          errEl.classList.add("show");
-          this.appendChild(errEl);
-          return;
-        }
+          if (!nama || !pesan) {
+            errEl.textContent = "Nama dan ucapan wajib diisi.";
+            errEl.classList.add("show");
+            this.appendChild(errEl);
+            return;
+          }
 
-        if (sensorKataKasar(pesan)) {
-          errEl.textContent = "Ucapan mengandung kata tidak pantas. Mohon perbaiki.";
-          errEl.classList.add("show");
-          this.appendChild(errEl);
-          return;
-        }
+          if (sensorKataKasar(pesan)) {
+            errEl.textContent =
+              "Ucapan mengandung kata tidak pantas. Mohon perbaiki.";
+            errEl.classList.add("show");
+            this.appendChild(errEl);
+            return;
+          }
 
-        var btn = this.querySelector("button");
-        btn.disabled = true;
-        btn.textContent = "Mengirim...";
+          var btn = this.querySelector("button");
+          btn.disabled = true;
+          btn.textContent = "Mengirim...";
 
-        try {
-          await supabaseClient.from("guestbook").insert([{ nama: nama, pesan: pesan }]);
-          alert("Ucapan berhasil dikirim! Terima kasih.");
-          namaEl.value = "";
-          pesanEl.value = "";
-          document.getElementById("gb-counter").textContent = "0/500";
-          currentGbPage = 0;
-          gbHasMore = true;
-          fetchGuestbook(0);
-        } catch (err) {
-          console.error("Gagal kirim ucapan:", err);
-          alert("Gagal mengirim ucapan. Coba lagi.");
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Kirim Ucapan";
-        }
-      });
+          try {
+            await supabaseClient
+              .from("guestbook")
+              .insert([{ nama: nama, pesan: pesan }]);
+            alert("Ucapan berhasil dikirim! Terima kasih.");
+            namaEl.value = "";
+            pesanEl.value = "";
+            document.getElementById("gb-counter").textContent = "0/500";
+            currentGbPage = 0;
+            gbHasMore = true;
+            fetchGuestbook(0);
+          } catch (err) {
+            console.error("Gagal kirim ucapan:", err);
+            alert("Gagal mengirim ucapan. Coba lagi.");
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "Kirim Ucapan";
+          }
+        });
 
-      document.getElementById("gb-pesan").addEventListener("input", function () {
-        document.getElementById("gb-counter").textContent = this.value.length + "/500";
-      });
+      document
+        .getElementById("gb-pesan")
+        .addEventListener("input", function () {
+          document.getElementById("gb-counter").textContent =
+            this.value.length + "/500";
+        });
 
       document.getElementById("gb-nama").value = nama;
       fetchGuestbook(0);
@@ -905,12 +1051,16 @@
 
     <!-- navbar toggle -->
     <script>
-      document.getElementById("navToggle").addEventListener("click", function () {
-        bottomNav.classList.toggle("nav-hidden");
-      });
-      document.getElementById("navRestore").addEventListener("click", function () {
-        bottomNav.classList.remove("nav-hidden");
-      });
+      document
+        .getElementById("navToggle")
+        .addEventListener("click", function () {
+          bottomNav.classList.toggle("nav-hidden");
+        });
+      document
+        .getElementById("navRestore")
+        .addEventListener("click", function () {
+          bottomNav.classList.remove("nav-hidden");
+        });
     </script>
 
     <!-- connect supabase -->
@@ -935,15 +1085,18 @@
         pesanInput,
         noWaInput,
       ) {
-        const { data, error } = await supabaseClient.from("rsvps").insert([
-          {
-            guest_id: guestId || null,
-            nama: namaInput,
-            nomor_wa: noWaInput,
-            jumlah_hadir: jumlahInput,
-            status: statusInput,
-          },
-        ]).select("id, qr_token, is_approved, jumlah_hadir");
+        const { data, error } = await supabaseClient
+          .from("rsvps")
+          .insert([
+            {
+              guest_id: guestId || null,
+              nama: namaInput,
+              nomor_wa: noWaInput,
+              jumlah_hadir: jumlahInput,
+              status: statusInput,
+            },
+          ])
+          .select("id, qr_token, is_approved, jumlah_hadir");
 
         if (error) throw error;
         return data[0];
@@ -965,7 +1118,8 @@
         var qrDiv = document.getElementById("card-qr");
         card.querySelector(".card-nama").textContent = nama;
         card.querySelector(".card-status").textContent = status;
-        card.querySelector(".card-kuota").textContent = "Berlaku untuk " + jumlah + " orang";
+        card.querySelector(".card-kuota").textContent =
+          "Berlaku untuk " + jumlah + " orang";
         qrDiv.innerHTML = "";
 
         new QRCode(qrDiv, {
@@ -990,14 +1144,18 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             card.style.display = "none";
-            alert("Kartu undangan berhasil diunduh. Simpan untuk ditunjukkan saat hari acara!");
+            alert(
+              "Kartu undangan berhasil diunduh. Simpan untuk ditunjukkan saat hari acara!",
+            );
           }, "image/png");
         } catch (e) {
           console.error("Download gagal:", e);
           card.style.display = "block";
           card.style.position = "relative";
           card.style.margin = "1rem auto";
-          alert("Download otomatis gagal. Silakan screenshot kartu undangan di bawah ini.");
+          alert(
+            "Download otomatis gagal. Silakan screenshot kartu undangan di bawah ini.",
+          );
         }
       }
     </script>
