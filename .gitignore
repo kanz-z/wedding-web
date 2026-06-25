@@ -8,3 +8,10 @@ tree.md
 TASK.md
 image.png
 AGENTS.md
+/node_modules
+/scripts
+~$OJECT_DOCUMENTATION.doc
+package.json
+package-lock.json
+PROJECT_DOCUMENTATION.doc
+PROJECT_DOCUMENTATION.md
