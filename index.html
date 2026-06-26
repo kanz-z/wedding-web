@@ -468,8 +468,24 @@
           <div class="col-md-4 col-10">
             <div class="card text-center">
               <div class="card-body">
+                <div class="gift-icon">
+                  <img
+                    src="assets/img/BCA.png"
+                    alt="Logo BCA"
+                    class="img-responsive"
+                  />
+                </div>
                 <h5 class="card-title">BCA</h5>
-                <p class="card-text mb-1">1234567890</p>
+                <div class="card-account">
+                  <span class="card-text mb-1 acc-number">8614023870</span>
+                  <button
+                    class="btn-copy-icon"
+                    onclick="copyToClipboard('8614023870')"
+                    title="Salin nomor rekening"
+                  >
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
                 <small>a.n. Ashila Luqyana Danurdoro</small>
               </div>
             </div>
@@ -477,13 +493,32 @@
           <div class="col-md-4 col-10">
             <div class="card text-center">
               <div class="card-body">
-                <h5 class="card-title">Mandiri</h5>
-                <p class="card-text mb-1">0987654321</p>
-                <small>a.n. Muhammad Reza Ramadhan</small>
+                <div class="gift-icon">
+                  <img
+                    src="assets/img/Saweria.png"
+                    alt="Logo Saweria"
+                    class="img-responsive"
+                  />
+                </div>
+                <h5 class="card-title">Saweria</h5>
+                <div class="card-account">
+                  <span class="card-text mb-1 acc-number">ChikoeL</span>
+                  <button
+                    class="btn-copy-icon"
+                    onclick="
+                      window.open('https://saweria.co/ChikoeL', '_blank')
+                    "
+                    title="Go to the link!"
+                  >
+                    <i class="bi bi-link"></i>
+                  </button>
+                </div>
+                <small>a.n. Ashila Luqyana Danurdoro</small>
               </div>
             </div>
           </div>
         </div>
+        <div id="gift-toast" class="gift-toast">Tersalin!</div>
       </div>
     </section>
 
@@ -496,7 +531,7 @@
             <p>Berikan doa dan ucapan terbaik untuk kedua mempelai.</p>
           </div>
           <div class="col-md-8 col-12 mt-3" data-aos="fade-up">
-            <form id="guestbook-form" class="row g-3">
+            <form id="guestbook-form" class="row g-3" onsubmit="return false">
               <div class="col-12">
                 <label for="gb-nama" class="form-label">Nama</label>
                 <input
@@ -553,14 +588,13 @@
                 Coba lagi
               </button>
             </div>
-            <div id="gb-more" style="display: none; text-align: center">
-              <button
-                class="btn btn-sm btn-outline-light"
-                onclick="fetchGuestbook(currentGbPage)"
-              >
-                Muat lebih banyak
-              </button>
-            </div>
+            <nav
+              id="gb-pagination"
+              style="display: none"
+              aria-label="Paginasi ucapan"
+            >
+              <ul class="pagination justify-content-center"></ul>
+            </nav>
           </div>
         </div>
       </div>
@@ -874,6 +908,22 @@
       const supabaseKey =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWZzYXBnYWRpY2trbnNmYnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDIwNDMsImV4cCI6MjA5NzY3ODA0M30.aQ37-_9-wl2pbDtqKSavOvrsUU-F-sIzv6g3hG23dHw";
       const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(function () {
+            var toast = document.getElementById("gift-toast");
+            toast.classList.add("show");
+            setTimeout(function () {
+              toast.classList.remove("show");
+            }, 1800);
+          })
+          .catch(function () {
+            prompt("Salin nomor rekening:", text);
+          });
+      }
+
       async function fetchGuest(guestSlug) {
         const { data, error } = await supabaseClient.rpc("get_guest_by_slug", {
           guest_slug: guestSlug,
@@ -967,11 +1017,10 @@
 
     <!-- guestbook -->
     <script>
-      var GB_PAGE_SIZE = 10;
-      var currentGbPage = 0;
-      var gbHasMore = true;
+      var GB_PAGE_SIZE = 5;
+      var gbCurrentPage = 0;
+      var gbTotalPages = 0;
 
-      // ponytail: daftar statis, tambahin kata baru sesuai kebutuhan
       var KATA_KASAR = [
         "anjing",
         "babi",
@@ -1012,6 +1061,64 @@
         return d.toLocaleDateString("id-ID", { dateStyle: "medium" });
       }
 
+      function escapeHtml(str) {
+        var d = document.createElement("div");
+        d.textContent = str || "";
+        return d.innerHTML;
+      }
+
+      function renderPagination() {
+        var nav = document.getElementById("gb-pagination");
+        var ul = nav.querySelector("ul");
+        ul.innerHTML = "";
+        if (gbTotalPages <= 1) {
+          nav.style.display = "none";
+          return;
+        }
+        nav.style.display = "block";
+
+        // prev
+        var li = document.createElement("li");
+        li.className = "page-item" + (gbCurrentPage === 0 ? " disabled" : "");
+        li.innerHTML =
+          '<a class="page-link" href="#" aria-label="Sebelumnya"><span aria-hidden="true">&laquo;</span></a>';
+        li.querySelector("a").addEventListener("click", function (e) {
+          e.preventDefault();
+          if (gbCurrentPage > 0) fetchGuestbook(gbCurrentPage - 1);
+        });
+        ul.appendChild(li);
+
+        // pages
+        for (var i = 0; i < gbTotalPages; i++) {
+          var li2 = document.createElement("li");
+          li2.className = "page-item" + (i === gbCurrentPage ? " active" : "");
+          li2.innerHTML = '<a class="page-link" href="#">' + (i + 1) + "</a>";
+          li2.querySelector("a").addEventListener(
+            "click",
+            (function (p) {
+              return function (e) {
+                e.preventDefault();
+                fetchGuestbook(p);
+              };
+            })(i),
+          );
+          ul.appendChild(li2);
+        }
+
+        // next
+        var li3 = document.createElement("li");
+        li3.className =
+          "page-item" + (gbCurrentPage >= gbTotalPages - 1 ? " disabled" : "");
+        li3.innerHTML =
+          '<a class="page-link" href="#" aria-label="Berikutnya"><span aria-hidden="true">&raquo;</span></a>';
+        li3.querySelector("a").addEventListener("click", function (e) {
+          e.preventDefault();
+          if (gbCurrentPage < gbTotalPages - 1)
+            fetchGuestbook(gbCurrentPage + 1);
+        });
+        ul.appendChild(li3);
+      }
+
       async function fetchGuestbook(page) {
         document.getElementById("gb-loading").style.display = "block";
         document.getElementById("gb-error").style.display = "none";
@@ -1020,6 +1127,20 @@
         try {
           var from = page * GB_PAGE_SIZE;
           var to = from + GB_PAGE_SIZE - 1;
+
+          if (typeof supabaseClient === "undefined" || !supabaseClient) {
+            throw new Error("supabaseClient belum siap");
+          }
+
+          var countRes = await supabaseClient
+            .from("guestbook")
+            .select("id", { count: "exact", head: true })
+            .eq("is_approved", true);
+
+          if (countRes.error) throw countRes.error;
+          var total = countRes.count || 0;
+          gbTotalPages = Math.max(1, Math.ceil(total / GB_PAGE_SIZE));
+
           var res = await supabaseClient
             .from("guestbook")
             .select("nama, pesan, created_at")
@@ -1030,20 +1151,30 @@
           if (res.error) throw res.error;
 
           var data = res.data || [];
-          gbHasMore = data.length === GB_PAGE_SIZE;
+          document.getElementById("gb-list").innerHTML = "";
 
-          if (page === 0) document.getElementById("gb-list").innerHTML = "";
-
-          if (data.length === 0 && page === 0) {
+          if (data.length === 0) {
             document.getElementById("gb-empty").style.display = "block";
           } else {
-            renderGuestbookMessages(data);
+            data.forEach(function (m) {
+              var div = document.createElement("div");
+              div.className = "gb-entry";
+              div.innerHTML =
+                '<div class="gb-name">' +
+                escapeHtml(m.nama) +
+                "</div>" +
+                '<div class="gb-msg">' +
+                escapeHtml(m.pesan) +
+                "</div>" +
+                '<div class="gb-time">' +
+                formatWaktuRelatif(m.created_at) +
+                "</div>";
+              document.getElementById("gb-list").appendChild(div);
+            });
           }
 
-          currentGbPage = page + 1;
-          document.getElementById("gb-more").style.display = gbHasMore
-            ? "block"
-            : "none";
+          gbCurrentPage = page;
+          renderPagination();
         } catch (err) {
           console.error("Gagal memuat ucapan:", err);
           document.getElementById("gb-error").style.display = "block";
@@ -1052,29 +1183,22 @@
         }
       }
 
-      function renderGuestbookMessages(messages) {
-        var list = document.getElementById("gb-list");
-        messages.forEach(function (m) {
-          var div = document.createElement("div");
-          div.className = "gb-entry";
-          div.innerHTML =
-            '<div class="gb-name">' +
-            escapeHtml(m.nama) +
-            "</div>" +
-            '<div class="gb-msg">' +
-            escapeHtml(m.pesan) +
-            "</div>" +
-            '<div class="gb-time">' +
-            formatWaktuRelatif(m.created_at) +
-            "</div>";
-          list.appendChild(div);
-        });
-      }
-
-      function escapeHtml(str) {
-        var d = document.createElement("div");
-        d.textContent = str || "";
-        return d.innerHTML;
+      function retryFetchGuestbook(attempt) {
+        attempt = attempt || 0;
+        if (attempt >= 3) {
+          fetchGuestbook(0);
+          return;
+        }
+        setTimeout(
+          function () {
+            if (typeof supabaseClient !== "undefined" && supabaseClient) {
+              fetchGuestbook(0);
+            } else {
+              retryFetchGuestbook(attempt + 1);
+            }
+          },
+          300 * (attempt + 1),
+        );
       }
 
       document
@@ -1118,8 +1242,6 @@
             namaEl.value = "";
             pesanEl.value = "";
             document.getElementById("gb-counter").textContent = "0/500";
-            currentGbPage = 0;
-            gbHasMore = true;
             fetchGuestbook(0);
           } catch (err) {
             console.error("Gagal kirim ucapan:", err);
@@ -1138,7 +1260,7 @@
         });
 
       document.getElementById("gb-nama").value = nama;
-      fetchGuestbook(0);
+      retryFetchGuestbook(0);
     </script>
 
     <!-- navbar toggle -->
