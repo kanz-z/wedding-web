@@ -115,6 +115,7 @@ body {
 .home .couple {
   margin-top: 1em;
   position: relative;
+  overflow: hidden;
 }
 .home .couple h3 {
   font-family: "Playfair Display";
@@ -213,6 +214,102 @@ body {
 }
 .gifts .card-title {
   color: var(--pink);
+}
+.gift-icon img {
+  height: 50px;
+  width: auto;
+  border-radius: 10px;
+  background-color: white;
+}
+.gifts .gift-icon {
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.gifts .gift-icon svg {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.gifts .card-account {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+.gifts .acc-number {
+  font-family: "Playfair Display", serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  color: white;
+}
+.gifts .btn-copy-icon {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #aaa;
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+.gifts .btn-copy-icon:hover {
+  color: var(--pink);
+  border-color: var(--pink);
+  background: rgba(241, 78, 149, 0.1);
+}
+.gift-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--pink);
+  color: #fff;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+  z-index: 9999;
+  pointer-events: none;
+}
+.gift-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* guestbook pagination dark theme */
+#gb-pagination .pagination {
+  margin-top: 1.5rem;
+}
+#gb-pagination .page-link {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ccc;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+#gb-pagination .page-link:hover {
+  background: rgba(241, 78, 149, 0.15);
+  border-color: var(--pink);
+  color: #fff;
+}
+#gb-pagination .page-item.active .page-link {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #fff;
+}
+#gb-pagination .page-item.disabled .page-link {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #555;
 }
 
 /* rsvp + guestbook shared form styles */
