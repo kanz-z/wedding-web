@@ -563,6 +563,10 @@ button:disabled {
   color: #555;
 }
 
+option {
+  background-color: #1c1c1c;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .side-nav {

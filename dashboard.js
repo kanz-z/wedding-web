@@ -445,15 +445,48 @@
   }
 
   // ========== TAB 2: TAMU & RSVP ==========
+
+  function buildGuestIdSet(guests) {
+    var set = {};
+    guests.forEach(function (g) {
+      set[g.id] = true;
+    });
+    return set;
+  }
+
+  function autoMatchOrphan(orphan, guests) {
+    var name = (orphan.nama || "").toLowerCase().trim();
+    var wa = (orphan.nomor_wa || "").trim();
+    if (!name) return null;
+
+    var best = null,
+      bestScore = 0;
+    guests.forEach(function (g) {
+      var gName = (g.name || "").toLowerCase().trim();
+      var score = 0;
+
+      if (name === gName) score += 3;
+      else if (name.indexOf(gName) !== -1 || gName.indexOf(name) !== -1)
+        score += 1;
+
+      if (wa && g.nomor_wa && wa === g.nomor_wa.trim()) score += 5;
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = g;
+      }
+    });
+    return bestScore >= 2 ? best : null;
+  }
+
   async function loadTamuRSVP() {
     document.getElementById("tamu-status").style.display = "none";
     document.getElementById("tamu-empty").style.display = "none";
-    document.getElementById("tamu-loading").style.display = "block";
     try {
       var [guestsRes, rsvpsRes] = await Promise.all([
         sb
           .from("guests")
-          .select("id, slug, name, pronoun, invited_count, created_at"),
+          .select("id, slug, name, pronoun, invited_count, created_at, side, nomor_wa"),
         sb
           .from("rsvps")
           .select(
@@ -468,45 +501,92 @@
       var guests = guestsRes.data || [];
       var rsvps = rsvpsRes.data || [];
 
-      var rsvpMap = {};
-      rsvps.forEach(function (r) {
-        rsvpMap[r.guest_id] = r;
-      });
+      var guestIdSet = buildGuestIdSet(guests);
+      var linkedGuestIds = {};
 
-      allTamu = guests.map(function (g) {
-        var r = rsvpMap[g.id];
-        return {
-          id: r ? r.id : null,
+      allTamu = [];
+
+      // 1. Guest terdaftar + RSVP yg ter-link via guest_id
+      guests.forEach(function (g) {
+        var rsvp = rsvps.find(function (r) {
+          return r.guest_id === g.id;
+        });
+        if (rsvp) linkedGuestIds[rsvp.id] = true;
+        allTamu.push({
+          id: rsvp ? rsvp.id : null,
           guest_id: g.id,
-          nama: r ? r.nama : g.name,
-          nomor_wa: r ? r.nomor_wa : "",
-          jumlah_hadir: r ? r.jumlah_hadir : g.invited_count,
-          status: r ? r.status : null,
-          is_approved: r ? r.is_approved : true,
-          checked_in: r ? r.checked_in : false,
-          qr_token: r ? r.qr_token : null,
-          pesan: r ? r.pesan : null,
-          created_at: r ? r.created_at : g.created_at,
+          nama: rsvp ? rsvp.nama : g.name,
+          nomor_wa: rsvp ? rsvp.nomor_wa : (g.nomor_wa || ""),
+          jumlah_hadir: rsvp ? rsvp.jumlah_hadir : g.invited_count,
+          status: rsvp ? rsvp.status : null,
+          is_approved: rsvp ? rsvp.is_approved : true,
+          checked_in: rsvp ? rsvp.checked_in : false,
+          qr_token: rsvp ? rsvp.qr_token : null,
+          pesan: rsvp ? rsvp.pesan : null,
+          created_at: rsvp ? rsvp.created_at : g.created_at,
           _slug: g.slug,
           _pronoun: g.pronoun,
           _invited_count: g.invited_count,
-        };
+          _source: "guest",
+          _side: g.side || null,
+        });
+      });
+
+      // 2. RSVP orphan (guest_id null / guest_id tidak ditemukan)
+      var unmatchedRsvps = rsvps.filter(function (r) {
+        return !r.guest_id || !guestIdSet[r.guest_id];
+      });
+
+      unmatchedRsvps.forEach(function (r) {
+        if (linkedGuestIds[r.id]) return;
+
+        // Auto-match: cari guest by nama+WA
+        var match = autoMatchOrphan(r, guests);
+        allTamu.push({
+          id: r.id,
+          guest_id: match ? match.id : null,
+          nama: r.nama,
+          nomor_wa: r.nomor_wa || "",
+          jumlah_hadir: r.jumlah_hadir,
+          status: r.status,
+          is_approved: r.is_approved,
+          checked_in: r.checked_in,
+          qr_token: r.qr_token,
+          pesan: r.pesan,
+          created_at: r.created_at,
+          _slug: match ? match.slug : null,
+          _pronoun: match ? match.pronoun : null,
+          _invited_count: match ? match.invited_count : 0,
+          _source: match ? "auto-matched" : "orphan",
+          _side: match ? match.side || null : null,
+        });
       });
 
       allTamu.sort(function (a, b) {
         return new Date(b.created_at) - new Date(a.created_at);
       });
 
-      document.getElementById("tamu-loading").style.display = "none";
       if (allTamu.length === 0)
         document.getElementById("tamu-empty").style.display = "block";
       renderTamuTable();
       loadApprovalPending();
     } catch (err) {
       console.error("Tamu error:", err);
-      document.getElementById("tamu-loading").style.display = "none";
       document.getElementById("tamu-status").style.display = "block";
     }
+  }
+
+  function badgeSide(side) {
+    if (side === "pria") return '<span class="badge pink">Pria</span>';
+    if (side === "wanita") return '<span class="badge">Wanita</span>';
+    if (side === "both") return '<span class="badge success">Keduanya</span>';
+    return "";
+  }
+
+  function badgeSource(source) {
+    if (source === "orphan") return '<span class="badge warning">Baru</span>';
+    if (source === "auto-matched") return '<span class="badge">Tercocok</span>';
+    return "";
   }
 
   function renderTamuTable() {
@@ -519,6 +599,10 @@
       var matchSearch = !search || t.nama.toLowerCase().indexOf(search) !== -1;
       var matchFilter = true;
       if (tamuFilter === "pending") matchFilter = t.is_approved === false;
+      else if (tamuFilter === "orphan")
+        matchFilter = t._source === "orphan" || t._source === "auto-matched";
+      else if (tamuFilter === "pria") matchFilter = t._side === "pria";
+      else if (tamuFilter === "wanita") matchFilter = t._side === "wanita";
       else if (tamuFilter !== "all")
         matchFilter =
           tamuFilter === "null" ? !t.status : t.status === tamuFilter;
@@ -537,6 +621,8 @@
       tr.innerHTML =
         "<td>" +
         escapeHtml(t.nama) +
+        badgeSource(t._source) +
+        badgeSide(t._side) +
         "</td>" +
         "<td>" +
         escapeHtml(t.nomor_wa || "") +
@@ -567,11 +653,11 @@
         pesanTrunc +
         "</td>" +
         '<td style="white-space:nowrap">' +
-        '<button class="btn btn-sm btn-outline-secondary" onclick="editTamu(\'' +
-        t.guest_id +
+        '<button class="btn-sm" onclick="editTamu(\'' +
+        (t._source === "orphan" ? "" : t.guest_id) +
         '\')" title="Edit" style="margin-right:4px">' +
         '<i class="bi bi-pencil-fill"></i></button>' +
-        '<button class="btn btn-sm btn-outline-secondary" onclick="copyGuestLink(\'' +
+        '<button class="btn-sm" onclick="copyGuestLink(\'' +
         escapeAttr(t.nama) +
         "','" +
         (t.qr_token || "") +
@@ -580,7 +666,6 @@
         '\')" title="Salin link">' +
         '<i class="bi bi-link-45deg"></i></button></td>';
       tbody.appendChild(tr);
-      // click-to-expand for truncated cells
       var cells = tr.querySelectorAll("td.trunc-cell");
       cells.forEach(function (c) {
         c.addEventListener("click", function () {
@@ -623,16 +708,50 @@
 
   function editTamu(guestId) {
     var entry = allTamu.find(function (t) {
-      return t.guest_id === guestId;
+      return (
+        t.guest_id === guestId ||
+        (!guestId && !t.guest_id && t._source === "orphan")
+      );
     });
     if (!entry) {
       showToast("Data tamu tidak ditemukan.", true);
       return;
     }
+
+    if (entry._source === "orphan") {
+      // Orphan RSVP → buka modal untuk create guest baru, pre-fill dari RSVP
+      var guestData = null;
+      var rsvpData = {
+        id: entry.id,
+        nomor_wa: entry.nomor_wa,
+        status: entry.status,
+        jumlah_hadir: entry.jumlah_hadir,
+        pesan: entry.pesan,
+      };
+      showGuestModal(guestData, rsvpData);
+      // Isi manual nama + WA
+      document.getElementById("gf-name").value = entry.nama;
+      document.getElementById("gf-nomor-wa").value = entry.nomor_wa;
+      // ponytail: unique slug check against existing guests
+      var baseSlug = entry.nama.toLowerCase().replace(/\s+/g, "-");
+      var slug = baseSlug;
+      var slugNum = 1;
+      while (
+        allTamu.some(function (t) {
+          return t._slug === slug;
+        })
+      ) {
+        slug = baseSlug + "-" + slugNum++;
+      }
+      document.getElementById("gf-slug").value = slug;
+      return;
+    }
+
     var guestData = {
       id: entry.guest_id,
       name: entry.nama,
       slug: entry._slug,
+      side: entry._side || "",
       pronoun: entry._pronoun || "",
       invited_count: entry._invited_count,
     };
@@ -715,6 +834,7 @@
       document.getElementById("gf-id").value = guestData.id;
       document.getElementById("gf-name").value = guestData.name;
       document.getElementById("gf-slug").value = guestData.slug;
+      document.getElementById("gf-side").value = guestData.side || "";
       document.getElementById("gf-pronoun").value = guestData.pronoun || "";
       document.getElementById("gf-count").value = guestData.invited_count;
 
@@ -750,11 +870,15 @@
     .addEventListener("submit", async function (e) {
       e.preventDefault();
       var id = document.getElementById("gf-id").value;
+      var sideVal = document.getElementById("gf-side").value;
+      var nomorWa = document.getElementById("gf-nomor-wa").value.trim();
       var data = {
         name: document.getElementById("gf-name").value.trim(),
         slug: document.getElementById("gf-slug").value.trim(),
+        side: sideVal || null,
         pronoun: document.getElementById("gf-pronoun").value.trim() || null,
         invited_count: parseInt(document.getElementById("gf-count").value) || 1,
+        nomor_wa: nomorWa || null,
       };
       if (!data.name || !data.slug) {
         showToast("Nama dan slug wajib diisi.", true);
@@ -775,7 +899,6 @@
         // Save RSVP data
         var rsvpId = document.getElementById("gf-rsvp-id").value;
         var rsvpSection = document.getElementById("gf-rsvp-section");
-        var nomorWa = document.getElementById("gf-nomor-wa").value.trim();
 
         if (rsvpSection.style.display === "block") {
           var status = document.getElementById("gf-status").value;
@@ -818,7 +941,14 @@
         closeGuestModal();
         loadTamuRSVP();
       } catch (err) {
-        showToast("Gagal menyimpan: " + (err.message || "unknown"), true);
+        if (err.code === "23505") {
+          showToast(
+            "Slug sudah digunakan oleh tamu lain. Ganti slug-nya.",
+            true,
+          );
+        } else {
+          showToast("Gagal menyimpan: " + (err.message || "unknown"), true);
+        }
       }
     });
 
@@ -828,27 +958,20 @@
       if (e.target === this) closeGuestModal();
     });
 
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeGuestModal();
-  });
-
   // ========== TAB 3: GUESTBOOK ==========
   async function loadGuestbook() {
     document.getElementById("gb-status").classList.remove("show");
     document.getElementById("gb-empty").style.display = "none";
-    document.getElementById("gb-loading").style.display = "block";
     try {
       var res = await sb
         .from("guestbook")
         .select("id, nama, pesan, is_approved, created_at")
         .order("created_at", { ascending: false })
-        .limit(5000);
+        .limit(500);
       if (res.error) throw res.error;
       allGb = res.data || [];
-      document.getElementById("gb-loading").style.display = "none";
       renderGbList();
     } catch (err) {
-      document.getElementById("gb-loading").style.display = "none";
       document.getElementById("gb-status").textContent =
         "Gagal memuat guestbook.";
       document.getElementById("gb-status").classList.add("show");
@@ -890,9 +1013,7 @@
         "</div>" +
         '<div style="text-align:right;">' +
         '<button class="' +
-        (entry.is_approved
-          ? "btn btn-sm btn-outline-danger"
-          : "btn btn-sm btn-outline-secondary") +
+        (entry.is_approved ? "btn-danger" : "btn-sm") +
         '" data-id="' +
         entry.id +
         '" onclick="toggleGbApproval(\'' +
@@ -956,9 +1077,11 @@
     html5QrScanner
       .start(
         { facingMode: "environment" },
-        { fps: 5, qrbox: { width: 250, height: 250 } },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
         onScanSuccess,
-        function () {}, // ignore errors
+        function (err) {
+          console.debug("QR scan error (non-fatal):", err);
+        },
       )
       .catch(function (err) {
         showToast("Gagal mengakses kamera: " + err, true);
@@ -981,9 +1104,16 @@
   }
 
   async function onScanSuccess(decodedText) {
-    stopScanner();
     var resultEl = document.getElementById("scan-result");
-    var token = decodedText.trim();
+    var raw = decodedText.trim();
+
+    // Handle QR berisi URL (copyGuestLink format) atau UUID saja
+    var token = raw;
+    try {
+      var url = new URL(raw);
+      var maybe = url.searchParams.get("token");
+      if (maybe) token = maybe;
+    } catch (_) {}
 
     try {
       var res = await sb
@@ -994,6 +1124,7 @@
       if (res.error || !res.data) {
         resultEl.className = "scan-result error";
         resultEl.textContent = "Tamu tidak terdaftar";
+        stopScanner();
         return;
       }
 
@@ -1010,6 +1141,7 @@
         resultEl.className = "scan-result info";
         resultEl.textContent =
           escapeHtml(tamu.nama) + " — Sudah check-in pukul " + time;
+        stopScanner();
         return;
       }
 
@@ -1028,12 +1160,14 @@
         " — Check-in berhasil! (" +
         tamu.jumlah_hadir +
         " org)";
+      stopScanner();
       loadCheckinLog();
       loadTamuRSVP();
     } catch (err) {
       console.error("Scan error:", err);
       resultEl.className = "scan-result error";
       resultEl.textContent = "Gagal memproses check-in";
+      stopScanner();
     }
   }
 
@@ -1179,19 +1313,21 @@
       empty.style.display = "none";
       data.forEach(function (item) {
         var card = document.createElement("div");
-        card.className = "pp-card";
+        card.style.cssText =
+          "background:var(--panel);border:1px solid var(--panel-border);border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.65rem;width:100%;";
         card.innerHTML =
-          '<div class="pp-card-header">' +
-          '<strong class="pp-card-name">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">' +
+          '<span style="font-weight:600;">' +
           escapeHtml(item.nama) +
-          "</strong>" +
-          '<span class="pp-card-meta">' +
-          (item.nomor_wa ? escapeHtml(item.nomor_wa) + " &middot; " : "") +
+          "</span>" +
+          '<span style="font-size:0.72rem;color:var(--ink-muted);">' +
+          (item.nomor_wa ? escapeHtml(item.nomor_wa) : "") +
+          " &middot; " +
           formatDate(item.created_at) +
           "</span></div>" +
-          '<p class="pp-card-body">' +
+          '<div style="color:#d8d8d8;font-size:0.92rem;white-space:pre-wrap;word-break:break-word;">' +
           escapeHtml(item.pesan) +
-          "</p>";
+          "</div>";
         list.appendChild(card);
       });
       loading.style.display = "none";

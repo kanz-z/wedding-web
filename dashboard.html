@@ -323,15 +323,38 @@
               >
                 Pending
               </button>
+              <button
+                class="btn btn-outline-secondary"
+                data-filter="orphan"
+                onclick="setTamuFilter('orphan', this)"
+              >
+                Baru
+              </button>
+            </div>
+            <div class="btn-group btn-group-sm flex-wrap ms-2" role="group">
+              <button
+                class="btn btn-outline-secondary"
+                data-filter="pria"
+                onclick="setTamuFilter('pria', this)"
+              >
+                Pria
+              </button>
+              <button
+                class="btn btn-outline-secondary"
+                data-filter="wanita"
+                onclick="setTamuFilter('wanita', this)"
+              >
+                Wanita
+              </button>
             </div>
           </div>
-          <div id="tamu-loading" class="text-center py-4">
+          <!-- <div id="tamu-loading" class="text-center py-4">
             <span
               class="spinner-border spinner-border-sm me-2"
               role="status"
             ></span
             >Memuat data...
-          </div>
+          </div> -->
           <div class="table-responsive">
             <table
               class="table table-dark table-borderless table-hover align-middle small mb-0"
@@ -339,7 +362,7 @@
             >
               <thead>
                 <tr>
-                  <th>Nama</th>
+                  <th>Nama &amp; Pihak</th>
                   <th>WA</th>
                   <th class="text-center">Kuota</th>
                   <th class="text-center">Status</th>
@@ -561,6 +584,18 @@
             id="gf-slug"
             required
           />
+          <label for="gf-side" class="form-label small"
+            >Hubungan dengan mempelai</label
+          >
+          <select
+            class="form-select bg-dark text-light border-secondary mb-3"
+            id="gf-side"
+          >
+            <option value="">Pilih hubungan</option>
+            <option value="pria">Pihak Pria (keluarga/teman Reza)</option>
+            <option value="wanita">Pihak Wanita (keluarga/teman Ashila)</option>
+            <option value="both">Keduanya</option>
+          </select>
           <label for="gf-pronoun" class="form-label small"
             >Sapaan (Bpk/Ibu/dll)</label
           >
