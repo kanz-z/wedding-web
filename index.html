@@ -929,6 +929,15 @@
         if (error) throw error;
         return data;
       }
+      function generateUUID() {
+        if (typeof crypto !== "undefined" && crypto.randomUUID)
+          return crypto.randomUUID();
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+          var r = (Math.random() * 16) | 0;
+          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
+      }
+
       async function submitRSVP(
         guestId,
         namaInput,
@@ -937,22 +946,21 @@
         pesanInput,
         noWaInput,
       ) {
-        const { data, error } = await supabaseClient
-          .from("rsvps")
-          .insert([
-            {
-              guest_id: guestId || null,
-              nama: namaInput,
-              nomor_wa: noWaInput,
-              jumlah_hadir: jumlahInput,
-              status: statusInput,
-              pesan: pesanInput || null,
-            },
-          ])
-          .select("id, qr_token, is_approved, jumlah_hadir, pesan");
+        const qrToken = generateUUID();
+        const { error } = await supabaseClient.from("rsvps").insert([
+          {
+            guest_id: guestId || null,
+            nama: namaInput,
+            nomor_wa: noWaInput,
+            jumlah_hadir: jumlahInput,
+            status: statusInput,
+            pesan: pesanInput || null,
+            qr_token: qrToken,
+          },
+        ]);
 
         if (error) throw error;
-        return data[0];
+        return { is_approved: true, qr_token: qrToken, jumlah_hadir: jumlahInput, pesan: pesanInput };
       }
 
       async function submitGuestbook(namaInput, pesanInput, rsvpId) {
