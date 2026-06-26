@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
     <meta property="og:title" content="Undangan Pernikahan Reza & Ashila" />
     <meta
       property="og:description"
@@ -520,6 +521,31 @@
         </div>
         <div id="gift-toast" class="gift-toast">Tersalin!</div>
       </div>
+      <div class="col-md-4 col-10">
+        <div class="card text-center">
+          <div class="card-body">
+            <div class="gift-icon">
+              <img
+                src="assets/img/BCA.png"
+                alt="Logo BCA"
+                class="img-responsive"
+              />
+            </div>
+            <h5 class="card-title">BCA</h5>
+            <div class="card-account">
+              <span class="card-text mb-1 acc-number">8614023870</span>
+              <button
+                class="btn-copy-icon"
+                onclick="copyToClipboard('8614023870')"
+                title="Salin nomor rekening"
+              >
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+            <small>a.n. Muhammad Reza Ramadhan</small>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- guestbook -->
@@ -531,7 +557,7 @@
             <p>Berikan doa dan ucapan terbaik untuk kedua mempelai.</p>
           </div>
           <div class="col-md-8 col-12 mt-3" data-aos="fade-up">
-            <form id="guestbook-form" class="row g-3" onsubmit="return false">
+            <form id="guestbook-form" class="row g-3" onsubmit="return false;">
               <div class="col-12">
                 <label for="gb-nama" class="form-label">Nama</label>
                 <input
@@ -783,6 +809,7 @@
           submitBtn.disabled = true;
           submitBtn.textContent = "Mengirim...";
 
+          var success = false;
           try {
             const slug = urlParams.get("n") || "";
             let guestId = null;
@@ -815,16 +842,19 @@
               alert("Konfirmasi kehadiran berhasil dikirim. Terima kasih!");
             }
 
-            form.reset();
-            document.getElementById("nama").value = nama;
+            success = true;
+            form.querySelectorAll("input, select, textarea, button").forEach(function (el) {
+              el.disabled = true;
+            });
+            submitBtn.textContent = "Terkirim";
           } catch (error) {
             console.error("Gagal mengirim:", error);
             alert(
               error.message || "Maaf, terjadi kesalahan. Silakan coba lagi.",
             );
           } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = success;
+            if (!success) submitBtn.textContent = originalBtnText;
           }
         });
       });
@@ -932,10 +962,13 @@
       function generateUUID() {
         if (typeof crypto !== "undefined" && crypto.randomUUID)
           return crypto.randomUUID();
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-          var r = (Math.random() * 16) | 0;
-          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-        });
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+          /[xy]/g,
+          function (c) {
+            var r = (Math.random() * 16) | 0;
+            return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+          },
+        );
       }
 
       async function submitRSVP(
@@ -960,7 +993,12 @@
         ]);
 
         if (error) throw error;
-        return { is_approved: true, qr_token: qrToken, jumlah_hadir: jumlahInput, pesan: pesanInput };
+        return {
+          is_approved: true,
+          qr_token: qrToken,
+          jumlah_hadir: jumlahInput,
+          pesan: pesanInput,
+        };
       }
 
       async function submitGuestbook(namaInput, pesanInput, rsvpId) {
@@ -1013,9 +1051,10 @@
           console.error("Download gagal:", e);
           card.style.display = "block";
           card.style.position = "relative";
+          card.style.left = "";
           card.style.margin = "1rem auto";
           alert(
-            "Download otomatis gagal. Silakan screenshot kartu undangan di bawah ini.",
+            "Download gagal. Silakan screenshot kartu undangan di bawah ini.",
           );
         }
       }
@@ -1236,6 +1275,7 @@
             return;
           }
 
+          var gbSuccess = false;
           var btn = this.querySelector("button");
           btn.disabled = true;
           btn.textContent = "Mengirim...";
@@ -1249,12 +1289,14 @@
             pesanEl.value = "";
             document.getElementById("gb-counter").textContent = "0/500";
             fetchGuestbook(0);
+            gbSuccess = true;
+            btn.textContent = "Terkirim";
           } catch (err) {
             console.error("Gagal kirim ucapan:", err);
             alert("Gagal mengirim ucapan. Coba lagi.");
           } finally {
-            btn.disabled = false;
-            btn.textContent = "Kirim Ucapan";
+            btn.disabled = gbSuccess;
+            if (!gbSuccess) btn.textContent = "Kirim Ucapan";
           }
         });
 

@@ -842,7 +842,7 @@
         .from("guestbook")
         .select("id, nama, pesan, is_approved, created_at")
         .order("created_at", { ascending: false })
-        .limit(500);
+        .limit(5000);
       if (res.error) throw res.error;
       allGb = res.data || [];
       document.getElementById("gb-loading").style.display = "none";
