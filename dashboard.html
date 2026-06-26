@@ -13,6 +13,12 @@
     />
     <link
       rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
     <link rel="stylesheet" href="dashboard.css" />
@@ -21,35 +27,51 @@
     <!-- login -->
     <div id="login-screen" class="screen active">
       <div class="login-card">
-        <h1 class="brand"><i class="bi bi-envelope-heart-fill"></i> Admin</h1>
-        <div class="sub">Dashboard — Reza &amp; Ashila</div>
+        <h1 class="brand fs-3 mb-1">
+          <i class="bi bi-envelope-heart-fill"></i> Admin
+        </h1>
+        <div class="text-muted small mb-4">Dashboard — Reza &amp; Ashila</div>
         <div id="login-error" class="login-error" role="alert"></div>
         <form id="login-form" novalidate onsubmit="return false;">
-          <div class="field">
-            <label for="login-email">Email</label>
+          <div class="mb-3">
+            <label
+              for="login-email"
+              class="form-label small fw-medium text-light-emphasis"
+              >Email</label
+            >
             <input
               type="email"
+              class="form-control bg-dark text-light border-secondary"
               id="login-email"
               name="email"
               autocomplete="username"
               required
             />
           </div>
-          <div class="field">
-            <label for="login-password">Password</label>
+          <div class="mb-3">
+            <label
+              for="login-password"
+              class="form-label small fw-medium text-light-emphasis"
+              >Password</label
+            >
             <input
               type="password"
+              class="form-control bg-dark text-light border-secondary"
               id="login-password"
               name="password"
               autocomplete="current-password"
               required
             />
           </div>
-          <button type="submit" id="login-submit" class="btn-primary">
+          <button
+            type="submit"
+            id="login-submit"
+            class="btn btn-pink w-100 fw-semibold py-2 mt-1"
+          >
             Masuk
           </button>
         </form>
-        <div class="login-hint">
+        <div class="text-muted text-center small mt-4">
           Lupa password? Minta pemilik akun me-reset lewat Supabase Dashboard.
         </div>
       </div>
@@ -66,14 +88,6 @@
             </h2>
             <div class="sub" id="who-email"></div>
           </div>
-          <button
-            class="hamburger"
-            id="hamburger"
-            type="button"
-            aria-label="Menu"
-          >
-            <i class="bi bi-list"></i>
-          </button>
         </div>
         <div class="side-nav-menu">
           <a href="#" class="active" data-tab="tab-overview">
@@ -104,37 +118,74 @@
       </nav>
 
       <div class="main-content">
+        <button
+          class="hamburger"
+          id="hamburger"
+          type="button"
+          aria-label="Menu"
+        >
+          <i class="bi bi-list"></i>
+        </button>
         <!-- Tab 1: Overview -->
-        <div class="tab-panel active" id="tab-overview">
-          <h2 class="brand" style="margin-bottom: 1.25rem">Dashboard</h2>
-          <div class="metrics" id="overview-metrics">
-            <div class="metric-card">
-              <span class="num" id="met-total">-</span
-              ><span class="label">Total Undangan</span>
+        <section class="tab-panel active" id="tab-overview">
+          <h2 class="brand mb-4">Dashboard</h2>
+          <div class="row g-3 mb-4" id="overview-metrics">
+            <div class="col-sm-6 col-lg-3">
+              <div
+                class="card text-white bg-dark border-secondary text-center h-100 py-3 px-2"
+              >
+                <span class="fs-2 fw-bold" id="met-total">-</span>
+                <span
+                  class="small text-uppercase"
+                  style="letter-spacing: 0.04em"
+                  >Total Undangan</span
+                >
+              </div>
             </div>
-            <div class="metric-card">
-              <span class="num" id="met-hadir">-</span
-              ><span class="label">Hadir</span>
+            <div class="col-sm-6 col-lg-3">
+              <div
+                class="card text-white bg-dark border-secondary text-center h-100 py-3 px-2"
+              >
+                <span class="fs-2 fw-bold" id="met-hadir">-</span>
+                <span
+                  class="small text-uppercase"
+                  style="letter-spacing: 0.04em"
+                  >Hadir</span
+                >
+              </div>
             </div>
-            <div class="metric-card">
-              <span class="num" id="met-absen">-</span
-              ><span class="label">Tidak Hadir</span>
+            <div class="col-sm-6 col-lg-3">
+              <div
+                class="card text-white bg-dark border-secondary text-center h-100 py-3 px-2"
+              >
+                <span class="fs-2 fw-bold" id="met-absen">-</span>
+                <span
+                  class="small text-uppercase"
+                  style="letter-spacing: 0.04em"
+                  >Tidak Hadir</span
+                >
+              </div>
             </div>
-            <div class="metric-card">
-              <span class="num" id="met-msg">-</span
-              ><span class="label">Ucapan</span>
+            <div class="col-sm-6 col-lg-3">
+              <div
+                class="card text-white bg-dark border-secondary text-center h-100 py-3 px-2"
+              >
+                <span class="fs-2 fw-bold" id="met-msg">-</span>
+                <span
+                  class="small text-uppercase"
+                  style="letter-spacing: 0.04em"
+                  >Ucapan</span
+                >
+              </div>
             </div>
           </div>
-          <div class="panel-box">
-            <h3><i class="bi bi-pie-chart-fill"></i> Status RSVP</h3>
+          <div class="card text-white bg-dark border-secondary p-3 mb-3">
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-pie-chart-fill" style="color: var(--pink)"></i>
+              Status RSVP
+            </h3>
             <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 2rem;
-                justify-content: center;
-                flex-wrap: wrap;
-              "
+              class="d-flex align-items-center justify-content-center gap-5 flex-wrap"
             >
               <canvas
                 id="pieChart"
@@ -142,16 +193,27 @@
                 height="180"
                 style="max-width: 180px"
               ></canvas>
-              <div id="pie-legend" style="font-size: 0.85rem"></div>
+              <div id="pie-legend" class="small"></div>
             </div>
-            <div id="overview-status" class="status-msg">
+            <div
+              id="overview-status"
+              class="text-center py-4"
+              style="display: none"
+            >
               Belum ada data RSVP
             </div>
           </div>
-          <div class="panel-box">
-            <h3><i class="bi bi-clock-history"></i> Aktivitas Terbaru</h3>
+          <div class="card text-white bg-dark border-secondary p-3 mb-3">
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-clock-history" style="color: var(--pink)"></i>
+              Aktivitas Terbaru
+            </h3>
             <div id="activity-log"></div>
-            <div id="activity-empty" class="status-msg">
+            <div
+              id="activity-empty"
+              class="text-center py-4"
+              style="display: none"
+            >
               Belum ada aktivitas
             </div>
             <nav
@@ -159,88 +221,103 @@
               style="display: none"
               aria-label="Paginasi aktivitas"
             >
-              <ul
-                class="pagination justify-content-center"
-                style="margin-top: 1rem"
-              ></ul>
+              <ul class="pagination justify-content-center mt-3 mb-0"></ul>
             </nav>
           </div>
           <div
             id="overview-error"
-            class="status-msg"
-            style="color: var(--danger)"
+            class="text-center py-4"
+            style="display: none; color: var(--danger)"
           >
             Gagal memuat data.
-            <span class="retry" onclick="loadOverview()">Coba lagi</span>
+            <span
+              class="d-inline-block mt-3 btn btn-sm btn-outline-secondary"
+              onclick="loadOverview()"
+              >Coba lagi</span
+            >
           </div>
-        </div>
+        </section>
 
         <!-- Tab 2: Tamu & RSVP -->
-        <div class="tab-panel" id="tab-tamu">
+        <section class="tab-panel" id="tab-tamu">
           <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              flex-wrap: wrap;
-              gap: 0.75rem;
-              margin-bottom: 1rem;
-            "
+            class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3"
           >
-            <h2 class="brand" style="margin: 0">Tamu &amp; RSVP</h2>
-            <div style="display: flex; gap: 0.5rem">
+            <h2 class="brand mb-0">Tamu &amp; RSVP</h2>
+            <div class="d-flex gap-2">
               <button
-                class="btn-pink"
+                class="btn btn-pink"
                 id="btn-add-guest"
                 onclick="showGuestModal()"
               >
                 <i class="bi bi-plus-lg"></i> Tambah Tamu
               </button>
-              <button class="btn-sm" onclick="loadTamuRSVP()">
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                onclick="loadTamuRSVP()"
+              >
                 <i class="bi bi-arrow-clockwise"></i>
               </button>
             </div>
           </div>
 
-          <div id="approval-section" class="panel-box" style="display: none">
-            <h3><i class="bi bi-hourglass-split"></i> Approval Pending</h3>
+          <div
+            id="approval-section"
+            class="card text-white bg-dark border-secondary p-3 mb-3"
+            style="display: none"
+          >
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-hourglass-split" style="color: var(--pink)"></i>
+              Approval Pending
+            </h3>
             <div id="approval-list"></div>
-            <div id="approval-empty" class="status-msg">
+            <div
+              id="approval-empty"
+              class="text-center py-3"
+              style="display: none"
+            >
               Tidak ada yang perlu disetujui
             </div>
           </div>
 
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem">
+          <div class="d-flex gap-2 mb-3 flex-wrap">
             <input
-              class="search-box"
+              class="form-control bg-dark text-light border-secondary"
               id="tamu-search"
               placeholder="Cari nama tamu..."
               style="flex: 1; min-width: 0; max-width: 280px; width: auto"
             />
-            <div class="filters" role="group">
+            <div class="btn-group btn-group-sm flex-wrap" role="group">
               <button
-                class="active"
+                class="btn btn-outline-secondary active"
                 data-filter="all"
                 onclick="setTamuFilter('all', this)"
               >
                 Semua
               </button>
               <button
+                class="btn btn-outline-secondary"
                 data-filter="Hadir"
                 onclick="setTamuFilter('Hadir', this)"
               >
                 Hadir
               </button>
               <button
+                class="btn btn-outline-secondary"
                 data-filter="Tidak Hadir"
                 onclick="setTamuFilter('Tidak Hadir', this)"
               >
                 Absen
               </button>
-              <button data-filter="null" onclick="setTamuFilter('null', this)">
+              <button
+                class="btn btn-outline-secondary"
+                data-filter="null"
+                onclick="setTamuFilter('null', this)"
+              >
                 Belum
               </button>
               <button
+                class="btn btn-outline-secondary"
                 data-filter="pending"
                 onclick="setTamuFilter('pending', this)"
               >
@@ -248,85 +325,111 @@
               </button>
             </div>
           </div>
-          <div class="table-wrap">
-            <table class="data-table">
+          <div id="tamu-loading" class="text-center text-muted py-4">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat data...
+          </div>
+          <div class="table-responsive">
+            <table
+              class="table table-dark table-borderless table-hover align-middle small mb-0"
+              id="data-table-tamu"
+            >
               <thead>
                 <tr>
                   <th>Nama</th>
                   <th>WA</th>
-                  <th>Kuota</th>
-                  <th>Status</th>
-                  <th>Hadir</th>
-                  <th>Check-in</th>
+                  <th class="text-center">Kuota</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-center">Hadir</th>
+                  <th class="text-center">Check-in</th>
                   <th>Pesan</th>
-                  <th>Aksi</th>
+                  <th class="text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tamu-tbody"></tbody>
             </table>
           </div>
-          <div id="tamu-status" class="status-msg">
+          <div id="tamu-status" class="text-center py-4" style="display: none">
             Gagal memuat data.
-            <span class="retry" onclick="loadTamuRSVP()">Coba lagi</span>
+            <span
+              class="d-inline-block mt-3 btn btn-sm btn-outline-secondary"
+              onclick="loadTamuRSVP()"
+              >Coba lagi</span
+            >
           </div>
-          <div id="tamu-empty" class="status-msg">Belum ada data tamu</div>
-        </div>
+          <div id="tamu-empty" class="text-center py-4" style="display: none">
+            Belum ada data tamu
+          </div>
+        </section>
 
         <!-- Tab 3: Guestbook -->
-        <div class="tab-panel" id="tab-guestbook">
+        <section class="tab-panel" id="tab-guestbook">
           <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              flex-wrap: wrap;
-              gap: 0.75rem;
-              margin-bottom: 1rem;
-            "
+            class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3"
           >
-            <h2 class="brand" style="margin: 0">Guestbook</h2>
-            <button class="btn-sm" onclick="loadGuestbook()">
+            <h2 class="brand mb-0">Guestbook</h2>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              onclick="loadGuestbook()"
+            >
               <i class="bi bi-arrow-clockwise"></i> Muat ulang
             </button>
           </div>
-          <div class="filters" style="margin-bottom: 1rem">
+          <div class="btn-group btn-group-sm mb-3" role="group">
             <button
-              class="active"
+              class="btn btn-outline-secondary active"
               data-filter="all"
               onclick="setGbFilter('all', this)"
             >
               Semua
             </button>
             <button
+              class="btn btn-outline-secondary"
               data-filter="pending"
               onclick="setGbFilter('pending', this)"
             >
               Menunggu
             </button>
             <button
+              class="btn btn-outline-secondary"
               data-filter="approved"
               onclick="setGbFilter('approved', this)"
             >
               Tampil
             </button>
           </div>
+          <div id="gb-loading" class="text-center text-muted py-4" style="display:none">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat...
+          </div>
           <div id="gb-list"></div>
-          <div id="gb-status" class="status-msg"></div>
-          <div id="gb-empty" class="status-msg">Belum ada ucapan</div>
-        </div>
+          <div
+            id="gb-status"
+            class="text-center py-4"
+            style="display: none"
+          ></div>
+          <div id="gb-empty" class="text-center py-4" style="display: none">
+            Belum ada ucapan
+          </div>
+        </section>
 
         <!-- Tab 4: QR Scanner -->
-        <div class="tab-panel" id="tab-scanner">
-          <h2 class="brand" style="margin-bottom: 1rem">QR Scanner</h2>
-          <div class="panel-box">
-            <h3><i class="bi bi-camera-fill"></i> Scan QR Tamu</h3>
+        <section class="tab-panel" id="tab-scanner">
+          <h2 class="brand mb-4">QR Scanner</h2>
+          <div class="card text-white bg-dark border-secondary p-3 mb-3">
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-camera-fill" style="color: var(--pink)"></i> Scan
+              QR Tamu
+            </h3>
             <div id="qr-reader"></div>
             <div id="scan-result" class="scan-result"></div>
-            <button class="btn-sm" id="btn-start-scan" onclick="startScanner()">
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              id="btn-start-scan"
+              onclick="startScanner()"
+            >
               <i class="bi bi-play-fill"></i> Mulai Scan
             </button>
             <button
-              class="btn-sm"
+              class="btn btn-sm btn-outline-secondary"
               id="btn-stop-scan"
               onclick="stopScanner()"
               style="display: none"
@@ -334,43 +437,70 @@
               <i class="bi bi-stop-fill"></i> Berhenti
             </button>
           </div>
-          <div class="panel-box">
-            <h3><i class="bi bi-search"></i> Check-in Manual</h3>
+          <div class="card text-white bg-dark border-secondary p-3 mb-3">
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-search" style="color: var(--pink)"></i> Check-in
+              Manual
+            </h3>
             <input
-              class="search-box"
+              class="form-control bg-dark text-light border-secondary"
               id="manual-search"
               placeholder="Cari nama tamu..."
             />
-            <div id="manual-results" style="margin-top: 0.5rem"></div>
+            <div id="manual-results" class="mt-2"></div>
           </div>
-          <div class="panel-box">
-            <h3><i class="bi bi-list-check"></i> Check-in Hari Ini</h3>
+          <div class="card text-white bg-dark border-secondary p-3 mb-3">
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-list-check" style="color: var(--pink)"></i>
+              Check-in Hari Ini
+            </h3>
             <div id="checkin-log"></div>
-            <div id="checkin-empty" class="status-msg">Belum ada check-in</div>
+            <div
+              id="checkin-empty"
+              class="text-center py-4"
+              style="display: none"
+            >
+              Belum ada check-in
+            </div>
           </div>
-        </div>
+        </section>
 
         <!-- Tab 5: Pesan Privat -->
-        <div class="tab-panel" id="tab-pesan-privat">
-          <h2 class="brand" style="margin-bottom: 1rem">Pesan Privat</h2>
+        <section class="tab-panel" id="tab-pesan-privat">
+          <h2 class="brand mb-4">Pesan Privat</h2>
           <div id="pp-list" style="width: 100%"></div>
-          <div id="pp-loading" class="status-msg" style="display: block">
-            Memuat...
+          <div id="pp-loading" class="text-center text-muted py-4" style="display: block">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>Memuat...
           </div>
-          <div id="pp-empty" class="status-msg">Belum ada pesan privat</div>
-          <div id="pp-error" class="status-msg" style="color: var(--danger)">
+          <div id="pp-empty" class="text-center py-4" style="display: none">
+            Belum ada pesan privat
+          </div>
+          <div
+            id="pp-error"
+            class="text-center py-4"
+            style="display: none; color: var(--danger)"
+          >
             Gagal memuat data.
-            <span class="retry" onclick="loadPesanPrivat()">Coba lagi</span>
+            <span
+              class="d-inline-block mt-3 btn btn-sm btn-outline-secondary"
+              onclick="loadPesanPrivat()"
+              >Coba lagi</span
+            >
           </div>
-        </div>
+        </section>
 
         <!-- Tab 6: Admin -->
-        <div class="tab-panel" id="tab-admin">
-          <h2 class="brand" style="margin-bottom: 1rem">Pengaturan Admin</h2>
-          <div class="panel-box">
-            <h3><i class="bi bi-people-fill"></i> Daftar Admin</h3>
-            <div class="table-wrap">
-              <table class="data-table">
+        <section class="tab-panel" id="tab-admin">
+          <h2 class="brand mb-4">Pengaturan Admin</h2>
+          <div class="card text-white bg-dark border-secondary p-3">
+            <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-people-fill" style="color: var(--pink)"></i>
+              Daftar Admin
+            </h3>
+            <div class="table-responsive">
+              <table
+                class="table table-dark table-borderless table-hover align-middle small mb-2"
+              >
                 <thead>
                   <tr>
                     <th>Email</th>
@@ -380,20 +510,18 @@
                 <tbody id="admin-tbody"></tbody>
               </table>
             </div>
-            <div id="admin-status" class="status-msg"></div>
-            <p
-              style="
-                font-size: 0.78rem;
-                color: var(--ink-muted);
-                margin-top: 0.75rem;
-              "
-            >
+            <div
+              id="admin-status"
+              class="text-center py-3"
+              style="display: none"
+            ></div>
+            <p class="small mt-3 mb-0">
               Tambah admin baru harus melalui Supabase Dashboard &gt;
               Authentication &gt; Users, lalu INSERT manual ke tabel
               admin_users.
             </p>
           </div>
-        </div>
+        </section>
       </div>
     </div>
 
@@ -405,16 +533,45 @@
         <h3 id="guest-modal-title">Tambah Tamu</h3>
         <form id="guest-form" novalidate onsubmit="return false;">
           <input type="hidden" id="gf-id" />
-          <label for="gf-name">Nama</label>
-          <input type="text" id="gf-name" required />
-          <label for="gf-slug">Slug (untuk URL ?n=)</label>
-          <input type="text" id="gf-slug" required />
-          <label for="gf-pronoun">Sapaan (Bpk/Ibu/dll)</label>
-          <input type="text" id="gf-pronoun" />
-          <label for="gf-nomor-wa">Nomor WA</label>
-          <input type="text" id="gf-nomor-wa" />
-          <label for="gf-count">Kuota</label>
-          <input type="number" id="gf-count" min="1" value="1" required />
+          <label for="gf-name" class="form-label small">Nama</label>
+          <input
+            type="text"
+            class="form-control bg-dark text-light border-secondary mb-3"
+            id="gf-name"
+            required
+          />
+          <label for="gf-slug" class="form-label small"
+            >Slug (untuk URL ?n=)</label
+          >
+          <input
+            type="text"
+            class="form-control bg-dark text-light border-secondary mb-3"
+            id="gf-slug"
+            required
+          />
+          <label for="gf-pronoun" class="form-label small"
+            >Sapaan (Bpk/Ibu/dll)</label
+          >
+          <input
+            type="text"
+            class="form-control bg-dark text-light border-secondary mb-3"
+            id="gf-pronoun"
+          />
+          <label for="gf-nomor-wa" class="form-label small">Nomor WA</label>
+          <input
+            type="text"
+            class="form-control bg-dark text-light border-secondary mb-3"
+            id="gf-nomor-wa"
+          />
+          <label for="gf-count" class="form-label small">Kuota</label>
+          <input
+            type="number"
+            class="form-control bg-dark text-light border-secondary mb-3"
+            id="gf-count"
+            min="1"
+            value="1"
+            required
+          />
           <div
             id="gf-rsvp-section"
             style="
@@ -424,29 +581,39 @@
               border-top: 1px solid var(--panel-border);
             "
           >
-            <label
-              style="
-                color: var(--pink);
-                font-weight: 600;
-                margin-bottom: 0.5rem;
-              "
+            <label class="small fw-semibold mb-2" style="color: var(--pink)"
               >Data RSVP</label
             >
             <input type="hidden" id="gf-rsvp-id" />
-            <label for="gf-status">Status</label>
-            <select id="gf-status">
+            <label for="gf-status" class="form-label small">Status</label>
+            <select
+              class="form-select bg-dark text-light border-secondary mb-3"
+              id="gf-status"
+            >
               <option value="">Pilih status</option>
               <option value="Hadir">Hadir</option>
               <option value="Tidak Hadir">Tidak Hadir</option>
             </select>
-            <label for="gf-jumlah-hadir">Jumlah Hadir</label>
-            <input type="number" id="gf-jumlah-hadir" min="1" value="1" />
+            <label for="gf-jumlah-hadir" class="form-label small"
+              >Jumlah Hadir</label
+            >
+            <input
+              type="number"
+              class="form-control bg-dark text-light border-secondary mb-3"
+              id="gf-jumlah-hadir"
+              min="1"
+              value="1"
+            />
           </div>
-          <div class="modal-actions">
-            <button type="button" class="btn-sm" onclick="closeGuestModal()">
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              onclick="closeGuestModal()"
+            >
               Batal
             </button>
-            <button type="submit" class="btn-pink">Simpan</button>
+            <button type="submit" class="btn btn-pink">Simpan</button>
           </div>
         </form>
       </div>

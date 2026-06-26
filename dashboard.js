@@ -448,6 +448,7 @@
   async function loadTamuRSVP() {
     document.getElementById("tamu-status").style.display = "none";
     document.getElementById("tamu-empty").style.display = "none";
+    document.getElementById("tamu-loading").style.display = "block";
     try {
       var [guestsRes, rsvpsRes] = await Promise.all([
         sb
@@ -496,12 +497,14 @@
         return new Date(b.created_at) - new Date(a.created_at);
       });
 
+      document.getElementById("tamu-loading").style.display = "none";
       if (allTamu.length === 0)
         document.getElementById("tamu-empty").style.display = "block";
       renderTamuTable();
       loadApprovalPending();
     } catch (err) {
       console.error("Tamu error:", err);
+      document.getElementById("tamu-loading").style.display = "none";
       document.getElementById("tamu-status").style.display = "block";
     }
   }
@@ -564,11 +567,11 @@
         pesanTrunc +
         "</td>" +
         '<td style="white-space:nowrap">' +
-        '<button class="btn-sm" onclick="editTamu(\'' +
+        '<button class="btn btn-sm btn-outline-secondary" onclick="editTamu(\'' +
         t.guest_id +
         '\')" title="Edit" style="margin-right:4px">' +
         '<i class="bi bi-pencil-fill"></i></button>' +
-        '<button class="btn-sm" onclick="copyGuestLink(\'' +
+        '<button class="btn btn-sm btn-outline-secondary" onclick="copyGuestLink(\'' +
         escapeAttr(t.nama) +
         "','" +
         (t.qr_token || "") +
@@ -590,7 +593,7 @@
   function setTamuFilter(filter, btn) {
     tamuFilter = filter;
     document
-      .querySelectorAll("#tab-tamu .filters button")
+      .querySelectorAll("#tab-tamu .btn-group button")
       .forEach(function (b) {
         b.classList.remove("active");
       });
@@ -825,10 +828,15 @@
       if (e.target === this) closeGuestModal();
     });
 
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeGuestModal();
+  });
+
   // ========== TAB 3: GUESTBOOK ==========
   async function loadGuestbook() {
     document.getElementById("gb-status").classList.remove("show");
     document.getElementById("gb-empty").style.display = "none";
+    document.getElementById("gb-loading").style.display = "block";
     try {
       var res = await sb
         .from("guestbook")
@@ -837,8 +845,10 @@
         .limit(500);
       if (res.error) throw res.error;
       allGb = res.data || [];
+      document.getElementById("gb-loading").style.display = "none";
       renderGbList();
     } catch (err) {
+      document.getElementById("gb-loading").style.display = "none";
       document.getElementById("gb-status").textContent =
         "Gagal memuat guestbook.";
       document.getElementById("gb-status").classList.add("show");
@@ -880,7 +890,9 @@
         "</div>" +
         '<div style="text-align:right;">' +
         '<button class="' +
-        (entry.is_approved ? "btn-danger" : "btn-sm") +
+        (entry.is_approved
+          ? "btn btn-sm btn-outline-danger"
+          : "btn btn-sm btn-outline-secondary") +
         '" data-id="' +
         entry.id +
         '" onclick="toggleGbApproval(\'' +
@@ -920,7 +932,7 @@
   function setGbFilter(filter, btn) {
     gbFilter = filter;
     document
-      .querySelectorAll("#tab-guestbook .filters button")
+      .querySelectorAll("#tab-guestbook .btn-group button")
       .forEach(function (b) {
         b.classList.remove("active");
       });
@@ -1167,21 +1179,19 @@
       empty.style.display = "none";
       data.forEach(function (item) {
         var card = document.createElement("div");
-        card.style.cssText =
-          "background:var(--panel);border:1px solid var(--panel-border);border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.65rem;width:100%;";
+        card.className = "pp-card";
         card.innerHTML =
-          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">' +
-          '<span style="font-weight:600;">' +
+          '<div class="pp-card-header">' +
+          '<strong class="pp-card-name">' +
           escapeHtml(item.nama) +
-          "</span>" +
-          '<span style="font-size:0.72rem;color:var(--ink-muted);">' +
-          (item.nomor_wa ? escapeHtml(item.nomor_wa) : "") +
-          " &middot; " +
+          "</strong>" +
+          '<span class="pp-card-meta">' +
+          (item.nomor_wa ? escapeHtml(item.nomor_wa) + " &middot; " : "") +
           formatDate(item.created_at) +
           "</span></div>" +
-          '<div style="color:#d8d8d8;font-size:0.92rem;white-space:pre-wrap;word-break:break-word;">' +
+          '<p class="pp-card-body">' +
           escapeHtml(item.pesan) +
-          "</div>";
+          "</p>";
         list.appendChild(card);
       });
       loading.style.display = "none";
