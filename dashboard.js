@@ -583,15 +583,18 @@
   }
 
   function badgeSide(side) {
-    if (side === "pria") return '<span class="badge pink">Pria</span>';
-    if (side === "wanita") return '<span class="badge">Wanita</span>';
-    if (side === "both") return '<span class="badge success">Keduanya</span>';
+    if (side === "pria") return '<span class="badge pink m-1">Pria</span>';
+    if (side === "wanita") return '<span class="badge m-1">Wanita</span>';
+    if (side === "both")
+      return '<span class="badge success m-1">Keduanya</span>';
     return "";
   }
 
   function badgeSource(source) {
-    if (source === "orphan") return '<span class="badge warning">Baru</span>';
-    if (source === "auto-matched") return '<span class="badge">Tercocok</span>';
+    if (source === "orphan")
+      return '<span class="badge warning ms-1">Baru</span>';
+    if (source === "auto-matched")
+      return '<span class="badge ms-1">Tercocok</span>';
     return "";
   }
 
