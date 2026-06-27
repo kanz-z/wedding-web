@@ -115,6 +115,8 @@
     currentUser = user;
     whoEmail.textContent = user.email || "";
     showScreen("dashboard");
+    var qrEl = document.getElementById("qr-reader");
+    if (qrEl) qrEl.classList.remove("scanner-active");
     loadOverview();
     loadTamuRSVP();
     loadGuestbook();
@@ -226,6 +228,8 @@
       this.disabled = false;
       if (html5QrScanner) {
         html5QrScanner.stop().catch(function () {});
+        var qrEl = document.getElementById("qr-reader");
+        if (qrEl) qrEl.classList.remove("scanner-active");
         html5QrScanner = null;
       }
       showScreen("login");
@@ -486,7 +490,9 @@
       var [guestsRes, rsvpsRes] = await Promise.all([
         sb
           .from("guests")
-          .select("id, slug, name, pronoun, invited_count, created_at, side, nomor_wa"),
+          .select(
+            "id, slug, name, pronoun, invited_count, created_at, side, nomor_wa",
+          ),
         sb
           .from("rsvps")
           .select(
@@ -516,7 +522,7 @@
           id: rsvp ? rsvp.id : null,
           guest_id: g.id,
           nama: rsvp ? rsvp.nama : g.name,
-          nomor_wa: rsvp ? rsvp.nomor_wa : (g.nomor_wa || ""),
+          nomor_wa: rsvp ? rsvp.nomor_wa : g.nomor_wa || "",
           jumlah_hadir: rsvp ? rsvp.jumlah_hadir : g.invited_count,
           status: rsvp ? rsvp.status : null,
           is_approved: rsvp ? rsvp.is_approved : true,
@@ -695,7 +701,7 @@
       "https://wedding-web-reza-shila-2026.netlify.app/?n=" +
       encodeURIComponent(nama);
     if (pronoun) link += "&p=" + encodeURIComponent(pronoun);
-    if (token) link += "&token=" + token;
+    if (token) link += "&token=" + token; // Token ini untuk apaan btw? Lupa
     navigator.clipboard
       .writeText(link)
       .then(function () {
@@ -1088,6 +1094,9 @@
         document.getElementById("btn-start-scan").style.display = "inline-flex";
         document.getElementById("btn-stop-scan").style.display = "none";
       });
+
+    var qrEl = document.getElementById("qr-reader");
+    if (qrEl) qrEl.classList.add("scanner-active");
   }
 
   function stopScanner() {
@@ -1098,6 +1107,8 @@
           document.getElementById("btn-start-scan").style.display =
             "inline-flex";
           document.getElementById("btn-stop-scan").style.display = "none";
+          var qrEl = document.getElementById("qr-reader");
+          if (qrEl) qrEl.classList.remove("scanner-active");
         })
         .catch(function () {});
     }

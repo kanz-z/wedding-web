@@ -622,3 +622,16 @@ footer li {
     margin: 1px;
   }
 }
+
+/* Fallback untuk browser yang tidak support backdrop-filter (Firefox lawas, IE) */
+@supports not (backdrop-filter: blur(1px)) {
+  .bottom-nav {
+    background-color: rgba(10, 10, 10, 0.95) !important;
+  }
+  .nav-toggle {
+    background-color: rgba(10, 10, 10, 0.95) !important;
+  }
+  .nav-restore {
+    background-color: rgba(10, 10, 10, 0.95) !important;
+  }
+}

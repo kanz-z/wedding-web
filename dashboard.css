@@ -591,3 +591,17 @@ option {
     padding: 1.75rem 1.4rem;
   }
 }
+
+/* Fallback untuk browser yang tidak support backdrop-filter (Firefox lawas, IE) */
+@supports not (backdrop-filter: blur(1px)) {
+  .side-nav-toggle {
+    background-color: rgba(30, 30, 30, 0.95) !important;
+  }
+}
+
+/* QR Scanner active indicator */
+#qr-reader.scanner-active {
+  border: 2px solid #2ecc71;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}

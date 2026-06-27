@@ -335,6 +335,7 @@
                   name="nama"
                   placeholder="Cth: Muhammad Fajar"
                   required
+                  maxlength="100"
                 />
               </div>
 
@@ -731,22 +732,18 @@
       let isPlaying = false;
 
       function disableScroll() {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-        const scrollLeft =
-          window.pageXOffset || document.documentElement.scrollLeft;
-
-        window.onscroll = function () {
-          window.scrollTo(scrollTop, scrollLeft);
-        };
-
-        rootElement.style.scrollBehavior = "auto";
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.width = "100%";
+        // Capture current scroll position
+        window._scrollY = window.pageYOffset || document.documentElement.scrollTop;
       }
 
       function enableScroll() {
-        window.onscroll = function () {};
-        rootElement.style.scrollBehavior = "smooth";
-        //localStorage.setItem('opened', 'true');
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.width = "";
+        window.scrollTo(0, window._scrollY || 0);
         playAudio();
       }
 
@@ -949,17 +946,26 @@
           el = document.createElement("div");
           el.id = "toast";
           el.style.cssText =
-            "position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);color:#f3f3f3;padding:0.6rem 1.1rem;border-radius:999px;font-size:0.85rem;opacity:0;transition:opacity 0.25s,transform 0.25s;pointer-events:none;z-index:9999;max-width:90vw;text-align:center;";
-          if (isError) el.style.borderColor = "rgba(255,107,122,0.5)";
+            "position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);color:#f3f3f3;padding:0.6rem 1.1rem;border-radius:999px;font-size:0.85rem;z-index:9999;max-width:90vw;text-align:center;transition:opacity 0.25s;display:none;";
           document.body.appendChild(el);
         }
+        if (el._timer) clearTimeout(el._timer);
+        if (el._hideTimer) clearTimeout(el._hideTimer);
         el.textContent = msg;
+        el.style.cssText =
+          "display:block;opacity:0;transition:opacity 0.25s;" +
+          (isError
+            ? "background:#dc3545;border-color:rgba(255,107,122,0.5);"
+            : "background:var(--pink);border-color:;");
+        // Force reflow so the opacity transition triggers
+        void el.offsetWidth;
         el.style.opacity = "1";
-        el.style.transform = "translateX(-50%) translateY(0)";
-        setTimeout(function () {
+        el._timer = setTimeout(function () {
           el.style.opacity = "0";
-          el.style.transform = "translateX(-50%) translateY(20px)";
-        }, 3200);
+          el._hideTimer = setTimeout(function () {
+            el.style.display = "none";
+          }, 250);
+        }, 3000);
       }
 
       function copyToClipboard(text) {
@@ -985,15 +991,7 @@
         return data;
       }
       function generateUUID() {
-        if (typeof crypto !== "undefined" && crypto.randomUUID)
-          return crypto.randomUUID();
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-          /[xy]/g,
-          function (c) {
-            var r = (Math.random() * 16) | 0;
-            return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-          },
-        );
+        return crypto.randomUUID();
       }
 
       async function submitRSVP(
@@ -1005,24 +1003,38 @@
         noWaInput,
       ) {
         const qrToken = generateUUID();
-        const { error } = await supabaseClient.from("rsvps").insert([
-          {
-            guest_id: guestId || null,
-            nama: namaInput,
-            nomor_wa: noWaInput,
-            jumlah_hadir: jumlahInput,
-            status: statusInput,
-            pesan: pesanInput || null,
-            qr_token: qrToken,
-          },
-        ]);
 
-        if (error) throw error;
+        // Panggil Edge Function untuk rate limiting + insert
+        var res = await fetch(
+          "https://liyfsapgadickknsfbus.functions.supabase.co/rate-limit-rsvp",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              guest_id: guestId || null,
+              nama: namaInput,
+              nomor_wa: noWaInput,
+              jumlah_hadir: jumlahInput,
+              status: statusInput,
+              pesan: pesanInput || null,
+              qr_token: qrToken,
+            }),
+          },
+        );
+
+        if (!res.ok) {
+          var errData = await res.json().catch(function () { return {}; });
+          throw new Error(
+            errData.error || "Gagal mengirim RSVP. Silakan coba lagi.",
+          );
+        }
+
+        var data = await res.json();
         return {
-          is_approved: true,
-          qr_token: qrToken,
-          jumlah_hadir: jumlahInput,
-          pesan: pesanInput,
+          is_approved: data.data.is_approved,
+          qr_token: data.data.qr_token,
+          jumlah_hadir: data.data.jumlah_hadir,
+          pesan: data.data.pesan,
         };
       }
 
@@ -1057,21 +1069,32 @@
         card.style.display = "block";
 
         try {
-          var canvas = await html2canvas(card, { scale: 2, useCORS: true });
-          canvas.toBlob(function (blob) {
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url;
-            a.download = "Undangan_" + nama.replace(/\s+/g, "_") + ".png";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            card.style.display = "none";
-            showToast(
-              "Kartu undangan berhasil diunduh. Simpan untuk ditunjukkan saat hari acara!",
-            );
-          }, "image/png");
+          var canvas = await Promise.race([
+            html2canvas(card, { scale: 2, useCORS: true }),
+            new Promise(function (_, reject) {
+              setTimeout(function () {
+                reject(new Error("Timeout render kartu"));
+              }, 10000);
+            }),
+          ]);
+          var blob = await new Promise(function (resolve, reject) {
+            canvas.toBlob(function (b) {
+              if (b) resolve(b);
+              else reject(new Error("toBlob returned null"));
+            }, "image/png");
+          });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url;
+          a.download = "Undangan_" + nama.replace(/\s+/g, "_") + ".png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          card.style.display = "none";
+          showToast(
+            "Kartu undangan berhasil diunduh. Simpan untuk ditunjukkan saat hari acara!",
+          );
         } catch (e) {
           console.error("Download gagal:", e);
           card.style.display = "block";
@@ -1114,9 +1137,9 @@
       ];
 
       function sensorKataKasar(text) {
-        var lower = text.toLowerCase();
         for (var i = 0; i < KATA_KASAR.length; i++) {
-          if (lower.indexOf(KATA_KASAR[i]) !== -1) return true;
+          var regex = new RegExp("\\b" + KATA_KASAR[i] + "\\b", "i");
+          if (regex.test(text)) return true;
         }
         return false;
       }
@@ -1205,7 +1228,7 @@
 
           var countRes = await supabaseClient
             .from("guestbook")
-            .select("id", { count: "exact", head: true })
+            .select("id", { count: "estimated", head: true })
             .eq("is_approved", true);
 
           if (countRes.error) throw countRes.error;
