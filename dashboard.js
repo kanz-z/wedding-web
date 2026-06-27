@@ -590,13 +590,13 @@
     return "";
   }
 
-  function badgeSource(source) {
-    if (source === "orphan")
-      return '<span class="badge warning ms-1">Baru</span>';
-    if (source === "auto-matched")
-      return '<span class="badge ms-1">Tercocok</span>';
-    return "";
-  }
+  // function badgeSource(source) {
+  //   if (source === "orphan")
+  //     return '<span class="badge warning ms-1">Baru</span>';
+  //   if (source === "auto-matched")
+  //     return '<span class="badge ms-1">Tercocok</span>';
+  //   return "";
+  // }
 
   function renderTamuTable() {
     var tbody = document.getElementById("tamu-tbody");
