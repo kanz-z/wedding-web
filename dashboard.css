@@ -227,6 +227,11 @@ button:disabled {
   z-index: 99;
 }
 
+/* ---------- independent divs: setiap card tidak mendorong layout ---------- */
+.card {
+  min-width: 0;
+}
+
 /* ---------- shared ---------- */
 .tab-panel {
   display: none;
@@ -277,13 +282,23 @@ button:disabled {
 }
 
 /* ---------- table column widths ---------- */
+/* Gunakan min-width (bukan %) agar tabel tidak mengecil di mobile.
+   table-responsive di HTML menangani horizontal scroll. */
+#data-table-tamu {
+  min-width: 690px; /* 130+110+50+90+50+65+120+75 = total minimum kolom */
+}
+
 #data-table-tamu th:nth-child(1),
 #data-table-tamu td:nth-child(1) {
   min-width: 130px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 #data-table-tamu th:nth-child(2),
 #data-table-tamu td:nth-child(2) {
   min-width: 110px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 #data-table-tamu th:nth-child(3),
 #data-table-tamu td:nth-child(3) {
@@ -326,38 +341,57 @@ button:disabled {
   word-break: break-word;
 }
 
-/* ---------- activity log ---------- */
-.log-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
+/* ---------- activity log (tabel 3 kolom) ---------- */
+.activity-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.activity-table td {
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: top;
   font-size: 0.85rem;
 }
-.log-item:last-child {
+.activity-table tr:last-child td {
   border-bottom: none;
 }
-.log-dot {
+.activity-table td:nth-child(1) {
+  width: 28%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  padding-right: 0.5rem;
+}
+.activity-table td:nth-child(2) {
+  width: 52%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  padding-right: 0.5rem;
+  color: #d8d8d8;
+}
+.activity-table td:nth-child(3) {
+  width: 20%;
+  white-space: break-word;
+  text-align: right;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+}
+.activity-dot {
+  display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  margin-top: 0.4rem;
+  margin-right: 0.4rem;
   flex-shrink: 0;
 }
-.log-dot.rsvp {
+.activity-dot.rsvp {
   background: var(--pink);
 }
-.log-dot.gb {
+.activity-dot.gb {
   background: var(--success);
 }
-.log-dot.approval {
+.activity-dot.approval {
   background: #fbbf24;
-}
-.log-time {
-  color: var(--ink-muted);
-  font-size: 0.72rem;
-  white-space: nowrap;
 }
 
 /* ---------- QR scanner ---------- */

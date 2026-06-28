@@ -204,6 +204,12 @@
             </div>
           </div>
           <div class="card text-white bg-dark border-secondary p-3 mb-3">
+            <!--
+              Cara ubah lebar kolom:
+              - Activity log → .activity-table td:nth-child(1/2/3) di dashboard.css
+              - Tabel Tamu → #data-table-tamu th/td:nth-child(N) di dashboard.css
+              Ubah nilai width % sesuai kebutuhan. Pastikan total = 100%.
+            -->
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
               <i class="bi bi-clock-history" style="color: var(--pink)"></i>
               Aktivitas Terbaru
@@ -285,7 +291,7 @@
               class="form-control bg-dark text-light border-secondary"
               id="tamu-search"
               placeholder="Cari nama tamu..."
-              style="flex: 1; min-width: 0; max-width: 280px; width: auto"
+              style="flex: 1; min-width: 200px; max-width: 280px; width: auto"
             />
             <div class="btn-group btn-group-sm flex-wrap" role="group">
               <button

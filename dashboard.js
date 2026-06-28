@@ -307,36 +307,34 @@
       document.getElementById("activity-empty").style.display = "block";
     } else {
       document.getElementById("activity-empty").style.display = "none";
+      var table = document.createElement("table");
+      table.className = "activity-table";
       page.forEach(function (item) {
-        var div = document.createElement("div");
-        div.className = "log-item";
+        var tr = document.createElement("tr");
         if (item._type === "rsvp") {
-          div.innerHTML =
-            '<div class="log-dot rsvp"></div>' +
-            '<div style="flex:1;"><strong>' +
+          tr.innerHTML =
+            '<td><span class="activity-dot rsvp"></span>' +
             escapeHtml(item.nama) +
-            "</strong> — " +
+            "</td><td>" +
             item.status +
             " (" +
             item.jumlah_hadir +
-            " org)</div>" +
-            '<div class="log-time">' +
+            " org)</td><td>" +
             formatDate(item.created_at) +
-            "</div>";
+            "</td>";
         } else {
-          div.innerHTML =
-            '<div class="log-dot gb"></div>' +
-            '<div style="flex:1;"><strong>' +
+          tr.innerHTML =
+            '<td><span class="activity-dot gb"></span>' +
             escapeHtml(item.nama) +
-            "</strong> — " +
+            "</td><td>" +
             escapeHtml(item.pesan.substring(0, 60)) +
-            "</div>" +
-            '<div class="log-time">' +
+            "</td><td>" +
             formatDate(item.created_at) +
-            "</div>";
+            "</td>";
         }
-        log.appendChild(div);
+        table.appendChild(tr);
       });
+      log.appendChild(table);
     }
     renderActivityPagination();
   }
