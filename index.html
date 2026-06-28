@@ -69,12 +69,30 @@
         <p class="subtitle">You're Specially Invited to the Wedding of</p>
         <h1>Reza & Ashila</h1>
         <a
-          href="#home"
+          href="#welcome"
           class="btn btn-lg mt-4"
           onClick="enableScroll(); showBottomNav();"
           >Lihat Undangan</a
         >
       </main>
+    </section>
+
+    <!-- halaman sambutan -->
+    <section id="welcome" class="welcome">
+      <div class="container" style="height: 100%">
+        <div class="row h-100 align-items-center justify-content-center">
+          <div class="col-auto" data-aos="fade-up">
+            <div class="welcome-card">
+              <h2>Assalamu'alaikum Wr. Wb</h2>
+              <p>
+                Tanpa mengurangi rasa hormat, kami bermaksud mengundang
+                Bapak/Ibu / Saudara/i pada acara resepsi pernikahan kami.
+              </p>
+              <div class="welcome-couple">— Reza &amp; Ashila —</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- bagian navbar -->
@@ -826,12 +844,15 @@
                 jumlahInput,
                 statusInput,
               );
+              saveRsvpSubmitted(namaInput, statusInput);
             } else if (jumlahInput > 2) {
-              showToast(
+              showRsvpModal(
                 "Permintaan Anda sedang ditinjau panitia. Kartu undangan akan dikirim setelah disetujui.",
               );
+              saveRsvpSubmitted(namaInput, statusInput);
             } else {
-              showToast("Konfirmasi kehadiran berhasil dikirim. Terima kasih!");
+              showRsvpModal("Konfirmasi kehadiran berhasil dikirim. Terima kasih!");
+              saveRsvpSubmitted(namaInput, statusInput);
             }
 
             success = true;
@@ -843,7 +864,7 @@
             submitBtn.textContent = "Terkirim";
           } catch (error) {
             console.error("Gagal mengirim:", error);
-            showToast(
+            showRsvpModal(
               error.message || "Maaf, terjadi kesalahan. Silakan coba lagi.",
               true,
             );
