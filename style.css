@@ -74,11 +74,17 @@ body {
 
 /* ===== Halaman Sambutan (floating card) ===== */
 .welcome {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+}
+.welcome::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: radial-gradient(
     circle,
     #2b2b2b 0%,
@@ -86,9 +92,9 @@ body {
     var(--pink) 200%
   );
   background-size: cover;
-  background-repeat: no-repeat;
   background-position: center;
   z-index: -1;
+  filter: grayscale();
 }
 
 .welcome-card {
