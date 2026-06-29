@@ -716,10 +716,11 @@
   function editTamu(guestId) {
     var entry = allTamu.find(function (t) {
       return (
-        t.guest_id === guestId ||
+        String(t.guest_id) === String(guestId) || // ponytail: string coercion for type-safe compare
         (!guestId && !t.guest_id && t._source === "orphan")
       );
     });
+    console.warn("editTamu: guestId", guestId, "type:", typeof guestId, "matched:", entry ? entry.nama : "NOT FOUND");
     if (!entry) {
       showToast("Data tamu tidak ditemukan.", true);
       return;
@@ -834,9 +835,13 @@
 
   // guest CRUD
   function showGuestModal(guestData, rsvpData) {
+    document.getElementById("guest-form").reset(); // ponytail: prevent stale data from prev modal
     document.getElementById("guest-modal").classList.add("show");
     var rsvpSection = document.getElementById("gf-rsvp-section");
+    var slugRow = document.getElementById("gf-slug-row");
     if (guestData) {
+      // ponytail: hide slug on edit — admin doesn't need to change it
+      if (slugRow) slugRow.style.display = "none";
       document.getElementById("guest-modal-title").textContent = "Edit Tamu";
       document.getElementById("gf-id").value = guestData.id;
       document.getElementById("gf-name").value = guestData.name;
@@ -860,6 +865,8 @@
           guestData.invited_count;
       }
     } else {
+      // ponytail: show slug on add so admin can set custom slug
+      if (slugRow) slugRow.style.display = "block";
       document.getElementById("guest-modal-title").textContent = "Tambah Tamu";
       document.getElementById("guest-form").reset();
       document.getElementById("gf-id").value = "";
@@ -892,15 +899,31 @@
         return;
       }
 
+      // ponytail: guard against invalid side value
+      if (sideVal && !["pria", "wanita", "both"].includes(sideVal)) {
+        showToast("Pilih hubungan yang valid.", true);
+        return;
+      }
+
       try {
         var guestId = id;
         if (id) {
           var res = await sb.from("guests").update(data).eq("id", id);
           if (res.error) throw res.error;
         } else {
-          var res = await sb.from("guests").insert([data]).select("id");
-          if (res.error) throw res.error;
-          guestId = res.data[0].id;
+          // ponytail: check if slug already exists before insert
+          var existingGuest = await sb.from("guests").select("id").eq("slug", data.slug).maybeSingle();
+          if (existingGuest.error) throw existingGuest.error;
+          if (existingGuest.data) {
+            // Sudah ada guest dengan slug ini — UPDATE instead of INSERT
+            var res = await sb.from("guests").update(data).eq("id", existingGuest.data.id);
+            if (res.error) throw res.error;
+            guestId = existingGuest.data.id;
+          } else {
+            var res = await sb.from("guests").insert([data]).select("id");
+            if (res.error) throw res.error;
+            guestId = res.data[0].id;
+          }
         }
 
         // Save RSVP data
@@ -927,11 +950,18 @@
               .eq("id", rsvpId);
             if (rsvpRes.error) throw rsvpRes.error;
           } else if (status) {
-            var rsvpRes = await sb.from("rsvps").insert([rsvpData]);
+            // ponytail: check duplicate RSVP before insert
+            var existingRsvp = await sb.from("rsvps").select("id").eq("guest_id", guestId).maybeSingle();
+            if (existingRsvp.error) throw existingRsvp.error;
+            var rsvpRes;
+            if (existingRsvp.data) {
+              rsvpRes = await sb.from("rsvps").update(rsvpData).eq("id", existingRsvp.data.id);
+            } else {
+              rsvpRes = await sb.from("rsvps").insert([rsvpData]);
+            }
             if (rsvpRes.error) throw rsvpRes.error;
           }
         } else if (nomorWa && guestId) {
-          // Simpan WA ke rsvps meski belum ada status
           var rsvpData = {
             guest_id: guestId,
             nama: data.name,
@@ -940,7 +970,15 @@
               parseInt(document.getElementById("gf-count").value) || 1,
             status: null,
           };
-          var rsvpRes = await sb.from("rsvps").insert([rsvpData]);
+          // ponytail: check duplicate RSVP before insert
+          var existingRsvp = await sb.from("rsvps").select("id").eq("guest_id", guestId).maybeSingle();
+          if (existingRsvp.error) throw existingRsvp.error;
+          var rsvpRes;
+          if (existingRsvp.data) {
+            rsvpRes = await sb.from("rsvps").update(rsvpData).eq("id", existingRsvp.data.id);
+          } else {
+            rsvpRes = await sb.from("rsvps").insert([rsvpData]);
+          }
           if (rsvpRes.error) throw rsvpRes.error;
         }
 
@@ -950,7 +988,7 @@
       } catch (err) {
         if (err.code === "23505") {
           showToast(
-            "Slug sudah digunakan oleh tamu lain. Ganti slug-nya.",
+            "Slug sudah terpakai. Mungkin ada data duplikat. Refresh halaman lalu coba lagi, atau ganti slug.",
             true,
           );
         } else {

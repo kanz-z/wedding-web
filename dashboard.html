@@ -337,20 +337,27 @@
                 Baru
               </button>
             </div>
+            <!-- ponytail: info text clarifiying party vs gender filter -->
+            <div class="w-100 mb-1">
+              <small class="text-muted"><i class="bi bi-info-circle"></i> Filter "Pihak Pria/Pihak Wanita" = tamu berdasarkan hubungan dengan mempelai (bukan gender)</small>
+            </div>
+            <!-- ponytail: label clarified to avoid gender confusion -->
             <div class="btn-group btn-group-sm flex-wrap ms-2" role="group">
               <button
                 class="btn btn-outline-secondary"
                 data-filter="pria"
                 onclick="setTamuFilter('pria', this)"
+                title="Tamu dari pihak mempelai pria (keluarga/teman Reza)"
               >
-                Pria
+                Pihak Pria
               </button>
               <button
                 class="btn btn-outline-secondary"
                 data-filter="wanita"
                 onclick="setTamuFilter('wanita', this)"
+                title="Tamu dari pihak mempelai wanita (keluarga/teman Ashila)"
               >
-                Wanita
+                Pihak Wanita
               </button>
             </div>
           </div>
@@ -581,15 +588,18 @@
             id="gf-name"
             required
           />
-          <label for="gf-slug" class="form-label small"
-            >Slug (untuk URL ?n=)</label
-          >
-          <input
-            type="text"
-            class="form-control bg-dark text-light border-secondary mb-3"
-            id="gf-slug"
-            required
-          />
+          <!-- ponytail: slug row hidden on edit to avoid admin confusion -->
+          <div id="gf-slug-row">
+            <label for="gf-slug" class="form-label small"
+              >Slug (untuk URL ?n=)</label
+            >
+            <input
+              type="text"
+              class="form-control bg-dark text-light border-secondary mb-3"
+              id="gf-slug"
+              required
+            />
+          </div>
           <label for="gf-side" class="form-label small"
             >Hubungan dengan mempelai</label
           >
