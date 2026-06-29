@@ -9,11 +9,23 @@ const sb = createClient(SUPABASE_URL, SERVICE_KEY);
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 menit
 
+const ALLOWED_ORIGINS = [
+  "https://wedding-web-reza-shila-2026.netlify.app",
+  "http://localhost:3000", // development
+  "http://localhost:5173", // Vite dev server (jika nanti pakai Vite)
+  "http://127.0.0.1:5500", // Live Server
+];
+
 serve(async (req) => {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+
   const headers = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, apiKey",
     "Content-Type": "application/json",
   };
 
@@ -43,6 +55,17 @@ serve(async (req) => {
         status: 400,
         headers,
       });
+    }
+
+    // Validasi format nomor WA
+    const waClean = nomor_wa.replace(/[\s\-\(\)]/g, "");
+    if (!/^\d{10,15}$/.test(waClean)) {
+      return new Response(
+        JSON.stringify({
+          error: "Nomor WA tidak valid. Minimal 10 digit angka.",
+        }),
+        { status: 400, headers },
+      );
     }
 
     if (pesan && pesan.length > 500) {
@@ -103,7 +126,7 @@ serve(async (req) => {
         {
           guest_id: guest_id || null,
           nama,
-          nomor_wa,
+          nomor_wa: waClean,
           jumlah_hadir,
           status,
           pesan: pesan || null,

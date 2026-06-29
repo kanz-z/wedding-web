@@ -1099,7 +1099,11 @@
           "https://liyfsapgadickknsfbus.functions.supabase.co/rate-limit-rsvp",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": supabaseKey,
+              "Authorization": "Bearer " + supabaseKey,
+            },
             body: JSON.stringify({
               guest_id: guestId || null,
               nama: namaInput,
