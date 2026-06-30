@@ -1,10 +1,10 @@
 (function () {
   "use strict";
 
-  var SUPABASE_URL = "https://liyfsapgadickknsfbus.supabase.co";
-  var SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWZzYXBnYWRpY2trbnNmYnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDIwNDMsImV4cCI6MjA5NzY3ODA0M30.aQ37-_9-wl2pbDtqKSavOvrsUU-F-sIzv6g3hG23dHw";
-  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var sb = supabase.createClient(
+    APP_CONFIG.SUPABASE_URL,
+    APP_CONFIG.SUPABASE_ANON_KEY,
+  );
 
   var currentUser = null;
   var toastTimer = null;
@@ -709,9 +709,7 @@
     .addEventListener("input", debounce(renderTamuTable, 500));
 
   function copyGuestLink(nama, token, pronoun) {
-    var link =
-      "https://wedding-web-reza-shila-2026.netlify.app/?n=" +
-      encodeURIComponent(nama);
+    var link = APP_CONFIG.SITE_URL + "/?n=" + encodeURIComponent(nama);
     if (pronoun) link += "&p=" + encodeURIComponent(pronoun);
     if (token) link += "&token=" + token; // qr_token untuk verifikasi QR check-in
     navigator.clipboard

@@ -13,26 +13,23 @@ async function submitRSVP(
   const qrToken = generateUUID();
 
   // Panggil Edge Function untuk rate limiting + insert
-  var res = await fetch(
-    "https://liyfsapgadickknsfbus.functions.supabase.co/rate-limit-rsvp",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: supabaseKey,
-        Authorization: "Bearer " + supabaseKey,
-      },
-      body: JSON.stringify({
-        guest_id: guestId || null,
-        nama: namaInput,
-        nomor_wa: noWaInput,
-        jumlah_hadir: jumlahInput,
-        status: statusInput,
-        pesan: pesanInput || null,
-        qr_token: qrToken,
-      }),
+  var res = await fetch(APP_CONFIG.RSVP_EDGE_FUNCTION, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: APP_CONFIG.SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + APP_CONFIG.SUPABASE_ANON_KEY,
     },
-  );
+    body: JSON.stringify({
+      guest_id: guestId || null,
+      nama: namaInput,
+      nomor_wa: noWaInput,
+      jumlah_hadir: jumlahInput,
+      status: statusInput,
+      pesan: pesanInput || null,
+      qr_token: qrToken,
+    }),
+  });
 
   if (!res.ok) {
     var errData = await res.json().catch(function () {
