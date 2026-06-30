@@ -20,16 +20,14 @@ audioIconWrapper.onclick = function () {
 
 function disableScroll() {
   document.body.style.overflow = "hidden";
-  document.body.style.position = "fixed";
-  document.body.style.width = "100%";
-  // Capture current scroll position
+  document.body.style.height = "100vh";
+  // Simpan scroll position untuk dikembalikan nanti
   window._scrollY = window.pageYOffset || document.documentElement.scrollTop;
 }
 
 function enableScroll() {
   document.body.style.overflow = "";
-  document.body.style.position = "";
-  document.body.style.width = "";
+  document.body.style.height = "";
   window.scrollTo(0, window._scrollY || 0);
   playAudio();
 }
@@ -45,9 +43,11 @@ function showBottomNav() {
 }
 
 function setActiveNav(sectionId) {
-  navItems.forEach(function (item) {
-    item.classList.toggle("active", item.dataset.section === sectionId);
-  });
+  const mapped =
+    sectionId === "hero" || sectionId === "welcome" ? "home" : sectionId;
+  navItems.forEach((item) =>
+    item.classList.toggle("active", item.dataset.section === mapped),
+  );
 }
 
 navItems.forEach(function (item) {
