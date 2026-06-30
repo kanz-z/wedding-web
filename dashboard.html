@@ -21,7 +21,7 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
-    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="css/dashboard/dashboard.css" />
   </head>
   <body>
     <!-- login -->
@@ -339,7 +339,11 @@
             </div>
             <!-- ponytail: info text clarifiying party vs gender filter -->
             <div class="w-100 mb-1">
-              <small class="text-muted"><i class="bi bi-info-circle"></i> Filter "Pihak Pria/Pihak Wanita" = tamu berdasarkan hubungan dengan mempelai (bukan gender)</small>
+              <small
+                ><i class="bi bi-info-circle"></i> Filter "Pihak Pria/Pihak
+                Wanita" = tamu berdasarkan hubungan dengan mempelai (bukan
+                gender)</small
+              >
             </div>
             <!-- ponytail: label clarified to avoid gender confusion -->
             <div class="btn-group btn-group-sm flex-wrap ms-2" role="group">
@@ -361,13 +365,6 @@
               </button>
             </div>
           </div>
-          <!-- <div id="tamu-loading" class="text-center py-4">
-            <span
-              class="spinner-border spinner-border-sm me-2"
-              role="status"
-            ></span
-            >Memuat data...
-          </div> -->
           <div class="table-responsive">
             <table
               class="table table-dark table-borderless table-hover align-middle small mb-0"
@@ -376,6 +373,7 @@
               <thead>
                 <tr>
                   <th>Nama &amp; Pihak</th>
+                  <th>Slug</th>
                   <th>WA</th>
                   <th class="text-center">Kuota</th>
                   <th class="text-center">Status</th>
@@ -647,6 +645,10 @@
             <label class="small fw-semibold mb-2" style="color: var(--pink)"
               >Data RSVP</label
             >
+            <small class="d-block mb-2" style="line-height: 1.4">
+              <i class="bi bi-info-circle"></i> Check-in dan Pesan dikelola di
+              tab QR Scanner &amp; Guestbook
+            </small>
             <input type="hidden" id="gf-rsvp-id" />
             <label for="gf-status" class="form-label small">Status</label>
             <select
@@ -685,6 +687,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <script src="dashboard.js"></script>
+    <script src="js/dashboard/dashboard.js"></script>
   </body>
 </html>

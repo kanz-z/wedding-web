@@ -621,21 +621,32 @@
 
     filtered.forEach(function (t) {
       var tr = document.createElement("tr");
+      // ponytail: combine pronoun + name to match modal's Sapaan field
+      var displayName = t._pronoun ? escapeHtml(t._pronoun) + " " : "";
+      displayName += escapeHtml(t.nama);
       var pesanTrunc = t.pesan
         ? escapeHtml(t.pesan).substring(0, 50) +
           (t.pesan.length > 50 ? "&hellip;" : "")
         : "-";
+      // ponytail: Kuota = invited_count from guests table
+      var kuotaDisplay = t._invited_count != null ? t._invited_count : "-";
+      // ponytail: Hadir = jumlah_hadir from rsvps table (actual attendance)
+      var hadirDisplay = t.status ? t.jumlah_hadir : "-";
       tr.innerHTML =
         "<td>" +
-        escapeHtml(t.nama) +
+        displayName +
         badgeSource(t._source) +
         badgeSide(t._side) +
         "</td>" +
+        // NEW: slug column
+        "<td><code style='color:var(--ink-muted);font-size:0.75rem;'>" +
+        (t._slug ? escapeHtml(t._slug) : "-") +
+        "</code></td>" +
         "<td>" +
         escapeHtml(t.nomor_wa || "") +
         "</td>" +
-        "<td>" +
-        t.jumlah_hadir +
+        "<td class='text-center'>" +
+        kuotaDisplay +
         "</td>" +
         '<td><span class="badge ' +
         (t.status === "Hadir"
@@ -648,8 +659,8 @@
         "</span>" +
         (!t.is_approved ? ' <span class="badge warning">Pending</span>' : "") +
         "</td>" +
-        "<td>" +
-        t.jumlah_hadir +
+        "<td class='text-center'>" +
+        hadirDisplay +
         "</td>" +
         "<td>" +
         (t.checked_in ? '<span class="badge success">&#10003;</span>' : "-") +
@@ -695,14 +706,14 @@
 
   document
     .getElementById("tamu-search")
-    .addEventListener("input", debounce(renderTamuTable, 300));
+    .addEventListener("input", debounce(renderTamuTable, 500));
 
   function copyGuestLink(nama, token, pronoun) {
     var link =
       "https://wedding-web-reza-shila-2026.netlify.app/?n=" +
       encodeURIComponent(nama);
     if (pronoun) link += "&p=" + encodeURIComponent(pronoun);
-    if (token) link += "&token=" + token; // Token ini untuk apaan btw? Lupa
+    if (token) link += "&token=" + token; // qr_token untuk verifikasi QR check-in
     navigator.clipboard
       .writeText(link)
       .then(function () {
@@ -720,7 +731,14 @@
         (!guestId && !t.guest_id && t._source === "orphan")
       );
     });
-    console.warn("editTamu: guestId", guestId, "type:", typeof guestId, "matched:", entry ? entry.nama : "NOT FOUND");
+    console.warn(
+      "editTamu: guestId",
+      guestId,
+      "type:",
+      typeof guestId,
+      "matched:",
+      entry ? entry.nama : "NOT FOUND",
+    );
     if (!entry) {
       showToast("Data tamu tidak ditemukan.", true);
       return;
@@ -912,11 +930,18 @@
           if (res.error) throw res.error;
         } else {
           // ponytail: check if slug already exists before insert
-          var existingGuest = await sb.from("guests").select("id").eq("slug", data.slug).maybeSingle();
+          var existingGuest = await sb
+            .from("guests")
+            .select("id")
+            .eq("slug", data.slug)
+            .maybeSingle();
           if (existingGuest.error) throw existingGuest.error;
           if (existingGuest.data) {
             // Sudah ada guest dengan slug ini — UPDATE instead of INSERT
-            var res = await sb.from("guests").update(data).eq("id", existingGuest.data.id);
+            var res = await sb
+              .from("guests")
+              .update(data)
+              .eq("id", existingGuest.data.id);
             if (res.error) throw res.error;
             guestId = existingGuest.data.id;
           } else {
@@ -951,11 +976,18 @@
             if (rsvpRes.error) throw rsvpRes.error;
           } else if (status) {
             // ponytail: check duplicate RSVP before insert
-            var existingRsvp = await sb.from("rsvps").select("id").eq("guest_id", guestId).maybeSingle();
+            var existingRsvp = await sb
+              .from("rsvps")
+              .select("id")
+              .eq("guest_id", guestId)
+              .maybeSingle();
             if (existingRsvp.error) throw existingRsvp.error;
             var rsvpRes;
             if (existingRsvp.data) {
-              rsvpRes = await sb.from("rsvps").update(rsvpData).eq("id", existingRsvp.data.id);
+              rsvpRes = await sb
+                .from("rsvps")
+                .update(rsvpData)
+                .eq("id", existingRsvp.data.id);
             } else {
               rsvpRes = await sb.from("rsvps").insert([rsvpData]);
             }
@@ -971,11 +1003,18 @@
             status: null,
           };
           // ponytail: check duplicate RSVP before insert
-          var existingRsvp = await sb.from("rsvps").select("id").eq("guest_id", guestId).maybeSingle();
+          var existingRsvp = await sb
+            .from("rsvps")
+            .select("id")
+            .eq("guest_id", guestId)
+            .maybeSingle();
           if (existingRsvp.error) throw existingRsvp.error;
           var rsvpRes;
           if (existingRsvp.data) {
-            rsvpRes = await sb.from("rsvps").update(rsvpData).eq("id", existingRsvp.data.id);
+            rsvpRes = await sb
+              .from("rsvps")
+              .update(rsvpData)
+              .eq("id", existingRsvp.data.id);
           } else {
             rsvpRes = await sb.from("rsvps").insert([rsvpData]);
           }
@@ -1264,7 +1303,7 @@
     } catch (err) {
       console.error("Manual search error:", err);
     }
-  });
+  }, 500);
   document
     .getElementById("manual-search")
     .addEventListener("input", doManualSearch);
