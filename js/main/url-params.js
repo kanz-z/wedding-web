@@ -4,8 +4,10 @@ const pronoun = urlParams.get("p") || "";
 
 // pemanggilan element yang akan diisi nama dari url
 const namaContainer = document.querySelector(".hero h4 span");
-if (!nama && !pronoun) {
+if ((!pronoun && !nama) || !nama) {
   namaContainer.innerText = ` Mr/Mrs/Ms Invited Guest,`;
+} else if (!pronoun) {
+  namaContainer.innerText = ` ${nama},`;
 } else {
   namaContainer.innerText = ` ${pronoun} ${nama},`;
 }
