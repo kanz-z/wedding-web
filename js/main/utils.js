@@ -3,23 +3,21 @@ function showToast(msg, isError) {
   if (!el) {
     el = document.createElement("div");
     el.id = "toast";
-    el.style.cssText =
-      "position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);color:#f3f3f3;padding:0.6rem 1.1rem;border-radius:999px;font-size:0.85rem;z-index:9999;max-width:90vw;text-align:center;transition:opacity 0.25s;display:none;";
+    el.className = "toast-global";
     document.body.appendChild(el);
   }
-  if (el._timer) clearTimeout(el._timer);
-  if (el._hideTimer) clearTimeout(el._hideTimer);
+
+  clearTimeout(el._timer);
+  clearTimeout(el._hideTimer);
   el.textContent = msg;
-  el.style.cssText =
-    "display:block;opacity:0;transition:opacity 0.25s;" +
-    (isError
-      ? "background:#dc3545;border-color:rgba(255,107,122,0.5);"
-      : "background:var(--pink);border-color:;");
-  // Force reflow so the opacity transition triggers
+  el.className = "toast-global" + (isError ? " is-error" : "");
+
+  // Trigger reflow biar transisi opacity jalan
   void el.offsetWidth;
-  el.style.opacity = "1";
+  el.classList.add("show");
+
   el._timer = setTimeout(function () {
-    el.style.opacity = "0";
+    el.classList.remove("show");
     el._hideTimer = setTimeout(function () {
       el.style.display = "none";
     }, 250);

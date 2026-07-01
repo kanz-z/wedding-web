@@ -869,3 +869,32 @@ footer li {
   color: #666;
   margin-top: 20px;
 }
+
+/* ---------- toast (global, untuk index.html & dashboard) ---------- */
+.toast-global {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f3f3f3;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  z-index: 9999;
+  max-width: 90vw;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.25s;
+  display: none;
+  pointer-events: none;
+}
+.toast-global.show {
+  display: block;
+  opacity: 1;
+}
+.toast-global.is-error {
+  background: #dc3545;
+  border-color: rgba(255, 107, 122, 0.5);
+}
