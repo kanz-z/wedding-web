@@ -805,3 +805,67 @@ footer li {
     background-color: rgba(10, 10, 10, 0.95) !important;
   }
 }
+
+/* ---------- digital card (QR download card) ---------- */
+#digital-card {
+  display: none;
+  width: 800px;
+  max-width: 100%;
+  height: 500px;
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+  color: #fff;
+  padding: 40px;
+  font-family: "Playfair Display", serif;
+  text-align: center;
+  border: 4px solid var(--pink);
+  border-radius: 16px;
+  position: fixed;
+  left: -9999px;
+  top: 0;
+}
+#digital-card.is-visible {
+  display: block;
+  position: relative;
+  left: auto;
+  margin: 1rem auto;
+}
+#digital-card .dc-label {
+  font-size: 14px;
+  color: var(--pink);
+  margin-bottom: 8px;
+}
+#digital-card .dc-nama {
+  font-size: 36px;
+  margin: 0;
+  color: var(--pink);
+}
+#digital-card .dc-status {
+  font-size: 18px;
+  margin: 8px 0;
+}
+#digital-card .dc-kuota {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+#digital-card .dc-info-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+#digital-card .dc-detail {
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.8;
+}
+#digital-card .dc-qr {
+  background: #fff;
+  padding: 8px;
+  border-radius: 8px;
+}
+#digital-card .dc-footer {
+  font-size: 11px;
+  color: #666;
+  margin-top: 20px;
+}

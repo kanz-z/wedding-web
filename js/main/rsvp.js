@@ -64,7 +64,7 @@ async function renderDigitalCard(rsvpResult, nama, jumlah, status) {
     colorLight: "#ffffff",
   });
 
-  card.style.display = "block";
+  card.classList.add("is-visible");
 
   try {
     var canvas = await Promise.race([
@@ -89,16 +89,13 @@ async function renderDigitalCard(rsvpResult, nama, jumlah, status) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    card.style.display = "none";
+    card.classList.remove("is-visible");
     showToast(
       "Kartu undangan berhasil diunduh. Simpan untuk ditunjukkan saat hari acara!",
     );
   } catch (e) {
     console.error("Download gagal:", e);
-    card.style.display = "block";
-    card.style.position = "relative";
-    card.style.left = "";
-    card.style.margin = "1rem auto";
+    card.classList.add("is-visible");
     showToast(
       "Download gagal. Silakan screenshot kartu undangan di bawah ini.",
       true,
