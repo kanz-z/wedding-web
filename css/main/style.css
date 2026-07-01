@@ -870,6 +870,20 @@ footer li {
   margin-top: 20px;
 }
 
+/* ---------- utility ---------- */
+.no-bullet {
+  list-style-type: none;
+}
+.inherit-color {
+  color: inherit;
+}
+.no-underline {
+  text-decoration: none;
+}
+#gb-error {
+  color: #f14e95;
+}
+
 /* ---------- toast (global, untuk index.html & dashboard) ---------- */
 .toast-global {
   position: fixed;

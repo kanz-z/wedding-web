@@ -635,6 +635,29 @@ option {
   }
 }
 
+/* ---------- utility ---------- */
+.text-pink {
+  color: var(--pink) !important;
+}
+.mw-180 {
+  max-width: 180px;
+}
+.mw-280 {
+  max-width: 280px;
+}
+.letter-spacing-wide {
+  letter-spacing: 0.04em;
+}
+#gf-rsvp-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--panel-border);
+}
+#overview-error,
+#pp-error {
+  color: var(--danger);
+}
+
 /* Fallback untuk browser yang tidak support backdrop-filter (Firefox lawas, IE) */
 @supports not (backdrop-filter: blur(1px)) {
   .side-nav-toggle {

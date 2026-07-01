@@ -136,8 +136,7 @@
               >
                 <span class="fs-2 fw-bold" id="met-total">-</span>
                 <span
-                  class="small text-uppercase"
-                  style="letter-spacing: 0.04em"
+                  class="small text-uppercase letter-spacing-wide"
                   >Total Undangan</span
                 >
               </div>
@@ -148,8 +147,7 @@
               >
                 <span class="fs-2 fw-bold" id="met-hadir">-</span>
                 <span
-                  class="small text-uppercase"
-                  style="letter-spacing: 0.04em"
+                  class="small text-uppercase letter-spacing-wide"
                   >Hadir</span
                 >
               </div>
@@ -160,8 +158,7 @@
               >
                 <span class="fs-2 fw-bold" id="met-absen">-</span>
                 <span
-                  class="small text-uppercase"
-                  style="letter-spacing: 0.04em"
+                  class="small text-uppercase letter-spacing-wide"
                   >Tidak Hadir</span
                 >
               </div>
@@ -172,8 +169,7 @@
               >
                 <span class="fs-2 fw-bold" id="met-msg">-</span>
                 <span
-                  class="small text-uppercase"
-                  style="letter-spacing: 0.04em"
+                  class="small text-uppercase letter-spacing-wide"
                   >Ucapan</span
                 >
               </div>
@@ -181,7 +177,7 @@
           </div>
           <div class="card text-white bg-dark border-secondary p-3 mb-3">
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-pie-chart-fill" style="color: var(--pink)"></i>
+              <i class="bi bi-pie-chart-fill text-pink"></i>
               Status RSVP
             </h3>
             <div
@@ -191,15 +187,11 @@
                 id="pieChart"
                 width="180"
                 height="180"
-                style="max-width: 180px"
+                class="mw-180"
               ></canvas>
               <div id="pie-legend" class="small"></div>
             </div>
-            <div
-              id="overview-status"
-              class="text-center py-4"
-              style="display: none"
-            >
+            <div id="overview-status" class="d-none text-center py-4">
               Belum ada data RSVP
             </div>
           </div>
@@ -211,30 +203,18 @@
               Ubah nilai width % sesuai kebutuhan. Pastikan total = 100%.
             -->
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-clock-history" style="color: var(--pink)"></i>
+              <i class="bi bi-clock-history text-pink"></i>
               Aktivitas Terbaru
             </h3>
             <div id="activity-log"></div>
-            <div
-              id="activity-empty"
-              class="text-center py-4"
-              style="display: none"
-            >
+            <div id="activity-empty" class="d-none text-center py-4">
               Belum ada aktivitas
             </div>
-            <nav
-              id="activity-pagination"
-              style="display: none"
-              aria-label="Paginasi aktivitas"
-            >
+            <nav id="activity-pagination" class="d-none" aria-label="Paginasi aktivitas">
               <ul class="pagination justify-content-center mt-3 mb-0"></ul>
             </nav>
           </div>
-          <div
-            id="overview-error"
-            class="text-center py-4"
-            style="display: none; color: var(--danger)"
-          >
+          <div id="overview-error" class="d-none text-center py-4">
             Gagal memuat data.
             <span
               class="d-inline-block mt-3 btn btn-sm btn-outline-secondary"
@@ -267,31 +247,22 @@
             </div>
           </div>
 
-          <div
-            id="approval-section"
-            class="card text-white bg-dark border-secondary p-3 mb-3"
-            style="display: none"
-          >
+          <div id="approval-section" class="d-none card text-white bg-dark border-secondary p-3 mb-3">
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-hourglass-split" style="color: var(--pink)"></i>
+              <i class="bi bi-hourglass-split text-pink"></i>
               Approval Pending
             </h3>
             <div id="approval-list"></div>
-            <div
-              id="approval-empty"
-              class="text-center py-3"
-              style="display: none"
-            >
+            <div id="approval-empty" class="d-none text-center py-3">
               Tidak ada yang perlu disetujui
             </div>
           </div>
 
           <div class="d-flex gap-2 mb-3 flex-wrap">
             <input
-              class="form-control bg-dark text-light border-secondary"
+              class="form-control bg-dark text-light border-secondary flex-fill mw-280"
               id="tamu-search"
               placeholder="Cari nama tamu..."
-              style="flex: 1; min-width: 200px; max-width: 280px; width: auto"
             />
             <div class="btn-group btn-group-sm flex-wrap" role="group">
               <button
@@ -386,7 +357,7 @@
               <tbody id="tamu-tbody"></tbody>
             </table>
           </div>
-          <div id="tamu-status" class="text-center py-4" style="display: none">
+          <div id="tamu-status" class="d-none text-center py-4">
             Gagal memuat data.
             <span
               class="d-inline-block mt-3 btn btn-sm btn-outline-secondary"
@@ -394,7 +365,7 @@
               >Coba lagi</span
             >
           </div>
-          <div id="tamu-empty" class="text-center py-4" style="display: none">
+          <div id="tamu-empty" class="d-none text-center py-4">
             Belum ada data tamu
           </div>
         </section>
@@ -435,7 +406,7 @@
               Tampil
             </button>
           </div>
-          <div id="gb-loading" class="text-center py-4" style="display: none">
+          <div id="gb-loading" class="d-none text-center py-4">
             <span
               class="spinner-border spinner-border-sm me-2"
               role="status"
@@ -443,12 +414,9 @@
             >Memuat...
           </div>
           <div id="gb-list"></div>
-          <div
-            id="gb-status"
-            class="text-center py-4"
-            style="display: none"
+          <div id="gb-status" class="d-none text-center py-4"
           ></div>
-          <div id="gb-empty" class="text-center py-4" style="display: none">
+          <div id="gb-empty" class="d-none text-center py-4">
             Belum ada ucapan
           </div>
         </section>
@@ -458,7 +426,7 @@
           <h2 class="brand mb-4">QR Scanner</h2>
           <div class="card text-white bg-dark border-secondary p-3 mb-3">
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-camera-fill" style="color: var(--pink)"></i> Scan
+              <i class="bi bi-camera-fill text-pink"></i> Scan
               QR Tamu
             </h3>
             <div id="qr-reader"></div>
@@ -471,17 +439,16 @@
               <i class="bi bi-play-fill"></i> Mulai Scan
             </button>
             <button
-              class="btn btn-sm btn-outline-secondary"
+              class="btn btn-sm btn-outline-secondary d-none"
               id="btn-stop-scan"
               onclick="stopScanner()"
-              style="display: none"
             >
               <i class="bi bi-stop-fill"></i> Berhenti
             </button>
           </div>
           <div class="card text-white bg-dark border-secondary p-3 mb-3">
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-search" style="color: var(--pink)"></i> Check-in
+              <i class="bi bi-search text-pink"></i> Check-in
               Manual
             </h3>
             <input
@@ -493,15 +460,11 @@
           </div>
           <div class="card text-white bg-dark border-secondary p-3 mb-3">
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-list-check" style="color: var(--pink)"></i>
+              <i class="bi bi-list-check text-pink"></i>
               Check-in Hari Ini
             </h3>
             <div id="checkin-log"></div>
-            <div
-              id="checkin-empty"
-              class="text-center py-4"
-              style="display: none"
-            >
+            <div id="checkin-empty" class="d-none text-center py-4">
               Belum ada check-in
             </div>
           </div>
@@ -510,21 +473,18 @@
         <!-- Tab 5: Pesan Privat -->
         <section class="tab-panel" id="tab-pesan-privat">
           <h2 class="brand mb-4">Pesan Privat</h2>
-          <div id="pp-list" style="width: 100%"></div>
-          <div id="pp-loading" class="text-center py-4" style="display: block">
+          <div id="pp-list" class="w-100"></div>
+          <div id="pp-loading" class="d-block text-center py-4">
             <span
               class="spinner-border spinner-border-sm me-2"
               role="status"
             ></span
             >Memuat...
           </div>
-          <div id="pp-empty" class="text-center py-4" style="display: none">
+          <div id="pp-empty" class="d-none text-center py-4">
             Belum ada pesan privat
           </div>
-          <div
-            id="pp-error"
-            class="text-center py-4"
-            style="display: none; color: var(--danger)"
+          <div id="pp-error" class="d-none text-center py-4"
           >
             Gagal memuat data.
             <span
@@ -540,7 +500,7 @@
           <h2 class="brand mb-4">Pengaturan Admin</h2>
           <div class="card text-white bg-dark border-secondary p-3">
             <h3 class="fs-6 fw-semibold mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-people-fill" style="color: var(--pink)"></i>
+              <i class="bi bi-people-fill text-pink"></i>
               Daftar Admin
             </h3>
             <div class="table-responsive">
@@ -556,10 +516,7 @@
                 <tbody id="admin-tbody"></tbody>
               </table>
             </div>
-            <div
-              id="admin-status"
-              class="text-center py-3"
-              style="display: none"
+<div id="admin-status" class="d-none text-center py-3"
             ></div>
             <p class="small mt-3 mb-0">
               Tambah admin baru harus melalui Supabase Dashboard &gt;
@@ -633,19 +590,11 @@
             value="1"
             required
           />
-          <div
-            id="gf-rsvp-section"
-            style="
-              display: none;
-              margin-top: 0.75rem;
-              padding-top: 0.75rem;
-              border-top: 1px solid var(--panel-border);
-            "
-          >
-            <label class="small fw-semibold mb-2" style="color: var(--pink)"
+          <div id="gf-rsvp-section" class="d-none">
+            <label class="small fw-semibold mb-2 text-pink"
               >Data RSVP</label
             >
-            <small class="d-block mb-2" style="line-height: 1.4">
+            <small class="d-block mb-2 lh-sm">
               <i class="bi bi-info-circle"></i> Check-in dan Pesan dikelola di
               tab QR Scanner &amp; Guestbook
             </small>
