@@ -648,3 +648,102 @@ option {
   border-radius: 8px;
   transition: border-color 0.3s ease;
 }
+
+/* ---------- approval item ---------- */
+.approval-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ---------- guestbook admin card ---------- */
+.gb-admin-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid var(--pink);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.65rem;
+}
+.gb-admin-card.pending {
+  border-left-color: var(--panel-border);
+}
+.gb-admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+.gb-admin-name {
+  font-weight: 600;
+}
+.gb-admin-time {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+}
+.gb-admin-body {
+  color: #d8d8d8;
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 0.5rem;
+}
+.gb-admin-actions {
+  text-align: right;
+}
+
+/* ---------- checkin log item ---------- */
+.checkin-item {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+}
+
+/* ---------- search result item ---------- */
+.search-result-item {
+  padding: 0.5rem 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  margin-bottom: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------- PP card ---------- */
+.pp-list-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.65rem;
+  width: 100%;
+}
+.pp-list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.pp-list-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.pp-list-meta {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.pp-list-body {
+  color: #d8d8d8;
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

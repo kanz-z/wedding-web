@@ -765,8 +765,7 @@
 
     pending.forEach(function (t) {
       var div = document.createElement("div");
-      div.style.cssText =
-        "display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);flex-wrap:wrap;gap:0.5rem;";
+      div.className = "approval-item";
       div.innerHTML =
         "<span><strong>" +
         escapeHtml(t.nama) +
@@ -1036,22 +1035,19 @@
 
     filtered.forEach(function (entry) {
       var card = document.createElement("div");
-      card.style.cssText =
-        "background:var(--panel);border:1px solid var(--panel-border);border-left:3px solid " +
-        (entry.is_approved ? "var(--pink)" : "var(--panel-border)") +
-        ";border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.65rem;";
+      card.className = "gb-admin-card" + (entry.is_approved ? "" : " pending");
       card.innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">' +
-        '<span style="font-weight:600;">' +
+        '<div class="gb-admin-header">' +
+        '<span class="gb-admin-name">' +
         escapeHtml(entry.nama) +
         "</span>" +
-        '<span style="font-size:0.72rem;color:var(--ink-muted);">' +
+        '<span class="gb-admin-time">' +
         formatDate(entry.created_at) +
         "</span></div>" +
-        '<div style="color:#d8d8d8;font-size:0.92rem;white-space:pre-wrap;word-break:break-word;margin-bottom:0.5rem;">' +
+        '<div class="gb-admin-body">' +
         escapeHtml(entry.pesan) +
         "</div>" +
-        '<div style="text-align:right;">' +
+        '<div class="gb-admin-actions">' +
         '<button class="' +
         (entry.is_approved ? "btn-danger" : "btn-sm") +
         '" data-id="' +
@@ -1233,8 +1229,7 @@
       if (res.error) throw res.error;
       (res.data || []).forEach(function (t) {
         var div = document.createElement("div");
-        div.style.cssText =
-          "padding:0.5rem 0.75rem;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;margin-bottom:0.35rem;display:flex;justify-content:space-between;align-items:center;";
+        div.className = "search-result-item";
         div.innerHTML =
           "<span>" +
           escapeHtml(t.nama) +
@@ -1309,8 +1304,7 @@
       empty.style.display = "none";
       data.forEach(function (c) {
         var div = document.createElement("div");
-        div.style.cssText =
-          "padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;";
+        div.className = "checkin-item";
         div.innerHTML =
           "<strong>" +
           escapeHtml((c.rsvp_id && c.rsvp_id.nama) || "?") +
@@ -1320,7 +1314,7 @@
           (c.method === "qr" ? "pink" : "") +
           '">' +
           c.method +
-          '</span> <span style="color:var(--ink-muted);font-size:0.75rem;">' +
+          '</span> <span class="gb-admin-time">' +
           formatTime(c.checked_in_at) +
           "</span>";
         log.appendChild(div);
@@ -1358,19 +1352,18 @@
       empty.style.display = "none";
       data.forEach(function (item) {
         var card = document.createElement("div");
-        card.style.cssText =
-          "background:var(--panel);border:1px solid var(--panel-border);border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.65rem;width:100%;";
+        card.className = "pp-list-card";
         card.innerHTML =
-          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">' +
-          '<span style="font-weight:600;">' +
+          '<div class="pp-list-header">' +
+          '<span class="pp-list-name">' +
           escapeHtml(item.nama) +
           "</span>" +
-          '<span style="font-size:0.72rem;color:var(--ink-muted);">' +
+          '<span class="pp-list-meta">' +
           (item.nomor_wa ? escapeHtml(item.nomor_wa) : "") +
           " &middot; " +
           formatDate(item.created_at) +
           "</span></div>" +
-          '<div style="color:#d8d8d8;font-size:0.92rem;white-space:pre-wrap;word-break:break-word;">' +
+          '<div class="pp-list-body">' +
           escapeHtml(item.pesan) +
           "</div>";
         list.appendChild(card);
