@@ -262,9 +262,9 @@
     var page = _actItems.slice(from, to);
 
     if (page.length === 0) {
-      document.getElementById("activity-empty").style.display = "block";
+      document.getElementById("activity-empty").classList.remove("d-none");
     } else {
-      document.getElementById("activity-empty").style.display = "none";
+      document.getElementById("activity-empty").classList.add("d-none");
       var table = document.createElement("table");
       table.className = "activity-table";
       page.forEach(function (item) {
@@ -298,7 +298,7 @@
   }
 
   async function loadOverview() {
-    document.getElementById("overview-error").style.display = "none";
+      document.getElementById("overview-error").classList.add("d-none");
     try {
       var [rsvpRes, gbRes] = await Promise.all([
         sb
@@ -328,8 +328,10 @@
       ).length;
 
       drawPieChart(hadir.length, absen.length);
-      document.getElementById("overview-status").style.display =
-        rsvps.length === 0 ? "block" : "none";
+      document.getElementById("overview-status").classList.toggle(
+        "d-none",
+        rsvps.length !== 0,
+      );
 
       // build merged activity list
       _actItems = [];
@@ -358,7 +360,7 @@
       renderActivityPage();
     } catch (err) {
       console.error("Overview error:", err);
-      document.getElementById("overview-error").style.display = "block";
+      document.getElementById("overview-error").classList.remove("d-none");
     }
   }
 
@@ -440,8 +442,8 @@
   }
 
   async function loadTamuRSVP() {
-    document.getElementById("tamu-status").style.display = "none";
-    document.getElementById("tamu-empty").style.display = "none";
+    document.getElementById("tamu-status").classList.add("d-none");
+    document.getElementById("tamu-empty").classList.add("d-none");
     try {
       var [guestsRes, rsvpsRes] = await Promise.all([
         sb
@@ -529,12 +531,12 @@
       });
 
       if (allTamu.length === 0)
-        document.getElementById("tamu-empty").style.display = "block";
+        document.getElementById("tamu-empty").classList.remove("d-none");
       renderTamuTable();
       loadApprovalPending();
     } catch (err) {
       console.error("Tamu error:", err);
-      document.getElementById("tamu-status").style.display = "block";
+      document.getElementById("tamu-status").classList.remove("d-none");
     }
   }
 
@@ -574,8 +576,10 @@
       return matchSearch && matchFilter;
     });
 
-    document.getElementById("tamu-empty").style.display =
-      filtered.length === 0 ? "block" : "none";
+    document.getElementById("tamu-empty").classList.toggle(
+      "d-none",
+      filtered.length !== 0,
+    );
 
     filtered.forEach(function (t) {
       var tr = document.createElement("tr");
@@ -760,7 +764,7 @@
 
     var section = document.getElementById("approval-section");
     var list = document.getElementById("approval-list");
-    section.style.display = pending.length > 0 ? "block" : "none";
+    section.classList.toggle("d-none", pending.length === 0);
     list.innerHTML = "";
 
     pending.forEach(function (t) {
@@ -814,7 +818,7 @@
     var slugRow = document.getElementById("gf-slug-row");
     if (guestData) {
       // ponytail: hide slug on edit — admin doesn't need to change it
-      if (slugRow) slugRow.style.display = "none";
+      if (slugRow) slugRow.classList.add("d-none");
       document.getElementById("guest-modal-title").textContent = "Edit Tamu";
       document.getElementById("gf-id").value = guestData.id;
       document.getElementById("gf-name").value = guestData.name;
@@ -823,7 +827,7 @@
       document.getElementById("gf-pronoun").value = guestData.pronoun || "";
       document.getElementById("gf-count").value = guestData.invited_count;
 
-      rsvpSection.style.display = "block";
+      rsvpSection.classList.remove("d-none");
       if (rsvpData && rsvpData.id) {
         document.getElementById("gf-rsvp-id").value = rsvpData.id;
         document.getElementById("gf-nomor-wa").value = rsvpData.nomor_wa || "";
@@ -839,12 +843,12 @@
       }
     } else {
       // ponytail: show slug on add so admin can set custom slug
-      if (slugRow) slugRow.style.display = "block";
+      if (slugRow) slugRow.classList.remove("d-none");
       document.getElementById("guest-modal-title").textContent = "Tambah Tamu";
       document.getElementById("guest-form").reset();
       document.getElementById("gf-id").value = "";
       document.getElementById("gf-count").value = 1;
-      rsvpSection.style.display = "none";
+      rsvpSection.classList.add("d-none");
     }
   }
 
@@ -910,7 +914,7 @@
         var rsvpId = document.getElementById("gf-rsvp-id").value;
         var rsvpSection = document.getElementById("gf-rsvp-section");
 
-        if (rsvpSection.style.display === "block") {
+        if (!rsvpSection.classList.contains("d-none")) {
           var status = document.getElementById("gf-status").value;
           var jumlahHadir =
             parseInt(document.getElementById("gf-jumlah-hadir").value) || 1;
@@ -1000,7 +1004,7 @@
   // ========== TAB 3: GUESTBOOK ==========
   async function loadGuestbook() {
     document.getElementById("gb-status").classList.remove("show");
-    document.getElementById("gb-empty").style.display = "none";
+    document.getElementById("gb-empty").classList.add("d-none");
     try {
       var res = await sb
         .from("guestbook")
@@ -1030,8 +1034,10 @@
         return e.is_approved;
       });
 
-    document.getElementById("gb-empty").style.display =
-      filtered.length === 0 ? "block" : "none";
+    document.getElementById("gb-empty").classList.toggle(
+      "d-none",
+      filtered.length !== 0,
+    );
 
     filtered.forEach(function (entry) {
       var card = document.createElement("div");
@@ -1107,8 +1113,8 @@
       html5QrScanner = new Html5Qrcode("qr-reader");
     }
 
-    document.getElementById("btn-start-scan").style.display = "none";
-    document.getElementById("btn-stop-scan").style.display = "inline-flex";
+    document.getElementById("btn-start-scan").classList.add("d-none");
+    document.getElementById("btn-stop-scan").classList.remove("d-none");
 
     html5QrScanner
       .start(
@@ -1121,8 +1127,8 @@
       )
       .catch(function (err) {
         showToast("Gagal mengakses kamera: " + err, true);
-        document.getElementById("btn-start-scan").style.display = "inline-flex";
-        document.getElementById("btn-stop-scan").style.display = "none";
+        document.getElementById("btn-start-scan").classList.remove("d-none");
+        document.getElementById("btn-stop-scan").classList.add("d-none");
       });
 
     var qrEl = document.getElementById("qr-reader");
@@ -1134,9 +1140,8 @@
       html5QrScanner
         .stop()
         .then(function () {
-          document.getElementById("btn-start-scan").style.display =
-            "inline-flex";
-          document.getElementById("btn-stop-scan").style.display = "none";
+          document.getElementById("btn-start-scan").classList.remove("d-none");
+          document.getElementById("btn-stop-scan").classList.add("d-none");
           var qrEl = document.getElementById("qr-reader");
           if (qrEl) qrEl.classList.remove("scanner-active");
         })
@@ -1298,10 +1303,10 @@
       var data = res.data || [];
       log.innerHTML = "";
       if (data.length === 0) {
-        empty.style.display = "block";
+        empty.classList.remove("d-none");
         return;
       }
-      empty.style.display = "none";
+      empty.classList.add("d-none");
       data.forEach(function (c) {
         var div = document.createElement("div");
         div.className = "checkin-item";
@@ -1326,9 +1331,9 @@
 
   // ========== TAB 5: PESAN PRIVAT ==========
   async function loadPesanPrivat() {
-    document.getElementById("pp-loading").style.display = "block";
-    document.getElementById("pp-empty").style.display = "none";
-    document.getElementById("pp-error").style.display = "none";
+    document.getElementById("pp-loading").classList.remove("d-none");
+    document.getElementById("pp-empty").classList.add("d-none");
+    document.getElementById("pp-error").classList.add("d-none");
     try {
       var res = await sb
         .from("rsvps")
@@ -1344,12 +1349,12 @@
       list.innerHTML = "";
 
       if (data.length === 0) {
-        empty.style.display = "block";
-        loading.style.display = "none";
+        empty.classList.remove("d-none");
+        loading.classList.add("d-none");
         return;
       }
 
-      empty.style.display = "none";
+      empty.classList.add("d-none");
       data.forEach(function (item) {
         var card = document.createElement("div");
         card.className = "pp-list-card";
@@ -1368,11 +1373,11 @@
           "</div>";
         list.appendChild(card);
       });
-      loading.style.display = "none";
+      loading.classList.add("d-none");
     } catch (err) {
       console.error("Pesan privat error:", err);
-      document.getElementById("pp-loading").style.display = "none";
-      document.getElementById("pp-error").style.display = "block";
+      document.getElementById("pp-loading").classList.add("d-none");
+      document.getElementById("pp-error").classList.remove("d-none");
     }
   }
 
@@ -1398,7 +1403,7 @@
       });
     } catch (err) {
       status.textContent = "Gagal memuat daftar admin.";
-      status.style.display = "block";
+      status.classList.remove("d-none");
     }
   }
 

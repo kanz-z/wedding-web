@@ -44,19 +44,19 @@ function formatWaktuRelatif(iso) {
 
 function showGuestbookState(state) {
   // Sembunyikan semua state terlebih dahulu
-  document.getElementById("gb-loading").style.display = "none";
-  document.getElementById("gb-empty").style.display = "none";
-  document.getElementById("gb-error").style.display = "none";
+  document.getElementById("gb-loading").classList.add("d-none");
+  document.getElementById("gb-empty").classList.add("d-none");
+  document.getElementById("gb-error").classList.add("d-none");
   document.getElementById("gb-list").innerHTML = "";
-  document.getElementById("gb-pagination").style.display = "none";
+  document.getElementById("gb-pagination").classList.add("d-none");
 
   // Tampilkan state yang diminta
   if (state === "loading") {
-    document.getElementById("gb-loading").style.display = "block";
+    document.getElementById("gb-loading").classList.remove("d-none");
   } else if (state === "empty") {
-    document.getElementById("gb-empty").style.display = "block";
+    document.getElementById("gb-empty").classList.remove("d-none");
   } else if (state === "error") {
-    document.getElementById("gb-error").style.display = "block";
+    document.getElementById("gb-error").classList.remove("d-none");
   }
 }
 
@@ -129,7 +129,7 @@ async function fetchGuestbook(page) {
     console.error("Gagal memuat ucapan:", err);
     showGuestbookState("error");
   } finally {
-    document.getElementById("gb-loading").style.display = "none";
+    document.getElementById("gb-loading").classList.add("d-none");
   }
 }
 

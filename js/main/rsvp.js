@@ -114,7 +114,7 @@ function renderAlreadySubmittedNote(nama, status) {
     "Anda sudah konfirmasi " +
     keterangan +
     ". Terima kasih!";
-  note.style.display = "flex";
+  note.classList.remove("d-none");
 }
 
 function applyAlreadySubmittedState() {

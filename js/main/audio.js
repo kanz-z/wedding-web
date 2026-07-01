@@ -6,14 +6,14 @@ function playAudio() {
       // Autoplay gagal — browser butuh user interaction
       console.warn("Audio play ditolak browser:", error);
       // Tampilkan indikasi ke user bahwa audio perlu diaktifkan
-      audioIconWrapper.style.display = "flex";
+      audioIconWrapper.classList.remove("d-none");
       isPlaying = false;
       audioIconWrapper.classList.add("needs-interaction");
     });
   }
 
   backSong.volume = 0.5;
-  audioIconWrapper.style.display = "flex";
+  audioIconWrapper.classList.remove("d-none");
   isPlaying = true;
 }
 

@@ -34,7 +34,7 @@ function showRsvpModal(msg, isError) {
     ? "bi bi-exclamation-circle-fill"
     : "bi bi-check-circle-fill";
   overlay.style.display = "flex";
-  void overlay.offsetWidth; // reflow biar transition fade-up jalan
+  void overlay.offsetWidth; // reflow — biar transition opacity berjalan
   overlay.classList.add("show");
 }
 
@@ -44,7 +44,7 @@ function hideRsvpModal() {
   overlay.classList.remove("show");
   setTimeout(function () {
     overlay.style.display = "none";
-  }, 300);
+  }, 300); // ponytail: tetap inline karena setTimeout + display toggle pattern
 }
 
 function getRsvpModalOverlay() {
@@ -120,11 +120,11 @@ function renderPagination(config) {
   container.innerHTML = "";
 
   if (totalPages <= 1) {
-    container.style.display = "none";
+    container.classList.add("d-none");
     return;
   }
 
-  container.style.display = "block";
+  container.classList.remove("d-none");
 
   // Buat list element untuk pagination
   var ul = document.createElement("ul");

@@ -624,6 +624,7 @@ footer li {
   transition: opacity 0.25s ease;
 }
 .rsvp-modal-overlay.show {
+  display: flex;
   opacity: 1;
 }
 .rsvp-modal {
@@ -701,7 +702,7 @@ footer li {
 
 /* ===== keterangan "sudah RSVP" — pill kecil, tidak ganggu layout ===== */
 .rsvp-status-note {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
