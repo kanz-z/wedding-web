@@ -93,3 +93,80 @@ function escapeHtml(str) {
   d.textContent = str || "";
   return d.innerHTML;
 }
+
+function createPageItem(html, enabled, onClick, isActive) {
+  var li = document.createElement("li");
+  li.className = "page-item";
+  if (!enabled) li.className += " disabled";
+  if (isActive) li.className += " active";
+
+  var a = document.createElement("a");
+  a.className = "page-link";
+  a.href = "#";
+  a.innerHTML = html;
+  a.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (enabled) onClick();
+  });
+
+  li.appendChild(a);
+  return li;
+}
+
+function renderPagination(config) {
+  var container = config.container; // Elemen yang akan diisi pagination
+  var currentPage = config.currentPage; // Halaman saat ini (0-indexed)
+  var totalPages = config.totalPages; // Total halaman
+  var onPageChange = config.onPageChange; // Callback saat halaman berubah (menerima page number)
+
+  container.innerHTML = "";
+
+  if (totalPages <= 1) {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+
+  // Buat list element untuk pagination
+  var ul = document.createElement("ul");
+  ul.className = "pagination justify-content-center";
+
+  // Prev button
+  var prevLi = createPageItem(
+    '<span aria-hidden="true">&laquo;</span>',
+    currentPage > 0,
+    function () {
+      if (currentPage > 0) onPageChange(currentPage - 1);
+    },
+  );
+  ul.appendChild(prevLi);
+
+  // Page number buttons
+  for (var i = 0; i < totalPages; i++) {
+    ul.appendChild(
+      createPageItem(
+        String(i + 1),
+        true,
+        (function (page) {
+          return function () {
+            onPageChange(page);
+          };
+        })(i),
+        i === currentPage,
+      ),
+    );
+  }
+
+  // Next button
+  var nextLi = createPageItem(
+    '<span aria-hidden="true">&raquo;</span>',
+    currentPage < totalPages - 1,
+    function () {
+      if (currentPage < totalPages - 1) onPageChange(currentPage + 1);
+    },
+  );
+  ul.appendChild(nextLi);
+
+  container.appendChild(ul);
+}

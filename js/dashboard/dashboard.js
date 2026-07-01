@@ -241,59 +241,17 @@
   var _actPageSize = 5;
 
   function renderActivityPagination() {
-    var nav = document.getElementById("activity-pagination");
-    var ul = nav.querySelector("ul");
     var totalPages = Math.max(1, Math.ceil(_actItems.length / _actPageSize));
-    ul.innerHTML = "";
-    if (totalPages <= 1) {
-      nav.style.display = "none";
-      return;
-    }
-    nav.style.display = "block";
 
-    var prevLi = document.createElement("li");
-    prevLi.className = "page-item" + (_actPage === 0 ? " disabled" : "");
-    prevLi.innerHTML =
-      '<a class="page-link" href="#" aria-label="Sebelumnya"><span aria-hidden="true">&laquo;</span></a>';
-    prevLi.querySelector("a").addEventListener("click", function (e) {
-      e.preventDefault();
-      if (_actPage > 0) {
-        _actPage--;
+    renderPagination({
+      container: document.getElementById("activity-pagination"),
+      currentPage: _actPage,
+      totalPages: totalPages,
+      onPageChange: function (page) {
+        _actPage = page;
         renderActivityPage();
-      }
+      },
     });
-    ul.appendChild(prevLi);
-
-    for (var i = 0; i < totalPages; i++) {
-      var li = document.createElement("li");
-      li.className = "page-item" + (i === _actPage ? " active" : "");
-      li.innerHTML = '<a class="page-link" href="#">' + (i + 1) + "</a>";
-      li.querySelector("a").addEventListener(
-        "click",
-        (function (p) {
-          return function (e) {
-            e.preventDefault();
-            _actPage = p;
-            renderActivityPage();
-          };
-        })(i),
-      );
-      ul.appendChild(li);
-    }
-
-    var nextLi = document.createElement("li");
-    nextLi.className =
-      "page-item" + (_actPage >= totalPages - 1 ? " disabled" : "");
-    nextLi.innerHTML =
-      '<a class="page-link" href="#" aria-label="Berikutnya"><span aria-hidden="true">&raquo;</span></a>';
-    nextLi.querySelector("a").addEventListener("click", function (e) {
-      e.preventDefault();
-      if (_actPage < totalPages - 1) {
-        _actPage++;
-        renderActivityPage();
-      }
-    });
-    ul.appendChild(nextLi);
   }
 
   function renderActivityPage() {

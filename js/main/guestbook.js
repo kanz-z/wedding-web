@@ -42,6 +42,24 @@ function formatWaktuRelatif(iso) {
   return d.toLocaleDateString("id-ID", { dateStyle: "medium" });
 }
 
+function showGuestbookState(state) {
+  // Sembunyikan semua state terlebih dahulu
+  document.getElementById("gb-loading").style.display = "none";
+  document.getElementById("gb-empty").style.display = "none";
+  document.getElementById("gb-error").style.display = "none";
+  document.getElementById("gb-list").innerHTML = "";
+  document.getElementById("gb-pagination").style.display = "none";
+
+  // Tampilkan state yang diminta
+  if (state === "loading") {
+    document.getElementById("gb-loading").style.display = "block";
+  } else if (state === "empty") {
+    document.getElementById("gb-empty").style.display = "block";
+  } else if (state === "error") {
+    document.getElementById("gb-error").style.display = "block";
+  }
+}
+
 async function submitGuestbook(namaInput, pesanInput, rsvpId) {
   const { error } = await supabaseClient.from("guestbook").insert([
     {
@@ -54,9 +72,7 @@ async function submitGuestbook(namaInput, pesanInput, rsvpId) {
 }
 
 async function fetchGuestbook(page) {
-  document.getElementById("gb-loading").style.display = "block";
-  document.getElementById("gb-error").style.display = "none";
-  document.getElementById("gb-empty").style.display = "none";
+  showGuestbookState("loading");
 
   try {
     var from = page * GB_PAGE_SIZE;
@@ -88,7 +104,7 @@ async function fetchGuestbook(page) {
     document.getElementById("gb-list").innerHTML = "";
 
     if (data.length === 0) {
-      document.getElementById("gb-empty").style.display = "block";
+      showGuestbookState("empty");
     } else {
       data.forEach(function (m) {
         var div = document.createElement("div");
@@ -108,64 +124,24 @@ async function fetchGuestbook(page) {
     }
 
     gbCurrentPage = page;
-    renderPagination();
+    renderGuestbookPagination();
   } catch (err) {
     console.error("Gagal memuat ucapan:", err);
-    document.getElementById("gb-error").style.display = "block";
+    showGuestbookState("error");
   } finally {
     document.getElementById("gb-loading").style.display = "none";
   }
 }
 
-function renderPagination() {
-  var nav = document.getElementById("gb-pagination");
-  var ul = nav.querySelector("ul");
-  ul.innerHTML = "";
-  if (gbTotalPages <= 1) {
-    nav.style.display = "none";
-    return;
-  }
-  nav.style.display = "block";
-
-  // prev
-  var li = document.createElement("li");
-  li.className = "page-item" + (gbCurrentPage === 0 ? " disabled" : "");
-  li.innerHTML =
-    '<a class="page-link" href="#" aria-label="Sebelumnya"><span aria-hidden="true">&laquo;</span></a>';
-  li.querySelector("a").addEventListener("click", function (e) {
-    e.preventDefault();
-    if (gbCurrentPage > 0) fetchGuestbook(gbCurrentPage - 1);
+function renderGuestbookPagination() {
+  renderPagination({
+    container: document.getElementById("gb-pagination"),
+    currentPage: gbCurrentPage,
+    totalPages: gbTotalPages,
+    onPageChange: function (page) {
+      fetchGuestbook(page);
+    },
   });
-  ul.appendChild(li);
-
-  // pages
-  for (var i = 0; i < gbTotalPages; i++) {
-    var li2 = document.createElement("li");
-    li2.className = "page-item" + (i === gbCurrentPage ? " active" : "");
-    li2.innerHTML = '<a class="page-link" href="#">' + (i + 1) + "</a>";
-    li2.querySelector("a").addEventListener(
-      "click",
-      (function (p) {
-        return function (e) {
-          e.preventDefault();
-          fetchGuestbook(p);
-        };
-      })(i),
-    );
-    ul.appendChild(li2);
-  }
-
-  // next
-  var li3 = document.createElement("li");
-  li3.className =
-    "page-item" + (gbCurrentPage >= gbTotalPages - 1 ? " disabled" : "");
-  li3.innerHTML =
-    '<a class="page-link" href="#" aria-label="Berikutnya"><span aria-hidden="true">&raquo;</span></a>';
-  li3.querySelector("a").addEventListener("click", function (e) {
-    e.preventDefault();
-    if (gbCurrentPage < gbTotalPages - 1) fetchGuestbook(gbCurrentPage + 1);
-  });
-  ul.appendChild(li3);
 }
 
 function retryFetchGuestbook(attempt) {
@@ -221,7 +197,7 @@ document
 
     try {
       await submitGuestbook(nama, pesan, null);
-      showToast("Ucapan berhasil dikirim! Terima kasih.");
+      showRsvpModal("Ucapan berhasil dikirim! Terima kasih.", false);
       namaEl.value = "";
       pesanEl.value = "";
       document.getElementById("gb-counter").textContent = "0/500";
@@ -230,7 +206,7 @@ document
       span.textContent = "Terkirim";
     } catch (err) {
       console.error("Gagal kirim ucapan:", err);
-      showToast("Gagal mengirim ucapan. Coba lagi.", true);
+      showRsvpModal("Gagal mengirim ucapan. Coba lagi.", true);
     } finally {
       if (!gbSuccess) span.textContent = "Kirim Ucapan";
     }
