@@ -5,3 +5,6 @@ qa/screenshots/
 /supabase/*.temp
 /docs
 /scripts/*
+/.superpowers
+/.commandcode
+AGENTS.md

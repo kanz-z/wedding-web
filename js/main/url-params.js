@@ -1,6 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search); //pengambilan parameter dari url yang bernilai nama tamu
 const nama = urlParams.get("n") || "";
 const pronoun = urlParams.get("p") || "";
+const guestId = urlParams.get("guest_id") || null;
+const guestToken = urlParams.get("token") || null;
 
 // pemanggilan element yang akan diisi nama dari url
 const namaContainer = document.querySelector(".hero h4 span");

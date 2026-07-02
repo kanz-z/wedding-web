@@ -29,6 +29,12 @@
   var gbFilter = "all";
   var html5QrScanner = null;
 
+  // Batch selection
+  var selectedTamu = {};
+
+  // Batch download
+  var _cancelDownload = false;
+
   // ---------- helpers ----------
   function showScreen(name) {
     loginScreen.classList.toggle("active", name === "login");
@@ -97,6 +103,65 @@
         fn.apply(ctx, args);
       }, ms);
     };
+  }
+
+  // ---------- batch selection ----------
+  function toggleSelectAll(checked) {
+    var tbody = document.getElementById("tamu-tbody");
+    var rows = tbody.querySelectorAll("tr");
+    document.querySelectorAll(".tamu-checkbox").forEach(function (cb) {
+      var tr = cb.closest("tr");
+      if (tr && tr.style.display !== "none") {
+        cb.checked = checked;
+        selectedTamu[cb.dataset.guestId] = checked;
+      }
+    });
+    updateBatchButtons();
+  }
+
+  function toggleSelect(guestId, checked) {
+    selectedTamu[guestId] = checked;
+    updateBatchButtons();
+  }
+
+  function updateBatchButtons() {
+    var count = 0;
+    for (var k in selectedTamu) {
+      if (selectedTamu[k]) count++;
+    }
+    document.getElementById("btn-download-kartu").disabled = count === 0;
+    document.getElementById("btn-hapus").disabled = count === 0;
+    document.getElementById("selected-count").textContent =
+      count > 0 ? count + " tamu dipilih" : "";
+  }
+
+  // ---------- import ----------
+  function showImportModal() {
+    document.getElementById("import-modal").classList.add("show");
+    document.getElementById("import-result").style.display = "none";
+    document.getElementById("import-text").value = "";
+    document.getElementById("import-csv-file").value = "";
+    document.getElementById("import-csv-preview").innerHTML = "";
+    switchImportTab("paste");
+  }
+
+  function closeImportModal() {
+    document.getElementById("import-modal").classList.remove("show");
+  }
+
+  function switchImportTab(tab) {
+    document.getElementById("import-pane-paste").style.display =
+      tab === "paste" ? "block" : "none";
+    document.getElementById("import-pane-csv").style.display =
+      tab === "csv" ? "block" : "none";
+    document.getElementById("import-tab-paste").classList.toggle(
+      "active",
+      tab === "paste",
+    );
+    document.getElementById("import-tab-csv").classList.toggle(
+      "active",
+      tab === "csv",
+    );
   }
 
   // ---------- auth ----------
@@ -570,6 +635,7 @@
         matchFilter = t._source === "orphan" || t._source === "auto-matched";
       else if (tamuFilter === "pria") matchFilter = t._side === "pria";
       else if (tamuFilter === "wanita") matchFilter = t._side === "wanita";
+      else if (tamuFilter === "belum") matchFilter = t.status === "belum";
       else if (tamuFilter !== "all")
         matchFilter =
           tamuFilter === "null" ? !t.status : t.status === tamuFilter;
@@ -594,7 +660,33 @@
       var kuotaDisplay = t._invited_count != null ? t._invited_count : "-";
       // ponytail: Hadir = jumlah_hadir from rsvps table (actual attendance)
       var hadirDisplay = t.status ? t.jumlah_hadir : "-";
+      var actions =
+          '<button class="btn-sm" onclick="editTamu(\'' +
+          (t._source === "orphan" ? "" : t.guest_id) +
+          '\')" title="Edit" style="margin-right:4px">' +
+          '<i class="bi bi-pencil-fill"></i></button>' +
+          '<button class="btn-sm" onclick="copyGuestLink(\'' +
+          escapeAttr(t.nama) +
+          "','" +
+          (t.qr_token || "") +
+          "','" +
+          escapeAttr(t._pronoun || "") +
+          '\')" title="Salin link">' +
+          '<i class="bi bi-link-45deg"></i></button>';
+        if (t.status && t.status !== "belum" && !t.is_approved && t._invited_count > 2) {
+          actions +=
+            '<button class="btn-pink btn-sm ms-1" onclick="confirmGuest(\'' +
+            t.guest_id +
+            "', this)\" title=\"Konfirmasi tamu\">" +
+            '<i class="bi bi-check-circle-fill"></i></button>';
+        }
+        actions += "</td>";
+
       tr.innerHTML =
+        '<td style="width:36px">' +
+        '<input type="checkbox" class="tamu-checkbox" data-guest-id="' + escapeAttr(String(t.guest_id)) + '"' +
+        (selectedTamu[t.guest_id] ? ' checked' : '') +
+        ' onchange="toggleSelect(this.dataset.guestId, this.checked)"></td>' +
         "<td>" +
         displayName +
         badgeSource(t._source) +
@@ -633,18 +725,7 @@
         pesanTrunc +
         "</td>" +
         '<td style="white-space:nowrap">' +
-        '<button class="btn-sm" onclick="editTamu(\'' +
-        (t._source === "orphan" ? "" : t.guest_id) +
-        '\')" title="Edit" style="margin-right:4px">' +
-        '<i class="bi bi-pencil-fill"></i></button>' +
-        '<button class="btn-sm" onclick="copyGuestLink(\'' +
-        escapeAttr(t.nama) +
-        "','" +
-        (t.qr_token || "") +
-        "','" +
-        escapeAttr(t._pronoun || "") +
-        '\')" title="Salin link">' +
-        '<i class="bi bi-link-45deg"></i></button></td>';
+        actions;
       tbody.appendChild(tr);
       var cells = tr.querySelectorAll("td.trunc-cell");
       cells.forEach(function (c) {
@@ -669,6 +750,27 @@
   document
     .getElementById("tamu-search")
     .addEventListener("input", debounce(renderTamuTable, 500));
+
+  document
+    .getElementById("import-csv-file")
+    .addEventListener("change", function () {
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var text = e.target.result;
+        var lines = text.split("\n").filter(Boolean);
+        var preview = document.getElementById("import-csv-preview");
+        preview.innerHTML =
+          "Ditemukan " +
+          lines.length +
+          " baris. 3 baris pertama:<br><code>" +
+          escapeHtml(lines.slice(0, 3).join("<br>")) +
+          "</code>";
+        document.getElementById("import-text").value = text;
+      };
+      reader.readAsText(file);
+    });
 
   function copyGuestLink(nama, token, pronoun) {
     var link = APP_CONFIG.SITE_URL + "/?n=" + encodeURIComponent(nama);
@@ -1407,6 +1509,372 @@
     }
   }
 
+  async function confirmGuest(guestId, btn) {
+    btn.disabled = true;
+    var origHtml = btn.innerHTML;
+    btn.innerHTML = "...";
+    try {
+      var res = await sb
+        .from("rsvps")
+        .update({ is_approved: true, card_sent_at: new Date().toISOString() })
+        .eq("guest_id", guestId);
+      if (res.error) throw res.error;
+      showToast("Tamu dikonfirmasi.");
+      loadTamuRSVP();
+    } catch (err) {
+      showToast("Gagal konfirmasi.", true);
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+
+  async function executeImport() {
+    var raw = document.getElementById("import-text").value.trim();
+    if (!raw) {
+      showToast("Tidak ada data untuk diimport.", true);
+      return;
+    }
+
+    var lines = raw.split("\n").filter(Boolean);
+    var results = { success: [], warnings: [], errors: [] };
+
+    for (var i = 0; i < lines.length; i++) {
+      var parts = lines[i].split(",").map(function (s) {
+        return s.trim();
+      });
+      var name = parts[0] || "";
+      var side = (parts[1] || "").toLowerCase();
+      var invitedCount = parseInt(parts[2]) || 1;
+      var nomorWa = (parts[3] || "").replace(/[\s\-\(\)]/g, "");
+
+      // Validasi
+      if (!name) {
+        results.errors.push("Baris " + (i + 1) + ": nama kosong");
+        continue;
+      }
+      if (name.length > 100) {
+        results.errors.push("Baris " + (i + 1) + ": nama terlalu panjang");
+        continue;
+      }
+      if (side && !["pria", "wanita", "both"].includes(side)) {
+        results.errors.push(
+          "Baris " + (i + 1) + ": side '" + side + "' tidak valid",
+        );
+        continue;
+      }
+      if (nomorWa && !/^\d{10,15}$/.test(nomorWa)) {
+        results.warnings.push(
+          "Baris " + (i + 1) + " (" + name + "): nomor WA diabaikan (format tidak valid)",
+        );
+        nomorWa = "";
+      }
+      if (!parts[2] || isNaN(parseInt(parts[2]))) {
+        results.warnings.push(
+          "Baris " + (i + 1) + " (" + name + "): invited_count tidak terbaca, default 1",
+        );
+      }
+
+      // Generate slug
+      var baseSlug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+      if (!baseSlug) baseSlug = "tamu-" + Date.now();
+
+      // Cek duplikat slug
+      var slug = baseSlug;
+      var slugNum = 1;
+      var slugRes;
+      while (true) {
+        slugRes = await sb
+          .from("guests")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (slugRes.error) {
+          results.errors.push("Baris " + (i + 1) + ": error cek slug");
+          break;
+        }
+        if (!slugRes.data) break;
+        slug = baseSlug + "-" + slugNum++;
+      }
+      if (slugRes && slugRes.error) continue;
+
+      // Insert guest
+      var guestRes = await sb
+        .from("guests")
+        .insert([
+          {
+            slug: slug,
+            name: name,
+            side: side || null,
+            invited_count: invitedCount,
+            nomor_wa: nomorWa || null,
+          },
+        ])
+        .select("id")
+        .single();
+
+      if (guestRes.error) {
+        results.errors.push("Baris " + (i + 1) + " (" + name + "): " + guestRes.error.message);
+        continue;
+      }
+
+      // Insert RSVP dengan status 'belum'
+      var rsvpRes = await sb.from("rsvps").insert([
+        {
+          guest_id: guestRes.data.id,
+          nama: name,
+          nomor_wa: nomorWa || null,
+          jumlah_hadir: invitedCount,
+          status: "belum",
+          is_approved: true,
+        },
+      ]);
+
+      if (rsvpRes.error) {
+        // Rollback: hapus guest yang sudah ke-insert
+        await sb.from("guests").delete().eq("id", guestRes.data.id);
+        results.errors.push("Baris " + (i + 1) + " (" + name + "): gagal simpan RSVP");
+        continue;
+      }
+
+      results.success.push(name);
+    }
+
+    // Tampilkan hasil
+    var resultDiv = document.getElementById("import-result");
+    resultDiv.style.display = "block";
+    var html =
+      "<strong>Import selesai</strong><br>" +
+      "<span style='color:#51cf66;'>✓ Berhasil: " +
+      results.success.length +
+      "</span><br>";
+    if (results.warnings.length > 0)
+      html +=
+        "<span style='color:#ffd43b;'>⚠ Peringatan: " +
+        results.warnings.length +
+        "</span><br>" +
+        "<small>" +
+        results.warnings.join("<br>") +
+        "</small><br>";
+    if (results.errors.length > 0)
+      html +=
+        "<span style='color:#ff6b6b;'>✗ Gagal: " +
+        results.errors.length +
+        "</span><br>" +
+        "<small>" +
+        results.errors.join("<br>") +
+        "</small>";
+
+    resultDiv.innerHTML = html;
+    resultDiv.className =
+      results.errors.length > 0 ? "error" : "success";
+
+    if (results.success.length > 0) {
+      showToast(results.success.length + " tamu berhasil diimport.");
+      closeImportModal();
+      loadTamuRSVP();
+    }
+  }
+
+  // ---------- batch delete ----------
+
+  async function confirmBatchDelete() {
+    var selected = allTamu.filter(function (t) {
+      return selectedTamu[t.guest_id];
+    });
+    if (selected.length === 0) return;
+
+    if (!confirm("Yakin ingin menghapus " + selected.length + " tamu terpilih?"))
+      return;
+
+    var alreadyFilled = selected.filter(function (t) {
+      return t.status && t.status !== "belum";
+    });
+
+    if (alreadyFilled.length > 0) {
+      var names = alreadyFilled
+        .map(function (t) {
+          return t.nama;
+        })
+        .join(", ");
+      if (
+        !confirm(
+          alreadyFilled.length +
+            " tamu sudah mengisi RSVP (" +
+            names +
+            ").\nData RSVP akan hilang permanen. Tetap hapus?",
+        )
+      )
+        return;
+    }
+
+    await executeBatchDelete(selected);
+  }
+
+  async function executeBatchDelete(selected) {
+    showToast("Menghapus " + selected.length + " tamu...");
+
+    try {
+      var guestIds = selected.map(function (t) {
+        return t.guest_id;
+      });
+
+      // 1. Cari rsvp IDs
+      var rsvpRes = await sb.from("rsvps").select("id").in("guest_id", guestIds);
+      if (rsvpRes.error) throw rsvpRes.error;
+
+      if (rsvpRes.data && rsvpRes.data.length > 0) {
+        var rsvpIds = rsvpRes.data.map(function (r) {
+          return r.id;
+        });
+
+        // 2. Hapus guest_checkins (child table)
+        await sb.from("guest_checkins").delete().in("rsvp_id", rsvpIds);
+
+        // 3. Hapus rsvps (child table)
+        await sb.from("rsvps").delete().in("guest_id", guestIds);
+      }
+
+      // 4. Hapus guests (parent table)
+      await sb.from("guests").delete().in("id", guestIds);
+
+      // Bersihkan selection
+      selected.forEach(function (t) {
+        delete selectedTamu[t.guest_id];
+      });
+
+      updateBatchButtons();
+      showToast(selected.length + " tamu berhasil dihapus.");
+      loadTamuRSVP();
+    } catch (err) {
+      console.error("Batch delete error:", err);
+      showToast("Gagal menghapus. Coba lagi.", true);
+    }
+  }
+
+  // ---------- batch download ----------
+  function cancelBatchDownload() {
+    _cancelDownload = true;
+    document.getElementById("progress-text").textContent = "Membatalkan...";
+  }
+
+  function showProgressModal(msg, total) {
+    document.getElementById("progress-modal").style.display = "flex";
+    document.getElementById("progress-bar").style.width = "0%";
+    document.getElementById("progress-text").textContent = msg;
+    _cancelDownload = false;
+  }
+
+  function updateProgress(current, total, name) {
+    var pct = Math.round((current / total) * 100);
+    document.getElementById("progress-bar").style.width = pct + "%";
+    document.getElementById("progress-text").textContent =
+      "Memproses: " + escapeHtml(name) + " (" + current + "/" + total + ")";
+  }
+
+  function closeProgressModal() {
+    document.getElementById("progress-modal").style.display = "none";
+  }
+
+  async function downloadBatchKartu() {
+    var selected = allTamu.filter(function (t) {
+      return selectedTamu[t.guest_id];
+    });
+    if (selected.length === 0) return;
+
+    showProgressModal("Menyiapkan kartu...", selected.length);
+
+    // Fallback jika jsPDF tidak ter-load
+    if (typeof window.jspdf === "undefined") {
+      closeProgressModal();
+      for (var i = 0; i < selected.length; i++) {
+        if (_cancelDownload) break;
+        updateProgress(i + 1, selected.length, selected[i].nama);
+        try {
+          var canvas = await generateSingleCard(selected[i]);
+          var link = document.createElement("a");
+          link.download =
+            "Kartu-" + selected[i].nama.replace(/\s+/g, "-") + ".png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        } catch (err) {
+          console.error("Gagal kartu:", selected[i].nama, err);
+        }
+      }
+      showToast(selected.length + " kartu didownload (PNG).");
+      return;
+    }
+
+    var { jsPDF } = window.jspdf;
+    var pdf = new jsPDF("l", "mm", "a6");
+
+    for (var i = 0; i < selected.length; i++) {
+      if (_cancelDownload) {
+        showToast("Dibatalkan. " + i + " kartu berhasil dibuat.");
+        break;
+      }
+
+      updateProgress(i + 1, selected.length, selected[i].nama);
+
+      try {
+        var canvas = await generateSingleCard(selected[i]);
+        var imgData = canvas.toDataURL("image/jpeg", 0.92);
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, 148, 105);
+      } catch (err) {
+        console.error("Gagal kartu:", selected[i].nama, err);
+      }
+    }
+
+    var filename =
+      "Kartu-Undangan-" + new Date().toISOString().slice(0, 10) + ".pdf";
+    pdf.save(filename);
+    closeProgressModal();
+    showToast(selected.length + " kartu berhasil didownload.");
+  }
+
+  async function generateSingleCard(guest) {
+    // Generate QR token jika belum ada
+    var token = guest.qr_token;
+    if (!token) {
+      token = crypto.randomUUID();
+      await sb
+        .from("rsvps")
+        .update({ qr_token: token })
+        .eq("guest_id", guest.guest_id);
+    }
+
+    // Clone template
+    var template = document.getElementById("digital-card-html");
+    var container = document.getElementById("card-render-container");
+    container.innerHTML = "";
+    var clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+
+    // Isi data
+    renderDigitalCard(container, {
+      nama: guest.nama,
+      pronoun: guest._pronoun,
+      invited_count: guest._invited_count,
+      status: guest.status,
+      qr_token: token,
+      guest_id: guest.guest_id,
+    });
+
+    // Tunggu QR render
+    await new Promise(function (r) {
+      setTimeout(r, 400);
+    });
+
+    // Capture via html2canvas
+    return await captureCard(container);
+  }
+
   window.loadOverview = loadOverview;
   window.loadTamuRSVP = loadTamuRSVP;
   window.setTamuFilter = setTamuFilter;
@@ -1418,7 +1886,17 @@
   window.startScanner = startScanner;
   window.stopScanner = stopScanner;
   window.editTamu = editTamu;
+  window.confirmGuest = confirmGuest;
   window.loadPesanPrivat = loadPesanPrivat;
+  window.showImportModal = showImportModal;
+  window.closeImportModal = closeImportModal;
+  window.switchImportTab = switchImportTab;
+  window.executeImport = executeImport;
+  window.toggleSelect = toggleSelect;
+  window.toggleSelectAll = toggleSelectAll;
+  window.confirmBatchDelete = confirmBatchDelete;
+  window.downloadBatchKartu = downloadBatchKartu;
+  window.cancelBatchDownload = cancelBatchDownload;
 
   // ========== polling approval ==========
   var _prevPending = 0;

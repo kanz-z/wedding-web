@@ -50,16 +50,16 @@ serve(async (req) => {
     const { guest_id, nama, nomor_wa, jumlah_hadir, status, pesan, qr_token } =
       body;
 
-    if (!nama || !nomor_wa || !status) {
+    if (!nama || !status) {
       return new Response(JSON.stringify({ error: "Data tidak lengkap" }), {
         status: 400,
         headers,
       });
     }
 
-    // Validasi format nomor WA
-    const waClean = nomor_wa.replace(/[\s\-\(\)]/g, "");
-    if (!/^\d{10,15}$/.test(waClean)) {
+    // Validasi format nomor WA (hanya jika diisi)
+    const waClean = nomor_wa ? nomor_wa.replace(/[\s\-\(\)]/g, "") : "";
+    if (nomor_wa && !/^\d{10,15}$/.test(waClean)) {
       return new Response(
         JSON.stringify({
           error: "Nomor WA tidak valid. Minimal 10 digit angka.",
@@ -119,28 +119,97 @@ serve(async (req) => {
 
     if (rateError) throw rateError;
 
-    // Insert ke rsvps
-    const { data, error: rsvpError } = await sb
-      .from("rsvps")
-      .insert([
-        {
-          guest_id: guest_id || null,
-          nama,
-          nomor_wa: waClean,
-          jumlah_hadir,
-          status,
-          pesan: pesan || null,
-          qr_token: qr_token || null,
-        },
-      ])
-      .select("is_approved, qr_token, jumlah_hadir, pesan");
+    // Cari RSVP existing by priority
+    var existingRsvp: { id: string; status: string; guest_id: string } | null = null;
 
-    if (rsvpError) throw rsvpError;
+    if (guest_id) {
+      var { data } = await sb
+        .from("rsvps")
+        .select("id, status, guest_id")
+        .eq("guest_id", guest_id)
+        .maybeSingle();
+      existingRsvp = data;
+    }
+
+    if (!existingRsvp && nama && waClean) {
+      var { data } = await sb
+        .from("rsvps")
+        .select("id, status, guest_id")
+        .eq("nama", nama)
+        .eq("nomor_wa", waClean)
+        .maybeSingle();
+      existingRsvp = data;
+    }
+
+    if (!existingRsvp && nama) {
+      var { data } = await sb
+        .from("rsvps")
+        .select("id, status, guest_id")
+        .ilike("nama", nama)
+        .limit(1)
+        .maybeSingle();
+      if (data) existingRsvp = data;
+    }
+
+    // Hitung invited_count untuk is_approved
+    var gid = guest_id || (existingRsvp ? existingRsvp.guest_id : null);
+    var invitedCount = hadir;
+    if (gid) {
+      var { data: guest } = await sb
+        .from("guests")
+        .select("invited_count")
+        .eq("id", gid)
+        .single();
+      if (guest) invitedCount = guest.invited_count;
+    }
+
+    var rsvpData = {
+      nama,
+      nomor_wa: waClean || null,
+      jumlah_hadir: hadir,
+      status,
+      pesan: pesan || null,
+      qr_token: qr_token || crypto.randomUUID(),
+      is_approved: invitedCount <= 2,
+    };
+
+    var result;
+    if (existingRsvp) {
+      var { data, error } = await sb
+        .from("rsvps")
+        .update(rsvpData)
+        .eq("id", existingRsvp.id)
+        .select("is_approved, qr_token, jumlah_hadir, pesan")
+        .single();
+
+      if (error) throw error;
+      result = data;
+    } else {
+      // INSERT untuk tamu baru
+      rsvpData = { ...rsvpData, guest_id: guest_id || null };
+      var { data, error } = await sb
+        .from("rsvps")
+        .insert([rsvpData])
+        .select("is_approved, qr_token, jumlah_hadir, pesan")
+        .single();
+
+      if (error) throw error;
+      result = data;
+    }
+
+    // Sync nomor_wa ke guests jika sebelumnya null
+    if (gid && waClean) {
+      await sb
+        .from("guests")
+        .update({ nomor_wa: waClean })
+        .eq("id", gid)
+        .eq("nomor_wa", null);
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        data: data[0],
+        data: result,
       }),
       { status: 200, headers },
     );

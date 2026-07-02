@@ -610,6 +610,21 @@ option {
   background-color: #1c1c1c;
 }
 
+/* ---------- fix: text-muted contrast on dark bg ---------- */
+.text-muted {
+  color: var(--ink-muted) !important;
+}
+
+/* ---------- fix: table header separator ---------- */
+#data-table-tamu thead th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ink-muted);
+  font-weight: 600;
+  padding: 0.6rem 0.5rem;
+  vertical-align: middle;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .side-nav {
@@ -769,4 +784,146 @@ option {
   font-size: 0.92rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ---------- batch toolbar ---------- */
+.batch-toolbar {
+  padding: 8px 12px;
+  background: #1a1a2e;
+  border-radius: 10px;
+  border: 1px solid #2a2a3e;
+}
+
+.batch-toolbar .btn-sm {
+  background: transparent;
+  border: 1px solid #333;
+  color: #ccc;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.82rem;
+  transition: all 0.2s;
+}
+
+.batch-toolbar .btn-sm:hover:not(:disabled) {
+  border-color: var(--pink);
+  color: #fff;
+}
+
+.batch-toolbar .btn-sm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.batch-toolbar .btn-sm.btn-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.batch-toolbar .vr {
+  width: 1px;
+  height: 24px;
+  background: #333;
+  flex-shrink: 0;
+}
+
+#selected-count {
+  font-size: 0.85rem;
+  color: var(--ink-muted, #888);
+}
+
+/* ---------- badge belum ---------- */
+.badge.belum {
+  background: #2a2a3a;
+  color: #8899bb;
+}
+
+/* ---------- import modal ---------- */
+#import-modal .modal-card {
+  background: #12121e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
+#import-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+#import-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+#import-modal .modal-body {
+  padding: 16px 20px;
+}
+
+#import-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #2a2a3e;
+}
+
+#import-tab-paste,
+#import-tab-csv {
+  background: transparent;
+  border: 1px solid #333;
+  color: #aaa;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#import-tab-paste.active,
+#import-tab-csv.active {
+  background: var(--pink);
+  color: #fff;
+  border-color: var(--pink);
+}
+
+/* Import result */
+#import-result.error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  background: rgba(255,107,107,0.08);
+  border-radius: 6px;
+}
+
+#import-result.success {
+  color: #51cf66;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  background: rgba(81,207,102,0.08);
+  border-radius: 6px;
+}
+
+/* ---------- progress modal ---------- */
+#progress-modal .modal-card {
+  background: #12121e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.progress-bar-container {
+  background: #2a2a3e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#progress-modal h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--ink);
 }
