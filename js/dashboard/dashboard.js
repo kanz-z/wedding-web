@@ -107,8 +107,10 @@
 
   // ---------- batch selection ----------
   function toggleSelectAll(checked) {
-    var tbody = document.getElementById("tamu-tbody");
-    var rows = tbody.querySelectorAll("tr");
+    var headerCb = document.getElementById("select-all-header");
+    var toolbarCb = document.getElementById("select-all");
+    if (headerCb) headerCb.checked = checked;
+    if (toolbarCb) toolbarCb.checked = checked;
     document.querySelectorAll(".tamu-checkbox").forEach(function (cb) {
       var tr = cb.closest("tr");
       if (tr && tr.style.display !== "none") {
@@ -507,6 +509,8 @@
   }
 
   async function loadTamuRSVP() {
+    selectedTamu = {};
+    updateBatchButtons();
     document.getElementById("tamu-status").classList.add("d-none");
     document.getElementById("tamu-empty").classList.add("d-none");
     try {
@@ -635,10 +639,9 @@
         matchFilter = t._source === "orphan" || t._source === "auto-matched";
       else if (tamuFilter === "pria") matchFilter = t._side === "pria";
       else if (tamuFilter === "wanita") matchFilter = t._side === "wanita";
-      else if (tamuFilter === "belum") matchFilter = t.status === "belum";
+      else if (tamuFilter === "belum") matchFilter = !t.status || t.status === "belum";
       else if (tamuFilter !== "all")
-        matchFilter =
-          tamuFilter === "null" ? !t.status : t.status === tamuFilter;
+        matchFilter = t.status === tamuFilter;
       return matchSearch && matchFilter;
     });
 
@@ -661,12 +664,12 @@
       // ponytail: Hadir = jumlah_hadir from rsvps table (actual attendance)
       var hadirDisplay = t.status ? t.jumlah_hadir : "-";
       var actions =
-          '<button class="btn-sm" onclick="editTamu(\'' +
-          (t._source === "orphan" ? "" : t.guest_id) +
-          '\')" title="Edit" style="margin-right:4px">' +
+          '<button class="btn-sm" onclick="' +
+          (t._source === "orphan" ? 'editOrphan(\'' + escapeAttr(String(t.id)) + '\')' : 'editTamu(\'' + escapeAttr(String(t.guest_id)) + '\')') +
+          '" title="Edit" style="margin-right:4px">' +
           '<i class="bi bi-pencil-fill"></i></button>' +
           '<button class="btn-sm" onclick="copyGuestLink(\'' +
-          escapeAttr(t.nama) +
+          escapeAttr(t._slug || "") +
           "','" +
           (t.qr_token || "") +
           "','" +
@@ -706,8 +709,8 @@
         (t.status === "Hadir"
           ? "pink"
           : t.status === "Tidak Hadir"
-            ? "badge"
-            : "warning") +
+            ? ""
+            : "belum") +
         '">' +
         (t.status || "Belum") +
         "</span>" +
@@ -738,6 +741,8 @@
 
   function setTamuFilter(filter, btn) {
     tamuFilter = filter;
+    selectedTamu = {};
+    updateBatchButtons();
     document
       .querySelectorAll("#tab-tamu .btn-group button")
       .forEach(function (b) {
@@ -749,7 +754,11 @@
 
   document
     .getElementById("tamu-search")
-    .addEventListener("input", debounce(renderTamuTable, 500));
+    .addEventListener("input", debounce(function () {
+      selectedTamu = {};
+      updateBatchButtons();
+      renderTamuTable();
+    }, 500));
 
   document
     .getElementById("import-csv-file")
@@ -772,8 +781,12 @@
       reader.readAsText(file);
     });
 
-  function copyGuestLink(nama, token, pronoun) {
-    var link = APP_CONFIG.SITE_URL + "/?n=" + encodeURIComponent(nama);
+  function copyGuestLink(slug, token, pronoun) {
+    if (!slug) {
+      showToast("Tamu belum memiliki slug — tidak bisa menyalin link.", true);
+      return;
+    }
+    var link = APP_CONFIG.SITE_URL + "/?n=" + encodeURIComponent(slug);
     if (pronoun) link += "&p=" + encodeURIComponent(pronoun);
     if (token) link += "&token=" + token; // qr_token untuk verifikasi QR check-in
     navigator.clipboard
@@ -788,10 +801,7 @@
 
   function editTamu(guestId) {
     var entry = allTamu.find(function (t) {
-      return (
-        String(t.guest_id) === String(guestId) || // ponytail: string coercion for type-safe compare
-        (!guestId && !t.guest_id && t._source === "orphan")
-      );
+      return String(t.guest_id) === String(guestId);
     });
     console.warn(
       "editTamu: guestId",
@@ -803,35 +813,6 @@
     );
     if (!entry) {
       showToast("Data tamu tidak ditemukan.", true);
-      return;
-    }
-
-    if (entry._source === "orphan") {
-      // Orphan RSVP → buka modal untuk create guest baru, pre-fill dari RSVP
-      var guestData = null;
-      var rsvpData = {
-        id: entry.id,
-        nomor_wa: entry.nomor_wa,
-        status: entry.status,
-        jumlah_hadir: entry.jumlah_hadir,
-        pesan: entry.pesan,
-      };
-      showGuestModal(guestData, rsvpData);
-      // Isi manual nama + WA
-      document.getElementById("gf-name").value = entry.nama;
-      document.getElementById("gf-nomor-wa").value = entry.nomor_wa;
-      // ponytail: unique slug check against existing guests
-      var baseSlug = entry.nama.toLowerCase().replace(/\s+/g, "-");
-      var slug = baseSlug;
-      var slugNum = 1;
-      while (
-        allTamu.some(function (t) {
-          return t._slug === slug;
-        })
-      ) {
-        slug = baseSlug + "-" + slugNum++;
-      }
-      document.getElementById("gf-slug").value = slug;
       return;
     }
 
@@ -853,6 +834,45 @@
         }
       : null;
     showGuestModal(guestData, rsvpData);
+  }
+
+  function editOrphan(rsvpId) {
+    var entry = allTamu.find(function (t) {
+      return t.id === rsvpId && t._source === "orphan";
+    });
+    if (!entry) {
+      showToast("Data RSVP tidak ditemukan.", true);
+      return;
+    }
+
+    // Reset form dan buka modal
+    document.getElementById("guest-form").reset();
+    document.getElementById("guest-modal").classList.add("show");
+    document.getElementById("guest-modal-title").textContent = "Tautkan RSVP ke Tamu";
+    document.getElementById("gf-id").value = "";
+    document.getElementById("gf-name").value = entry.nama || "";
+    document.getElementById("gf-nomor-wa").value = entry.nomor_wa || "";
+    document.getElementById("gf-pronoun").value = entry._pronoun || "";
+    document.getElementById("gf-count").value = entry._invited_count || entry.jumlah_hadir || 1;
+    document.getElementById("gf-side").value = entry._side || "";
+
+    // Slug row tampil (guest baru)
+    var slugRow = document.getElementById("gf-slug-row");
+    if (slugRow) slugRow.classList.remove("d-none");
+    var baseSlug = (entry.nama || "tamu").toLowerCase().replace(/\s+/g, "-").replace(/^-|-$/g, "");
+    var slug = baseSlug;
+    var slugNum = 1;
+    while (allTamu.some(function (t) { return t._slug === slug; })) {
+      slug = baseSlug + "-" + slugNum++;
+    }
+    document.getElementById("gf-slug").value = slug;
+
+    // RSVP section harus tampil dengan ID orphan agar saat submit menjadi UPDATE, bukan INSERT
+    var rsvpSection = document.getElementById("gf-rsvp-section");
+    rsvpSection.classList.remove("d-none");
+    document.getElementById("gf-rsvp-id").value = entry.id;
+    document.getElementById("gf-status").value = entry.status || "";
+    document.getElementById("gf-jumlah-hadir").value = entry.jumlah_hadir || 1;
   }
 
   // approval
@@ -982,6 +1002,15 @@
       if (sideVal && !["pria", "wanita", "both"].includes(sideVal)) {
         showToast("Pilih hubungan yang valid.", true);
         return;
+      }
+
+      var rsvpSection = document.getElementById("gf-rsvp-section");
+      if (rsvpSection && !rsvpSection.classList.contains("d-none")) {
+        var statusVal = document.getElementById("gf-status").value;
+        if (statusVal && !["Hadir", "Tidak Hadir"].includes(statusVal)) {
+          showToast("Pilih status kehadiran yang valid.", true);
+          return;
+        }
       }
 
       try {
@@ -1688,8 +1717,28 @@
     });
     if (selected.length === 0) return;
 
-    if (!confirm("Yakin ingin menghapus " + selected.length + " tamu terpilih?"))
-      return;
+    var visibleIds = {};
+    var search = (document.getElementById("tamu-search").value || "").toLowerCase();
+    allTamu.forEach(function (t) {
+      var matchSearch = !search || t.nama.toLowerCase().indexOf(search) !== -1;
+      var matchFilter = true;
+      if (tamuFilter === "pending") matchFilter = t.is_approved === false;
+      else if (tamuFilter === "orphan")
+        matchFilter = t._source === "orphan" || t._source === "auto-matched";
+      else if (tamuFilter === "pria") matchFilter = t._side === "pria";
+      else if (tamuFilter === "wanita") matchFilter = t._side === "wanita";
+      else if (tamuFilter === "belum") matchFilter = !t.status || t.status === "belum";
+      else if (tamuFilter !== "all") matchFilter = t.status === tamuFilter;
+      if (matchSearch && matchFilter) visibleIds[t.guest_id] = true;
+    });
+    var hidden = selected.filter(function (t) {
+      return !visibleIds[t.guest_id];
+    });
+    if (hidden.length > 0) {
+      if (!confirm(hidden.length + " tamu terpilih tidak terlihat karena filter/pencarian. Tetap hapus semua " + selected.length + " tamu?")) return;
+    } else {
+      if (!confirm("Yakin ingin menghapus " + selected.length + " tamu terpilih?")) return;
+    }
 
     var alreadyFilled = selected.filter(function (t) {
       return t.status && t.status !== "belum";
@@ -1757,6 +1806,11 @@
   }
 
   // ---------- batch download ----------
+  function canGenerateCard(guest) {
+    // Kartu hanya boleh dibuat untuk tamu yang sudah RSVP (status tidak null/belum)
+    return guest && guest.id && guest.status && guest.status !== "belum";
+  }
+
   function cancelBatchDownload() {
     _cancelDownload = true;
     document.getElementById("progress-text").textContent = "Membatalkan...";
@@ -1786,67 +1840,117 @@
     });
     if (selected.length === 0) return;
 
-    showProgressModal("Menyiapkan kartu...", selected.length);
+    var valid = selected.filter(canGenerateCard);
+    var invalid = selected.filter(function (t) {
+      return !canGenerateCard(t);
+    });
+
+    if (invalid.length > 0) {
+      showToast(
+        invalid.length + " tamu belum RSVP — tidak dibuatkan kartu.",
+        true,
+      );
+    }
+
+    if (valid.length === 0) {
+      showToast("Tidak ada tamu yang bisa dibuatkan kartu.", true);
+      return;
+    }
+
+    showProgressModal("Menyiapkan kartu...", valid.length);
+    var successCount = 0;
 
     // Fallback jika jsPDF tidak ter-load
     if (typeof window.jspdf === "undefined") {
       closeProgressModal();
-      for (var i = 0; i < selected.length; i++) {
+      for (var i = 0; i < valid.length; i++) {
         if (_cancelDownload) break;
-        updateProgress(i + 1, selected.length, selected[i].nama);
+        updateProgress(i + 1, valid.length, valid[i].nama);
         try {
-          var canvas = await generateSingleCard(selected[i]);
+          var canvas = await generateSingleCard(valid[i]);
           var link = document.createElement("a");
           link.download =
-            "Kartu-" + selected[i].nama.replace(/\s+/g, "-") + ".png";
+            "Kartu-" + valid[i].nama.replace(/\s+/g, "-") + ".png";
           link.href = canvas.toDataURL("image/png");
           link.click();
+          successCount++;
         } catch (err) {
-          console.error("Gagal kartu:", selected[i].nama, err);
+          console.error("Gagal kartu:", valid[i].nama, err);
         }
       }
-      showToast(selected.length + " kartu didownload (PNG).");
+      if (_cancelDownload) {
+        showToast(
+          "Dibatalkan. " + successCount + " kartu berhasil dibuat sebelum batal.",
+        );
+      } else if (successCount === valid.length) {
+        showToast(successCount + " kartu didownload (PNG).");
+      } else {
+        showToast(
+          successCount + " dari " + valid.length + " kartu berhasil dibuat.",
+          true,
+        );
+      }
       return;
     }
 
     var { jsPDF } = window.jspdf;
     var pdf = new jsPDF("l", "mm", "a6");
 
-    for (var i = 0; i < selected.length; i++) {
-      if (_cancelDownload) {
-        showToast("Dibatalkan. " + i + " kartu berhasil dibuat.");
-        break;
-      }
+    for (var i = 0; i < valid.length; i++) {
+      if (_cancelDownload) break;
 
-      updateProgress(i + 1, selected.length, selected[i].nama);
+      updateProgress(i + 1, valid.length, valid[i].nama);
 
       try {
-        var canvas = await generateSingleCard(selected[i]);
+        var canvas = await generateSingleCard(valid[i]);
         var imgData = canvas.toDataURL("image/jpeg", 0.92);
 
-        if (i > 0) pdf.addPage();
+        if (successCount > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, 148, 105);
+        successCount++;
       } catch (err) {
-        console.error("Gagal kartu:", selected[i].nama, err);
+        console.error("Gagal kartu:", valid[i].nama, err);
       }
     }
 
-    var filename =
-      "Kartu-Undangan-" + new Date().toISOString().slice(0, 10) + ".pdf";
-    pdf.save(filename);
+    if (!_cancelDownload && successCount > 0) {
+      var filename =
+        "Kartu-Undangan-" + new Date().toISOString().slice(0, 10) + ".pdf";
+      pdf.save(filename);
+    }
     closeProgressModal();
-    showToast(selected.length + " kartu berhasil didownload.");
+
+    if (_cancelDownload) {
+      showToast(
+        "Dibatalkan. " + successCount + " kartu berhasil dibuat sebelum batal.",
+      );
+    } else if (successCount === valid.length) {
+      showToast(successCount + " kartu berhasil didownload.");
+    } else {
+      showToast(
+        successCount + " dari " + valid.length + " kartu berhasil dibuat.",
+        true,
+      );
+    }
   }
 
   async function generateSingleCard(guest) {
+    if (!canGenerateCard(guest)) {
+      throw new Error("Tamu belum RSVP — tidak dapat membuat kartu.");
+    }
+
     // Generate QR token jika belum ada
     var token = guest.qr_token;
     if (!token) {
       token = crypto.randomUUID();
-      await sb
+      var updateRes = await sb
         .from("rsvps")
         .update({ qr_token: token })
-        .eq("guest_id", guest.guest_id);
+        .eq("id", guest.id)
+        .select("qr_token")
+        .single();
+      if (updateRes.error) throw updateRes.error;
+      token = updateRes.data.qr_token;
     }
 
     // Clone template
@@ -1886,6 +1990,7 @@
   window.startScanner = startScanner;
   window.stopScanner = stopScanner;
   window.editTamu = editTamu;
+  window.editOrphan = editOrphan;
   window.confirmGuest = confirmGuest;
   window.loadPesanPrivat = loadPesanPrivat;
   window.showImportModal = showImportModal;

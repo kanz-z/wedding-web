@@ -11,6 +11,7 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 menit
 
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
+  "https://wedding-web-reza-shila-2026.vercel.app",
   "http://localhost:3000", // development
   "http://localhost:5173", // Vite dev server (jika nanti pakai Vite)
   "http://127.0.0.1:5500", // Live Server
@@ -120,7 +121,8 @@ serve(async (req) => {
     if (rateError) throw rateError;
 
     // Cari RSVP existing by priority
-    var existingRsvp: { id: string; status: string; guest_id: string } | null = null;
+    var existingRsvp: { id: string; status: string; guest_id: string } | null =
+      null;
 
     if (guest_id) {
       var { data } = await sb
