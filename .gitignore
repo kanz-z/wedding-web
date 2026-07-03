@@ -9,3 +9,5 @@ qa/screenshots/
 /.commandcode
 AGENTS.md
 opencode.json
+.vercel
+.env*

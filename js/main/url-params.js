@@ -13,5 +13,3 @@ if ((!pronoun && !nama) || !nama) {
 } else {
   namaContainer.innerText = ` ${pronoun} ${nama},`;
 }
-
-document.querySelector("#nama").value = nama;
