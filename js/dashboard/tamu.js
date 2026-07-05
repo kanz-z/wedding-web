@@ -43,15 +43,15 @@ async function loadTamuRSVP() {
       dashboardSb
         .from("guests")
         .select(
-          "id, slug, name, pronoun, invited_count, created_at, side, nomor_wa"
+          "id, slug, name, pronoun, invited_count, created_at, side, nomor_wa",
         ),
       dashboardSb
         .from("rsvps")
         .select(
-          "id, guest_id, nama, nomor_wa, jumlah_hadir, status, is_approved, checked_in, qr_token, pesan, created_at"
+          "id, guest_id, nama, nomor_wa, jumlah_hadir, status, is_approved, checked_in, qr_token, pesan, created_at",
         )
         .order("created_at", { ascending: false })
-        .limit(500),
+        .limit(800),
     ]);
     if (guestsRes.error) throw guestsRes.error;
     if (rsvpsRes.error) throw rsvpsRes.error;
@@ -136,8 +136,7 @@ async function loadTamuRSVP() {
 function badgeSide(side) {
   if (side === "pria") return '<span class="badge pink m-1">Pria</span>';
   if (side === "wanita") return '<span class="badge m-1">Wanita</span>';
-  if (side === "both")
-    return '<span class="badge success m-1">Keduanya</span>';
+  if (side === "both") return '<span class="badge success m-1">Keduanya</span>';
   return "";
 }
 
@@ -163,16 +162,15 @@ function renderTamuTable() {
       matchFilter = t._source === "orphan" || t._source === "auto-matched";
     else if (tamuFilter === "pria") matchFilter = t._side === "pria";
     else if (tamuFilter === "wanita") matchFilter = t._side === "wanita";
-    else if (tamuFilter === "belum") matchFilter = !t.status || t.status === "belum";
-    else if (tamuFilter !== "all")
-      matchFilter = t.status === tamuFilter;
+    else if (tamuFilter === "belum")
+      matchFilter = !t.status || t.status === "belum";
+    else if (tamuFilter !== "all") matchFilter = t.status === tamuFilter;
     return matchSearch && matchFilter;
   });
 
-  document.getElementById("tamu-empty").classList.toggle(
-    "d-none",
-    filtered.length !== 0
-  );
+  document
+    .getElementById("tamu-empty")
+    .classList.toggle("d-none", filtered.length !== 0);
 
   filtered.forEach(function (t) {
     var tr = document.createElement("tr");
@@ -186,7 +184,9 @@ function renderTamuTable() {
     var hadirDisplay = t.status ? t.jumlah_hadir : "-";
     var actions =
       '<button class="btn-sm" onclick="' +
-      (t._source === "orphan" ? 'editOrphan(\'' + escapeAttr(String(t.id)) + '\')' : 'editTamu(\'' + escapeAttr(String(t.guest_id)) + '\')') +
+      (t._source === "orphan"
+        ? "editOrphan('" + escapeAttr(String(t.id)) + "')"
+        : "editTamu('" + escapeAttr(String(t.guest_id)) + "')") +
       '" title="Edit" style="margin-right:4px">' +
       '<i class="bi bi-pencil-fill"></i></button>' +
       '<button class="btn-sm" onclick="copyGuestLink(\'' +
@@ -197,19 +197,26 @@ function renderTamuTable() {
       escapeAttr(t._pronoun || "") +
       '\')" title="Salin link">' +
       '<i class="bi bi-link-45deg"></i></button>';
-    if (t.status && t.status !== "belum" && !t.is_approved && t._invited_count > 2) {
+    if (
+      t.status &&
+      t.status !== "belum" &&
+      !t.is_approved &&
+      t._invited_count > 2
+    ) {
       actions +=
         '<button class="btn-pink btn-sm ms-1" onclick="confirmGuest(\'' +
         t.guest_id +
-        "', this)\" title=\"Konfirmasi tamu\">" +
+        '\', this)" title="Konfirmasi tamu">' +
         '<i class="bi bi-check-circle-fill"></i></button>';
     }
     actions += "</td>";
 
     tr.innerHTML =
       '<td style="width:36px">' +
-      '<input type="checkbox" class="tamu-checkbox" data-guest-id="' + escapeAttr(String(t.guest_id)) + '"' +
-      (selectedTamu[t.guest_id] ? ' checked' : '') +
+      '<input type="checkbox" class="tamu-checkbox" data-guest-id="' +
+      escapeAttr(String(t.guest_id)) +
+      '"' +
+      (selectedTamu[t.guest_id] ? " checked" : "") +
       ' onchange="toggleSelect(this.dataset.guestId, this.checked)"></td>' +
       "<td>" +
       displayName +
@@ -272,13 +279,14 @@ function setTamuFilter(filter, btn) {
   renderTamuTable();
 }
 
-document
-  .getElementById("tamu-search")
-  .addEventListener("input", debounce(function () {
+document.getElementById("tamu-search").addEventListener(
+  "input",
+  debounce(function () {
     selectedTamu = {};
     updateBatchButtons();
     renderTamuTable();
-  }, 500));
+  }, 500),
+);
 
 document
   .getElementById("import-csv-file")
@@ -329,7 +337,7 @@ function editTamu(guestId) {
     "type:",
     typeof guestId,
     "matched:",
-    entry ? entry.nama : "NOT FOUND"
+    entry ? entry.nama : "NOT FOUND",
   );
   if (!entry) {
     showToast("Data tamu tidak ditemukan.", true);
@@ -367,20 +375,29 @@ function editOrphan(rsvpId) {
 
   document.getElementById("guest-form").reset();
   document.getElementById("guest-modal").classList.add("show");
-  document.getElementById("guest-modal-title").textContent = "Tautkan RSVP ke Tamu";
+  document.getElementById("guest-modal-title").textContent =
+    "Tautkan RSVP ke Tamu";
   document.getElementById("gf-id").value = "";
   document.getElementById("gf-name").value = entry.nama || "";
   document.getElementById("gf-nomor-wa").value = entry.nomor_wa || "";
   document.getElementById("gf-pronoun").value = entry._pronoun || "";
-  document.getElementById("gf-count").value = entry._invited_count || entry.jumlah_hadir || 1;
+  document.getElementById("gf-count").value =
+    entry._invited_count || entry.jumlah_hadir || 1;
   document.getElementById("gf-side").value = entry._side || "";
 
   var slugRow = document.getElementById("gf-slug-row");
   if (slugRow) slugRow.classList.remove("d-none");
-  var baseSlug = (entry.nama || "tamu").toLowerCase().replace(/\s+/g, "-").replace(/^-|-$/g, "");
+  var baseSlug = (entry.nama || "tamu")
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/^-|-$/g, "");
   var slug = baseSlug;
   var slugNum = 1;
-  while (allTamu.some(function (t) { return t._slug === slug; })) {
+  while (
+    allTamu.some(function (t) {
+      return t._slug === slug;
+    })
+  ) {
     slug = baseSlug + "-" + slugNum++;
   }
   document.getElementById("gf-slug").value = slug;
@@ -564,7 +581,10 @@ document
           if (res.error) throw res.error;
           guestId = existingGuest.data.id;
         } else {
-          var res = await dashboardSb.from("guests").insert([data]).select("id");
+          var res = await dashboardSb
+            .from("guests")
+            .insert([data])
+            .select("id");
           if (res.error) throw res.error;
           guestId = res.data[0].id;
         }
@@ -643,7 +663,7 @@ document
       if (err.code === "23505") {
         showToast(
           "Slug sudah terpakai. Mungkin ada data duplikat. Refresh halaman lalu coba lagi, atau ganti slug.",
-          true
+          true,
         );
       } else {
         showToast("Gagal menyimpan: " + (err.message || "unknown"), true);
@@ -651,8 +671,6 @@ document
     }
   });
 
-document
-  .getElementById("guest-modal")
-  .addEventListener("click", function (e) {
-    if (e.target === this) closeGuestModal();
-  });
+document.getElementById("guest-modal").addEventListener("click", function (e) {
+  if (e.target === this) closeGuestModal();
+});
