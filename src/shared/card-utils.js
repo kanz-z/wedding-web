@@ -1,8 +1,11 @@
 // src/shared/card-utils.js
-import { config } from '../config';
+import { config } from "../config";
+import QRCode from "qrcodejs";
+import html2canvas from "html2canvas";
 
 export function renderDigitalCard(container, data) {
-  container.querySelector(".dc-nama").textContent = (data.pronoun ? data.pronoun + " " : "") + data.nama;
+  container.querySelector(".dc-nama").textContent =
+    (data.pronoun ? data.pronoun + " " : "") + data.nama;
   var statusEl = container.querySelector(".dc-status");
   if (data.status && data.status !== "belum") {
     statusEl.textContent = data.status;
@@ -10,7 +13,8 @@ export function renderDigitalCard(container, data) {
   } else {
     statusEl.style.display = "none";
   }
-  container.querySelector(".dc-kuota").textContent = data.invited_count + " orang";
+  container.querySelector(".dc-kuota").textContent =
+    data.invited_count + " orang";
   var qrContainer = container.querySelector(".dc-qr");
   qrContainer.innerHTML = "";
   var qrUrl = config.SITE_URL + "/?n=" + encodeURIComponent(data.nama);
@@ -20,5 +24,9 @@ export function renderDigitalCard(container, data) {
 }
 
 export function captureCard(container) {
-  return html2canvas(container, { scale: 2, useCORS: true, backgroundColor: null });
+  return html2canvas(container, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: null,
+  });
 }

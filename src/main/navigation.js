@@ -1,11 +1,15 @@
 // src/main/navigation.js
+import { loadAdminList } from "../dashboard/pesan-admin";
+
 export const rootElement = document.querySelector(":root");
 export const audioIconWrapper = document.querySelector(".audio-icon-wrapper");
 export const audioIcon = document.querySelector(".audio-icon-wrapper i");
 export const backSong = document.querySelector("#backSong");
 export let isPlaying = false;
 
-export function setPlaying(val) { isPlaying = val; }
+export function setPlaying(val) {
+  isPlaying = val;
+}
 
 export function disableScroll() {
   document.body.style.overflow = "hidden";
@@ -26,28 +30,39 @@ export function showBottomNav() {
 }
 
 export function setActiveNav(sectionId) {
-  var mapped = sectionId === "hero" || sectionId === "welcome" ? "home" : sectionId;
-  navItems.forEach(function(item) { item.classList.toggle("active", item.dataset.section === mapped); });
+  var mapped =
+    sectionId === "hero" || sectionId === "welcome" ? "home" : sectionId;
+  navItems.forEach(function (item) {
+    item.classList.toggle("active", item.dataset.section === mapped);
+  });
 }
 
 var bottomNav = document.querySelector(".bottom-nav");
 var navItems = document.querySelectorAll(".bottom-nav .nav-item");
 var navSections = document.querySelectorAll("section[id]");
 
-navItems.forEach(function(item) {
-  item.addEventListener("click", function() { setActiveNav(item.dataset.section); });
+navItems.forEach(function (item) {
+  item.addEventListener("click", function () {
+    setActiveNav(item.dataset.section);
+  });
 });
 
 var navObserver = new IntersectionObserver(
-  function(entries) {
-    entries.forEach(function(entry) {
+  function (entries) {
+    entries.forEach(function (entry) {
       if (entry.isIntersecting) setActiveNav(entry.target.id);
     });
   },
-  { rootMargin: "-45% 0px -45% 0px", threshold: 0 }
+  { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
 );
 
-navSections.forEach(function(section) { navObserver.observe(section); });
+navSections.forEach(function (section) {
+  navObserver.observe(section);
+});
 
-document.getElementById("navToggle").addEventListener("click", function() { bottomNav.classList.toggle("nav-hidden"); });
-document.getElementById("navRestore").addEventListener("click", function() { bottomNav.classList.remove("nav-hidden"); });
+document.getElementById("navToggle").addEventListener("click", function () {
+  bottomNav.classList.toggle("nav-hidden");
+});
+document.getElementById("navRestore").addEventListener("click", function () {
+  bottomNav.classList.remove("nav-hidden");
+});

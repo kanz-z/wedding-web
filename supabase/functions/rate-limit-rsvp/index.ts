@@ -13,7 +13,8 @@ const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
   "https://wedding-web-reza-shila-2026.vercel.app",
   "http://localhost:3000", // development
-  "http://localhost:5173", // Vite dev server (jika nanti pakai Vite)
+  "http://localhost:5173", // Vite
+  "http://localhost:5174", // Vite
   "http://127.0.0.1:5500", // Live Server
 ];
 
@@ -219,7 +220,7 @@ serve(async (req) => {
     console.error("Rate limit RSVP error:", err);
     return new Response(
       JSON.stringify({
-        error: err instanceof Error ? err.message : "Gagal memproses RSVP",
+        error: err instanceof Error ? err.message : JSON.stringify(err),
       }),
       { status: 500, headers },
     );

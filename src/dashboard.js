@@ -1,34 +1,57 @@
 // src/dashboard.js - entry point for dashboard.html
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import './styles/dashboard.css';
-import './styles/card.css';
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "./styles/dashboard.css";
+import "./styles/card.css";
 
-import { config } from './config';
+import { config } from "./config";
 
-// Import dashboard modules
-import './dashboard/state';
-import './dashboard/utils';
-import './dashboard/auth';
-import './dashboard/navigation';
-import './dashboard/overview';
-import './dashboard/tamu';
-import './dashboard/operations';
-import './dashboard/guestbook';
-import './dashboard/qr';
-import './dashboard/pesan-admin';
-import './dashboard/dashboard';
+// Import modules
+import "./dashboard/state";
+import "./dashboard/utils";
+import "./dashboard/auth";
+import "./dashboard/navigation";
+import "./dashboard/overview";
+import "./dashboard/tamu";
+import "./dashboard/operations";
+import "./dashboard/guestbook";
+import "./dashboard/qr";
+import "./dashboard/pesan-admin";
+import "./dashboard/dashboard";
 
-// Expose ALL dashboard functions on window for inline onclick handlers
-import { showScreen } from './dashboard/utils';
-import { init, verifyAdmin } from './dashboard/auth';
-import { switchTab } from './dashboard/navigation';
-import { loadOverview } from './dashboard/overview';
-import { loadTamuRSVP, setTamuFilter, copyGuestLink, editTamu, editOrphan, confirmGuest, showGuestModal, closeGuestModal } from './dashboard/tamu';
-import { showImportModal, closeImportModal, executeImport, downloadBatchKartu, confirmBatchDelete, cancelBatchDownload, toggleSelectAll, toggleSelect, switchImportTab } from './dashboard/operations';
-import { loadGuestbook, setGbFilter, toggleGbApproval } from './dashboard/guestbook';
-import { startScanner, stopScanner, loadCheckinLog } from './dashboard/qr';
-import { loadPesanPrivat, loadAdminList } from './dashboard/pesan-admin';
+// Inline onclick handlers
+import { showScreen } from "./dashboard/utils";
+import { init, verifyAdmin } from "./dashboard/auth";
+import { switchTab } from "./dashboard/navigation";
+import { loadOverview } from "./dashboard/overview";
+import {
+  loadTamuRSVP,
+  setTamuFilter,
+  copyGuestLink,
+  editTamu,
+  editOrphan,
+  confirmGuest,
+  showGuestModal,
+  closeGuestModal,
+} from "./dashboard/tamu";
+import {
+  showImportModal,
+  closeImportModal,
+  executeImport,
+  downloadBatchKartu,
+  confirmBatchDelete,
+  cancelBatchDownload,
+  toggleSelectAll,
+  toggleSelect,
+  switchImportTab,
+} from "./dashboard/operations";
+import {
+  loadGuestbook,
+  setGbFilter,
+  toggleGbApproval,
+} from "./dashboard/guestbook";
+import { startScanner, stopScanner, loadCheckinLog } from "./dashboard/qr";
+import { loadPesanPrivat, loadAdminList } from "./dashboard/pesan-admin";
 
 window.loadOverview = loadOverview;
 window.loadTamuRSVP = loadTamuRSVP;
