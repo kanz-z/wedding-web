@@ -15,4 +15,7 @@ opencode.json
 /graphify-out
 /dist/*
 RENCANA_PERBAIKAN_VITE.md
-vite-server.log
+/vite-server.log
+/.claude
+/.cursor
+/.understand-anything

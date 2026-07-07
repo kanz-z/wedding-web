@@ -3,6 +3,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "test": "npx playwright test",
     "edge-func": "supabase functions deploy"
   },
@@ -18,7 +19,9 @@
     "qrcodejs": "^1.0.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.0",
     "playwright": "^1.61.1",
+    "typescript": "^6.0.3",
     "vite": "^8.1.3"
   }
 }
