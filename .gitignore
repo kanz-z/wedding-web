@@ -5,3 +5,12 @@ qa/screenshots/
 /supabase/*.temp
 /docs
 /scripts/*
+/.superpowers
+/.commandcode
+AGENTS.md
+opencode.json
+.vercel
+.env*
+/.playwright-mcp
+/graphify-out
+PLAN_GUESTBOOK_REBUILD.md

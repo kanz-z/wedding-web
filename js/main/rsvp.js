@@ -9,6 +9,7 @@ async function submitRSVP(
   statusInput,
   pesanInput,
   noWaInput,
+  guestToken,
 ) {
   const qrToken = generateUUID();
 
@@ -27,7 +28,7 @@ async function submitRSVP(
       jumlah_hadir: jumlahInput,
       status: statusInput,
       pesan: pesanInput || null,
-      qr_token: qrToken,
+      qr_token: guestToken || qrToken,
     }),
   });
 
@@ -185,12 +186,15 @@ window.addEventListener("load", function () {
 
     var success = false;
     try {
-      const slug = urlParams.get("n") || "";
-      let guestId = null;
-      if (slug) {
-        const guest = await fetchGuest(slug);
-        if (guest && guest.length > 0) guestId = guest[0].id;
+      let guestId = urlParams.get("guest_id") || null;
+      if (!guestId) {
+        const slug = urlParams.get("n") || "";
+        if (slug) {
+          const guest = await fetchGuest(slug);
+          if (guest && guest.length > 0) guestId = guest[0].id;
+        }
       }
+      const guestToken = urlParams.get("token") || null;
 
       const rsvpResult = await submitRSVP(
         guestId,
@@ -199,6 +203,7 @@ window.addEventListener("load", function () {
         statusInput,
         pesanInput,
         noWaInput,
+        guestToken,
       );
 
       if (statusInput === "Tidak Hadir") {

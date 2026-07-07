@@ -14,43 +14,28 @@
     />
     <meta
       property="og:url"
-      content="https://wedding-web-reza-shila-2026.netlify.app"
+      content="https://wedding-web-reza-shila-2026.vercel.app"
     />
     <meta property="og:type" content="website" />
     <meta
       property="og:image"
-      content="https://wedding-web-reza-shila-2026.netlify.app/assets/img/RA_Simple_Monogram_Icon.svg"
+      content="https://wedding-web-reza-shila-2026.vercel.app/assets/img/RA_Simple_Monogram_Icon.svg"
     />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <title>Wedding Invitation</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
-      crossorigin="anonymous"
-    />
+
+    <!-- Google Fonts (CDN OK for fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/main/style.css" />
-    <!-- icon -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-    <!-- simply countdown -->
-    <link rel="stylesheet" href="countdown/circle.css" />
-    <script src="countdown/simplyCountdown.umd.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!-- Vendored UMD (Vite serves from public/ as-is) -->
+    <script src="/countdown/simplyCountdown.umd.js"></script>
+
     <link
       rel="icon"
       type="image/svg+xml"
@@ -88,7 +73,7 @@
                 Tanpa mengurangi rasa hormat, kami bermaksud mengundang
                 Bapak/Ibu / Saudara/i pada acara resepsi pernikahan kami.
               </p>
-              <div class="welcome-couple">— Reza &amp; Ashila —</div>
+              <div class="welcome-couple">&mdash; Reza &amp; Ashila &mdash;</div>
             </div>
           </div>
         </div>
@@ -297,7 +282,6 @@
             <h2>Save The Date</h2>
             <h6>Sabtu</h6>
             <p>22 | 08 | 2026</p>
-            <!-- nanti ada countdown disini -->
             <div
               id="countdown"
               class="countdown simply-countdown-circle my-5"
@@ -401,7 +385,7 @@
     </section>
 
     <!-- digital card (hidden, rendered via html2canvas) -->
-    <div id="digital-card">
+    <div id="digital-card" class="d-none">
       <div class="dc-label">UNDANGAN PERNIKAHAN</div>
       <h2 class="dc-nama card-nama"></h2>
       <div class="dc-status card-status"></div>
@@ -624,38 +608,7 @@
       </div>
     </div>
 
-    <!-- script -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq"
-      crossorigin="anonymous"
-    ></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-
-    <script>
-      AOS.init({
-        duration: 800,
-        easing: "ease-out-cubic",
-        once: true, // animasi cuma main sekali agar tidak replay setiap scroll naik-turun
-        offset: 80,
-      });
-      window.addEventListener("load", function () {
-        AOS.refresh();
-      });
-    </script>
-
-    <!-- connect supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js"></script>
-    <script src="js/main/utils.js"></script>
-    <script src="js/main/url-params.js"></script>
-    <script src="js/main/countdown.js"></script>
-    <script src="js/main/supabase-client.js"></script>
-    <script src="js/main/navigation.js"></script>
-    <script src="js/main/audio.js"></script>
-    <script src="js/main/rsvp.js"></script>
-    <script src="js/main/guestbook.js"></script>
-
+    <!-- Entry module (Vite replaces all CDN + local scripts) -->
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
