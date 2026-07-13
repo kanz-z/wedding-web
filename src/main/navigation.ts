@@ -1,6 +1,4 @@
 // src/main/navigation.ts
-import { loadAdminList } from '../dashboard/pesan-admin';
-
 export const rootElement = document.querySelector<HTMLElement>(':root');
 export const audioIconWrapper = document.querySelector<HTMLElement>('.audio-icon-wrapper');
 export const audioIcon = document.querySelector<HTMLElement>('.audio-icon-wrapper i');

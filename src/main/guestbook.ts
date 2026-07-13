@@ -1,6 +1,6 @@
 // src/main/guestbook.ts
 import { supabaseClient } from './supabase-client';
-import { nama } from './url-params';
+import { getNama } from './slug-router';
 import { showRsvpModal } from './utils';
 import { escapeHtml, renderPagination } from './utils';
 
@@ -137,7 +137,7 @@ export function initGuestbook(): void {
     span.textContent = "Mengirim...";
     try {
       await submitGuestbook(nm, psn, null);
-      showRsvpModal("Ucapan berhasil dikirim! Terima kasih.", false);
+      showRsvpModal({ message: "Ucapan berhasil dikirim! Terima kasih!" });
       namaEl.value = "";
       pesanEl.value = "";
       document.getElementById("gb-counter")!.textContent = "0/500";
@@ -146,7 +146,7 @@ export function initGuestbook(): void {
       span.textContent = "Terkirim";
     } catch (err) {
       console.error("Gagal kirim ucapan:", err);
-      showRsvpModal("Gagal mengirim ucapan. Coba lagi.", true);
+      showRsvpModal({ message: "Gagal mengirim ucapan. Coba lagi.", isError: true });
     } finally {
       if (!gbSuccess) span.textContent = "Kirim Ucapan";
     }
@@ -157,6 +157,6 @@ export function initGuestbook(): void {
     document.getElementById("gb-counter")!.textContent = gbPesan.value.length + "/500";
   });
 
-  (document.getElementById("gb-nama") as HTMLInputElement).value = nama;
+  (document.getElementById("gb-nama") as HTMLInputElement).value = getNama();
   retryFetchGuestbook(0);
 }

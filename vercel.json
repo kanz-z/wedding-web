@@ -1,4 +1,9 @@
 {
   "buildCommand": "vite build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/((?:assets|countdown)/.*)", "destination": "/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

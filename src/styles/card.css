@@ -1,146 +1,141 @@
-/* ===== DIGITAL CARD — Shared (index.html + dashboard.html) ===== */
-/* A6 landscape: 560x397px (2x for print) */
+/* ===== KARTU UNDANGAN — [slug]/card ===== */
+/* Palet: hitam (#000) di atas putih (#FFF) — minimalis wedding stationery */
+/* Playfair Display untuk semua teks. */
 
-/* --- Container --- */
-#digital-card,
-.print-card-template {
-  width: 560px;
-  height: 397px;
-  max-width: 100%;
-  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
-  color: #fff;
-  padding: 32px 36px;
+.card-page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #000000;
   font-family: "Playfair Display", Georgia, serif;
-  text-align: center;
-  border: 4px solid var(--pink);
-  border-radius: 16px;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-  position: fixed;
-  left: -9999px;
-  top: 0;
+  align-items: center;
+  padding: 2rem 1rem;
 }
 
-#digital-card.is-visible {
-  display: flex !important;
-  position: relative;
-  left: auto;
-  margin: 1rem auto;
+.card-back-link {
+  align-self: flex-start;
+  color: #000;
+  text-decoration: none;
+  font-family: "Inter", sans-serif;
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
 }
 
-/* --- Label "UNDANGAN PERNIKAHAN" --- */
-#digital-card .dc-label,
-.print-card-template .dc-label {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 4px;
+.card-container {
+  max-width: 680px;
+  width: 100%;
+  text-align: center;
+}
+
+.card-label {
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--pink);
-  margin-bottom: 6px;
-  font-family: "Inter", -apple-system, sans-serif;
+  margin-bottom: 0.5rem;
 }
 
-/* --- Nama Tamu --- */
-#digital-card .dc-nama,
-.print-card-template .dc-nama {
-  font-size: 40px;
-  font-weight: 700;
-  margin: 4px 0;
-  color: var(--pink);
-  line-height: 1.15;
-  word-break: break-word;
-}
-
-/* --- Status Kehadiran --- */
-#digital-card .dc-status,
-.print-card-template .dc-status {
-  font-size: 20px;
-  font-weight: 500;
-  margin: 4px 0;
-  color: #fff;
-  font-family: "Inter", -apple-system, sans-serif;
-}
-
-/* --- Kuota --- */
-#digital-card .dc-kuota,
-.print-card-template .dc-kuota {
-  font-size: 16px;
-  color: #ccc;
-  margin-bottom: 18px;
-  font-family: "Inter", -apple-system, sans-serif;
-}
-
-/* --- Baris info: detail kiri + QR kanan --- */
-#digital-card .dc-info-row,
-.print-card-template .dc-info-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 28px;
-}
-
-/* --- Detail acara --- */
-#digital-card .dc-detail,
-.print-card-template .dc-detail {
-  text-align: left;
-  font-size: 15px;
-  line-height: 1.9;
-  font-family: "Inter", -apple-system, sans-serif;
-}
-
-#digital-card .dc-detail .dc-couple,
-.print-card-template .dc-detail .dc-couple {
+.card-couple-name {
   font-family: "Playfair Display", Georgia, serif;
-  font-size: 18px;
-  color: #fff;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 1.5rem 0;
 }
 
-#digital-card .dc-detail .dc-date,
-.print-card-template .dc-detail .dc-date {
-  color: #ddd;
-  font-size: 14px;
+.card-body-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  margin: 2rem 0;
 }
 
-#digital-card .dc-detail .dc-venue,
-.print-card-template .dc-detail .dc-venue {
-  color: #bbb;
-  font-size: 13px;
+.card-info-table {
+  text-align: left;
+  border-collapse: collapse;
 }
 
-#digital-card .dc-detail .dc-location,
-.print-card-template .dc-detail .dc-location {
-  color: #bbb;
-  font-size: 13px;
+.card-info-table tr {
+  display: block;
+  margin-bottom: 0.75rem;
 }
 
-/* --- QR --- */
-#digital-card .dc-qr,
-.print-card-template .dc-qr {
-  background: #fff;
+.card-info-label {
+  font-size: 0.875rem;
+  font-weight: 400;
+  padding-right: 1.5rem;
+  vertical-align: top;
+  width: 120px;
+}
+
+.card-info-value {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.card-qr-section {
+  display: flex;
+  justify-content: center;
+}
+
+.card-qr {
+  background: #ffffff;
   padding: 10px;
-  border-radius: 8px;
+  box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-#digital-card .dc-qr img,
-.print-card-template .dc-qr img,
-#digital-card .dc-qr canvas,
-.print-card-template .dc-qr canvas {
-  width: 130px !important;
-  height: 130px !important;
+.card-qr img,
+.card-qr canvas {
+  width: 200px !important;
+  height: 200px !important;
 }
 
-/* --- Footer --- */
-#digital-card .dc-footer,
-.print-card-template .dc-footer {
-  font-size: 12px;
-  color: #777;
-  margin-top: 16px;
-  font-family: "Inter", -apple-system, sans-serif;
-  letter-spacing: 0.3px;
+.card-instruction {
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-top: 3rem;
+}
+
+.card-actions {
+  margin-top: 2rem;
+}
+
+.btn-download-card {
+  background: #000;
+  color: #fff;
+  border: 1px solid #000;
+  font-family: "Inter", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-download-card:hover {
+  background: #333;
+}
+
+/* Desktop / Landscape (≥768px) */
+@media (min-width: 768px) {
+  .card-body-layout {
+    flex-direction: row;
+    justify-content: center;
+    gap: 4rem;
+  }
+
+  .card-info {
+    flex: 0 0 60%;
+  }
+
+  .card-qr-section {
+    flex: 0 0 40%;
+  }
 }

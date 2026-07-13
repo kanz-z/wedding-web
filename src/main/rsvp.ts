@@ -1,17 +1,11 @@
 // src/main/rsvp.ts
-import { urlParams, nama, pronoun, guestId, guestToken } from './url-params';
-import { supabaseClient } from './supabase-client';
-import { config } from '../config';
-import { showToast, showRsvpModal, hideRsvpModal } from './utils';
+import { getNama, getGuestId, getGuestToken, slug } from "./slug-router";
+import { supabaseClient } from "./supabase-client";
+import { config } from "../config";
+import { showToast, showRsvpModal, hideRsvpModal } from "./utils";
 
-// html2canvas and qrcodejs have no type definitions; treat as any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const html2canvasMod: any = html2canvas;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const QRCodeMod: any = QRCode;
-
-import html2canvas from 'html2canvas';
-import QRCode from 'qrcodejs';
+import html2canvas from "html2canvas";
+import QRCode from "qrcodejs";
 
 interface RsvpSubmitResult {
   is_approved: boolean;
@@ -35,11 +29,11 @@ async function submitRSVP(
 ): Promise<RsvpSubmitResult> {
   const qrToken = generateUUID();
   const res = await fetch(config.RSVP_EDGE_FUNCTION, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       apikey: config.SUPABASE_ANON_KEY,
-      Authorization: 'Bearer ' + config.SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + config.SUPABASE_ANON_KEY,
     },
     body: JSON.stringify({
       guest_id: guestId || null,
@@ -55,7 +49,7 @@ async function submitRSVP(
     const errData = await res.json().catch(function () {
       return {};
     });
-    throw new Error(errData.error || 'Gagal mengirim RSVP. Silakan coba lagi.');
+    throw new Error(errData.error || "Gagal mengirim RSVP. Silakan coba lagi.");
   }
   const data = (await res.json()) as { data: RsvpSubmitResult };
   return {
@@ -66,77 +60,18 @@ async function submitRSVP(
   };
 }
 
-async function renderDigitalCard(
-  rsvpResult: RsvpSubmitResult,
-  nama: string,
-  jumlah: number,
-  status: string,
-): Promise<void> {
-  const card = document.getElementById('digital-card')!;
-  const qrDiv = document.getElementById('card-qr')!;
-  card.querySelector('.card-nama')!.textContent = nama;
-  card.querySelector('.card-status')!.textContent = status;
-  card.querySelector('.card-kuota')!.textContent =
-    'Berlaku untuk ' + jumlah + ' orang';
-  qrDiv.innerHTML = '';
-  new QRCodeMod(qrDiv, {
-    text: rsvpResult.qr_token,
-    width: 120,
-    height: 120,
-    colorDark: '#0a0a0a',
-    colorLight: '#ffffff',
-  });
-  card.classList.add('is-visible');
-  try {
-    const canvas = await Promise.race([
-      html2canvasMod(card, { scale: 2, useCORS: true }),
-      new Promise<never>(function (_, reject) {
-        setTimeout(function () {
-          reject(new Error('Timeout render kartu'));
-        }, 10000);
-      }),
-    ]);
-    const blob = await new Promise<Blob>(function (resolve, reject) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (canvas as any).toBlob(function (b: Blob | null) {
-        if (b) resolve(b);
-        else reject(new Error('toBlob returned null'));
-      }, 'image/png');
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Undangan_' + nama.replace(/\s+/g, '_') + '.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    card.classList.remove('is-visible');
-    showToast(
-      'Kartu undangan berhasil diunduh. Simpan untuk ditunjukkan saat hari acara!',
-    );
-  } catch (e) {
-    console.error('Download gagal:', e);
-    card.classList.add('is-visible');
-    showToast(
-      'Download gagal. Silakan screenshot kartu undangan di bawah ini.',
-      true,
-    );
-  }
-}
-
 function renderAlreadySubmittedNote(nama: string, status: string): void {
-  const note = document.getElementById('rsvp-already-note');
-  const noteText = document.getElementById('rsvp-already-note-text');
+  const note = document.getElementById("rsvp-already-note");
+  const noteText = document.getElementById("rsvp-already-note-text");
   if (!note || !noteText) return;
   const keterangan =
-    status === 'Tidak Hadir' ? 'tidak dapat hadir' : 'akan hadir';
+    status === "Tidak Hadir" ? "tidak dapat hadir" : "akan hadir";
   noteText.textContent =
-    (nama ? nama + ', ' : '') +
-    'Anda sudah konfirmasi ' +
+    (nama ? nama + ", " : "") +
+    "Anda sudah konfirmasi " +
     keterangan +
-    '. Terima kasih!';
-  note.classList.remove('d-none');
+    ". Terima kasih!";
+  note.classList.remove("d-none");
 }
 
 function applyAlreadySubmittedState(): void {
@@ -154,19 +89,18 @@ function applyAlreadySubmittedState(): void {
     return;
   }
   renderAlreadySubmittedNote(record.nama, record.status);
-  const form = document.getElementById('my-form');
+  const form = document.getElementById("my-form");
   if (!form) return;
-  form
-    .querySelectorAll('input, select, textarea, button')
-    .forEach(function (el) {
-      (el as HTMLInputElement | HTMLButtonElement).disabled = true;
-    });
-  const submitBtn = form.querySelector('button[type=submit]');
-  if (submitBtn) submitBtn.textContent = 'Terkirim';
+  form.querySelectorAll("input, select, textarea").forEach(function (el) {
+    (el as HTMLInputElement | HTMLButtonElement).disabled = true;
+  });
+  const submitBtn = form.querySelector<HTMLButtonElement>("button[type=submit]");
+  if (submitBtn) submitBtn.textContent = "Lihat undangan ->";
+  if (submitBtn) submitBtn.onclick = () => { location.href = "/" + slug + "/card"; };
 }
 
 function getRsvpStorageKey(): string {
-  return 'rsvp_submitted_' + (nama || 'anon').toLowerCase();
+  return "rsvp_submitted_" + (getNama() || "anon").toLowerCase();
 }
 
 function saveRsvpSubmitted(nama: string, status: string): void {
@@ -175,12 +109,14 @@ function saveRsvpSubmitted(nama: string, status: string): void {
       getRsvpStorageKey(),
       JSON.stringify({ nama: nama, status: status, ts: Date.now() }),
     );
-  } catch (e) { /* ignore storage errors */ }
+  } catch (e) {
+    /* ignore storage errors */
+  }
   renderAlreadySubmittedNote(nama, status);
 }
 
 async function fetchGuest(guestSlug: string): Promise<unknown> {
-  const res = await supabaseClient.rpc('get_guest_by_slug', {
+  const res = await supabaseClient.rpc("get_guest_by_slug", {
     guest_slug: guestSlug,
   });
   if (res.error) throw res.error;
@@ -189,41 +125,55 @@ async function fetchGuest(guestSlug: string): Promise<unknown> {
 
 export function initRsvp(): void {
   applyAlreadySubmittedState();
-  const form = document.getElementById('my-form');
+  const form = document.getElementById("my-form");
   if (!form) return;
-  const submitBtn = form.querySelector<HTMLButtonElement>('button[type=submit]');
-  const originalBtnText = submitBtn ? submitBtn.textContent : '';
+  const submitBtn = form.querySelector<HTMLButtonElement>(
+    "button[type=submit]",
+  );
+  const originalBtnText = submitBtn ? submitBtn.textContent : "";
 
-  form.addEventListener('submit', async function (e: Event) {
+  form.addEventListener("submit", async function (e: Event) {
     e.preventDefault();
     const namaInput =
-      (document.getElementById('nama') as HTMLInputElement | null)?.value.trim() ?? '';
+      (
+        document.getElementById("nama") as HTMLInputElement | null
+      )?.value.trim() ?? "";
     const jumlahInput =
-      parseInt((document.getElementById('jumlah') as HTMLInputElement | null)?.value ?? '') || 1;
+      parseInt(
+        (document.getElementById("jumlah") as HTMLInputElement | null)?.value ??
+          "",
+      ) || 1;
     const statusInput =
-      (document.getElementById('status') as HTMLSelectElement | null)?.value ?? '';
+      (document.getElementById("status") as HTMLSelectElement | null)?.value ??
+      "";
     const noWaInput =
-      (document.getElementById('noWA') as HTMLInputElement | null)?.value.trim() ?? '';
+      (
+        document.getElementById("noWA") as HTMLInputElement | null
+      )?.value.trim() ?? "";
     const pesanInput =
-      (document.getElementById('pesan') as HTMLTextAreaElement | null)?.value.trim() ?? '';
+      (
+        document.getElementById("pesan") as HTMLTextAreaElement | null
+      )?.value.trim() ?? "";
     if (!namaInput || !statusInput || !noWaInput) {
-      showToast('Lengkapi nama, konfirmasi, dan nomor WA.');
+      showToast("Lengkapi nama, konfirmasi, dan nomor WA.");
       return;
     }
     if (!submitBtn) return;
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Mengirim...';
+    submitBtn.textContent = "Mengirim...";
     let success = false;
     try {
-      let gId = guestId;
+      let gId = getGuestId();
       if (!gId) {
-        const slug = nama;
-        if (slug) {
-          const guest = (await fetchGuest(slug)) as Array<{ id: string }> | null;
+        const guestSlug = slug;
+        if (guestSlug) {
+          const guest = (await fetchGuest(guestSlug)) as Array<{
+            id: string;
+          }> | null;
           if (guest && guest.length > 0) gId = guest[0].id;
         }
       }
-      const tkn = guestToken;
+      const tkn = getGuestToken();
       const result = await submitRSVP(
         gId,
         namaInput,
@@ -233,44 +183,50 @@ export function initRsvp(): void {
         noWaInput,
         tkn,
       );
-      if (statusInput === 'Tidak Hadir') {
-        showRsvpModal('Konfirmasi kehadiran berhasil dikirim. Terima kasih!');
+      if (statusInput === "Tidak Hadir") {
+        showRsvpModal({
+          message: "Konfirmasi kehadiran berhasil dikirim. Terima kasih!",
+        });
         saveRsvpSubmitted(namaInput, statusInput);
         success = true;
         form
-          .querySelectorAll('input, select, textarea, button')
+          .querySelectorAll("input, select, textarea, button")
           .forEach(function (el) {
             (el as HTMLInputElement | HTMLButtonElement).disabled = true;
           });
-        submitBtn.textContent = 'Terkirim';
+        submitBtn.textContent = "Terkirim";
         return;
       }
-      if (jumlahInput <= 2 && result.is_approved) {
-        await renderDigitalCard(result, namaInput, jumlahInput, statusInput);
-        saveRsvpSubmitted(namaInput, statusInput);
-      } else if (jumlahInput > 2) {
-        showRsvpModal(
-          'Permintaan Anda sedang ditinjau panitia. Kartu undangan akan dikirim setelah disetujui.',
-        );
-        saveRsvpSubmitted(namaInput, statusInput);
-      } else {
-        showRsvpModal('Konfirmasi kehadiran berhasil dikirim. Terima kasih!');
+      if (statusInput === "Hadir") {
+        showRsvpModal({
+          message: "Konfirmasi kehadiran berhasil dikirim.",
+          buttons: [
+            {
+              text: "Lihat Undangan",
+              className: "btn btn-primary px-5",
+              onClick() {
+                location.href = "/" + slug + "/card";
+              },
+            },
+          ],
+        });
         saveRsvpSubmitted(namaInput, statusInput);
       }
       success = true;
       form
-        .querySelectorAll('input, select, textarea, button')
+        .querySelectorAll("input, select, textarea, button")
         .forEach(function (el) {
           (el as HTMLInputElement | HTMLButtonElement).disabled = true;
         });
-      submitBtn.textContent = 'Terkirim';
+      submitBtn.textContent = "Terkirim";
     } catch (error) {
-      console.error('Gagal mengirim:', error);
-      showRsvpModal(
-        (error instanceof Error ? error.message : '') ||
-          'Maaf, terjadi kesalahan. Silakan coba lagi.',
-        true,
-      );
+      console.error("Gagal mengirim:", error);
+      showRsvpModal({
+        message:
+          (error instanceof Error ? error.message : "") ||
+          "Maaf, terjadi kesalahan. Silakan coba lagi.",
+        isError: true,
+      });
     } finally {
       submitBtn.disabled = success;
       if (!success) submitBtn.textContent = originalBtnText;
