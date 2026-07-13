@@ -13,9 +13,11 @@ opencode.json
 .env*
 /.playwright-mcp
 /graphify-out
-/dist/*
+/dist
 RENCANA_PERBAIKAN_VITE.md
 /vite-server.log
 /.claude
 /.cursor
 /.understand-anything
+/.agents
+skills-lock.json
