@@ -96,11 +96,11 @@ function applyAlreadySubmittedState(): void {
   });
   const submitBtn = form.querySelector<HTMLButtonElement>("button[type=submit]");
   if (submitBtn) submitBtn.textContent = "Lihat undangan ->";
-  if (submitBtn) submitBtn.onclick = () => { location.href = "/" + slug + "/card"; };
+  if (submitBtn) submitBtn.onclick = () => { if (slug) location.href = "/" + slug + "/card"; };
 }
 
 function getRsvpStorageKey(): string {
-  return "rsvp_submitted_" + (getNama() || "anon").toLowerCase();
+  return "rsvp_submitted_" + (slug || getNama() || "anon").toLowerCase();
 }
 
 function saveRsvpSubmitted(nama: string, status: string): void {
@@ -205,7 +205,7 @@ export function initRsvp(): void {
               text: "Lihat Undangan",
               className: "btn btn-primary px-5",
               onClick() {
-                location.href = "/" + slug + "/card";
+                if (slug) location.href = "/" + slug + "/card";
               },
             },
           ],
