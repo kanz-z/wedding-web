@@ -6,10 +6,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./styles/dashboard.css";
 
 // Dashboard modules
-import { initNavigation, initModals, initKeyboard } from "./dashboard/ui";
-import { initGuestEvents } from "./dashboard/guests";
-import { initAuth } from "./dashboard/auth";
-import { initCheckinEvents } from "./dashboard/checkin";
+import { initNotifications, initModals, initKeyboard } from "./dashboard/ui";
+import { initGuestEvents, initGuestTable } from "./dashboard/guests";
+import { initAuth, initRouting, checkSession } from "./dashboard/auth";
+import { initCheckinEvents, renderCheckinLog } from "./dashboard/checkin";
 import { initReservations } from "./dashboard/reservations";
 import { initMessages } from "./dashboard/messages";
 import { initAdmin } from "./dashboard/admin";
@@ -17,7 +17,8 @@ import { initAdmin } from "./dashboard/admin";
 // Initialize all modules
 function initDashboard(): void {
   initAuth();
-  initNavigation();
+  initRouting();
+  initNotifications();
   initModals();
   initKeyboard();
   initGuestEvents();
@@ -25,6 +26,17 @@ function initDashboard(): void {
   initReservations();
   initMessages();
   initAdmin();
+
+  // Lazy-init guest table on first visit to guests page
+  let guestTableInited = false;
+  window.addEventListener("page-changed", ((e: CustomEvent) => {
+    if (e.detail.page === "guests" && !guestTableInited) {
+      guestTableInited = true;
+      initGuestTable();
+    }
+    if (e.detail.page === "checkin") renderCheckinLog();
+  }) as EventListener);
 }
 
-initDashboard();
+// Check session on load — redirect to login if no session
+checkSession().then(() => initDashboard());

@@ -163,15 +163,7 @@ function openGroupPicker(chip: HTMLElement): void {
 }
 function closeGroupPicker(): void { document.getElementById("group-picker")?.classList.remove("show"); activeKelompokGuestId = null; }
 
-// --- Page navigation ---
-export function goToPage(name: string): void {
-  document.querySelectorAll(".app-page").forEach((p) => p.classList.add("d-none-important"));
-  show(document.getElementById("page-" + name));
-  window.scrollTo({ top: 0, behavior: "auto" });
-  if (name === "guests") initGuestTable();
-  window.dispatchEvent(new CustomEvent("page-changed", { detail: { page: name } }));
-}
-
+// --- Guest table init (dipanggil oleh page-changed event dari routing) ---
 export function initGuestTable(): void {
   const skel = document.getElementById("guest-skeleton"); hide(document.getElementById("guest-table-wrap")); show(skel);
   setTimeout(() => { hide(skel); populateKelompokFilter(); renderGuestTable(); }, 650);

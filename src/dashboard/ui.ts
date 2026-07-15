@@ -1,7 +1,6 @@
-// src/dashboard/ui.ts — navigation & shared UI (modals, toasts, notifications)
+// src/dashboard/ui.ts — shared UI: modals, notifications, keyboard
 
-import { hide, show, toggle, prefersReducedMotion } from '@/shared/ui';
-import { goToPage } from './guests';
+import { hide, show, prefersReducedMotion } from '@/shared/ui';
 
 // --- Notification ---
 function closeNotifPanel(): void {
@@ -11,16 +10,7 @@ function closeNotifPanel(): void {
   btn?.setAttribute("aria-expanded", "false");
 }
 
-export function initNavigation(): void {
-  // Page switching
-  document.querySelectorAll("[data-goto]").forEach((el) => {
-    el.addEventListener("click", () => goToPage((el as HTMLElement).dataset.goto!));
-  });
-  document.querySelectorAll("[data-back]").forEach((el) => {
-    el.addEventListener("click", () => goToPage("hub"));
-  });
-
-  // Notification panel
+export function initNotifications(): void {
   const notifBtn = document.getElementById("btn-notif");
   const notifPanel = document.getElementById("notif-panel");
   notifBtn?.addEventListener("click", (e) => {
