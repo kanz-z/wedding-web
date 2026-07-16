@@ -2,7 +2,7 @@
 // Fase 4: data dari Supabase, bukan dummy
 
 import { supabase } from './supabase-client';
-import type { Reservation } from '@/types/supabase';
+import type { Reservation, GuestbookEntry, AdminUser } from '@/types/supabase';
 
 /** Reservation + derived fields dari check_in_transactions */
 export interface GuestWithMeta extends Reservation {
@@ -385,4 +385,141 @@ export function setupRealtime(onUpdate: (guest: GuestWithMeta) => void): () => v
     realtimeChannel?.unsubscribe();
     realtimeChannel = null;
   };
+}
+
+// --- Guestbook (Fase 6A) ---
+
+export let guestbookEntries: GuestbookEntry[] = [];
+export let guestbookLoading = false;
+export let guestbookError: string | null = null;
+
+export async function fetchGuestbook(): Promise<GuestbookEntry[]> {
+  guestbookLoading = true;
+  guestbookError = null;
+  const { data, error } = await supabase
+    .from('guestbook')
+    .select('*')
+    .order('created_at', { ascending: false });
+  guestbookLoading = false;
+  if (error) {
+    guestbookError = error.message;
+    throw new Error(error.message);
+  }
+  guestbookEntries = data || [];
+  return guestbookEntries;
+}
+
+export async function updateGuestbookApproval(id: string, isApproved: boolean): Promise<void> {
+  const { error } = await supabase.from('guestbook').update({ is_approved: isApproved }).eq('id', id);
+  if (error) throw error;
+  const entry = guestbookEntries.find(e => e.id === id);
+  if (entry) entry.is_approved = isApproved;
+}
+
+// --- Pesan Privat (Fase 6B) ---
+
+export interface PrivateMessage {
+  id: string;
+  name: string;
+  notes: string;
+  created_at: string;
+}
+
+export let privateMessages: PrivateMessage[] = [];
+export let privateLoading = false;
+export let privateError: string | null = null;
+
+export async function fetchPrivateMessages(): Promise<PrivateMessage[]> {
+  privateLoading = true;
+  privateError = null;
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('id, name, notes, created_at')
+    .not('notes', 'is', null)
+    .neq('notes', '')
+    .order('created_at', { ascending: false });
+  privateLoading = false;
+  if (error) {
+    privateError = error.message;
+    throw new Error(error.message);
+  }
+  privateMessages = (data || []) as PrivateMessage[];
+  return privateMessages;
+}
+
+// --- Reservasi Approval (Fase 6C) ---
+
+export async function approveReservation(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('reservations')
+    .update({ approval_status: 'approved', approved_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function rejectReservation(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('reservations')
+    .update({ approval_status: 'rejected', rejected_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// --- Event Status (Fase 6C) ---
+
+export let eventStatus: 'online' | 'offline' =
+  (localStorage.getItem('event_status') as 'online' | 'offline') || 'online';
+
+export function setEventStatus(status: 'online' | 'offline'): void {
+  eventStatus = status;
+  localStorage.setItem('event_status', status);
+}
+
+// --- Admin Management (Fase 6D) ---
+
+export let adminUsers: AdminUser[] = [];
+export let adminLoading = false;
+export let adminError: string | null = null;
+export let currentAdminRole: string | null = null;
+export let currentAdminId: string | null = null;
+
+export async function fetchAdmins(): Promise<AdminUser[]> {
+  adminLoading = true;
+  adminError = null;
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('*')
+    .order('created_at', { ascending: true });
+  adminLoading = false;
+  if (error) {
+    adminError = error.message;
+    throw new Error(error.message);
+  }
+  adminUsers = data || [];
+  return adminUsers;
+}
+
+export async function insertAdmin(email: string, role: AdminUser['role']): Promise<void> {
+  const { error } = await supabase.from('admin_users').insert({ email, role });
+  if (error) throw error;
+  await fetchAdmins();
+}
+
+export async function deleteAdmin(id: string): Promise<void> {
+  const { error } = await supabase.from('admin_users').delete().eq('id', id);
+  if (error) throw error;
+  adminUsers = adminUsers.filter(a => a.id !== id);
+}
+
+export async function fetchCurrentAdmin(): Promise<void> {
+  const { data } = await supabase.auth.getUser();
+  if (data.user?.email) {
+    currentAdminId = data.user.id;
+    const { data: adminData } = await supabase
+      .from('admin_users')
+      .select('role')
+      .eq('email', data.user.email)
+      .single();
+    currentAdminRole = adminData?.role ?? null;
+  }
 }

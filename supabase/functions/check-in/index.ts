@@ -1,6 +1,7 @@
 // Supabase Edge Function: /check-in
 // Fase 5.3 — Atomic check-in via database transaction (fn_check_in)
 // Dipanggil dari state.ts addCheckin() dan checkin.ts
+// @ts-nocheck
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -38,7 +39,8 @@ serve(async (req: Request) => {
       headers: {
         "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, x-client-info",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, apikey, x-client-info",
         "Access-Control-Max-Age": "86400",
       },
     });
@@ -60,7 +62,9 @@ serve(async (req: Request) => {
 
     if (!body.reservation_id || !body.delta || !body.method) {
       return new Response(
-        JSON.stringify({ error: "reservation_id, delta, dan method wajib diisi" }),
+        JSON.stringify({
+          error: "reservation_id, delta, dan method wajib diisi",
+        }),
         {
           status: 400,
           headers: {
@@ -134,47 +138,40 @@ serve(async (req: Request) => {
     });
 
     if (error) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
-          },
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
         },
-      );
+      });
     }
 
     const result = data as Record<string, unknown>;
 
     if (result.error) {
       const status = (result.needs_override as boolean) ? 409 : 422;
-      return new Response(
-        JSON.stringify(result),
-        {
-          status,
-          headers: {
-            "Content-Type": "application/json",
-            ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
-          },
-        },
-      );
-    }
-
-    return new Response(
-      JSON.stringify(result),
-      {
-        status: 200,
+      return new Response(JSON.stringify(result), {
+        status,
         headers: {
           "Content-Type": "application/json",
           ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
         },
+      });
+    }
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
       },
-    );
+    });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Internal server error" }),
+      JSON.stringify({
+        error: err instanceof Error ? err.message : "Internal server error",
+      }),
       {
         status: 500,
         headers: {
