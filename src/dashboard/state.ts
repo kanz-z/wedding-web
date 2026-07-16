@@ -1,80 +1,366 @@
 // src/dashboard/state.ts — shared state untuk dashboard
+// Fase 4: data dari Supabase, bukan dummy
 
+import { supabase } from './supabase-client';
 import type { Reservation } from '@/types/supabase';
 
-/** Data dummy — nanti diganti fetch dari Supabase di Fase 4 */
-export const GUESTS: Reservation[] = [
-  { id: "g1", slug: "aufa-kanz-a82js9", qr_token: "qr_aufa", name: "Muhammad Aufa Kanz Anindito", guest_count: 3, kelompok: "Keluarga Ashila", kategori: "keluarga", nomor_wa: "0812-3456-7890", approval_status: "approved", edited_status: "rsvp", notes: null, version: 1, created_at: "2026-07-01T00:00:00Z", updated_at: "2026-07-01T00:00:00Z", approved_at: "2026-07-01T00:00:00Z", rejected_at: null },
-  { id: "g2", slug: "siti-amara-x91qe2", qr_token: "qr_siti", name: "Siti Amara", guest_count: 1, kelompok: "Teman Kuliah Ashila", kategori: "bukan", nomor_wa: "0813-2211-0098", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-02T00:00:00Z", updated_at: "2026-07-02T00:00:00Z", approved_at: "2026-07-02T00:00:00Z", rejected_at: null },
-  { id: "g3", slug: "damar-w-k77rtz", qr_token: "qr_damar", name: "Damar Wicaksono", guest_count: 4, kelompok: "Kolega Kantor Reza", kategori: "bukan", nomor_wa: "0857-7723-1190", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-03T00:00:00Z", updated_at: "2026-07-03T00:00:00Z", approved_at: "2026-07-03T00:00:00Z", rejected_at: null },
-  { id: "g4", slug: "keluarga-danurdoro", qr_token: "qr_danur", name: "Keluarga Danurdoro", guest_count: 6, kelompok: "Keluarga Ashila", kategori: "keluarga", nomor_wa: "0811-9090-1122", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-04T00:00:00Z", updated_at: "2026-07-04T00:00:00Z", approved_at: "2026-07-04T00:00:00Z", rejected_at: null },
-  { id: "g5", slug: "farah-okta-p33lmv", qr_token: "qr_farah", name: "Farah Oktaviani", guest_count: 2, kelompok: "Teman Kantor Ashila", kategori: "bukan", nomor_wa: "0822-4455-6677", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-05T00:00:00Z", updated_at: "2026-07-05T00:00:00Z", approved_at: "2026-07-05T00:00:00Z", rejected_at: null },
-  { id: "g6", slug: "bagas-nararya", qr_token: "qr_bagas", name: "Bagas Nararya", guest_count: 2, kelompok: "Sahabat Reza", kategori: "bukan", nomor_wa: "0856-1230-9988", approval_status: "approved", edited_status: "admin", notes: null, version: 2, created_at: "2026-07-06T00:00:00Z", updated_at: "2026-07-06T00:00:00Z", approved_at: "2026-07-06T00:00:00Z", rejected_at: null },
-  { id: "g7", slug: "keluarga-andriani", qr_token: "qr_andri", name: "Keluarga Besar Andriani", guest_count: 8, kelompok: "Keluarga Reza", kategori: "keluarga", nomor_wa: "0813-7788-2233", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-07T00:00:00Z", updated_at: "2026-07-07T00:00:00Z", approved_at: "2026-07-07T00:00:00Z", rejected_at: null },
-  { id: "g8", slug: "nadia-kirana", qr_token: "qr_nadia", name: "Nadia Kirana", guest_count: 2, kelompok: "Teman SMA Ashila", kategori: "bukan", nomor_wa: "0819-3344-5566", approval_status: "approved", edited_status: "rsvp", notes: null, version: 1, created_at: "2026-07-08T00:00:00Z", updated_at: "2026-07-08T00:00:00Z", approved_at: "2026-07-08T00:00:00Z", rejected_at: null },
-  { id: "g9", slug: "yusuf-maulana", qr_token: "qr_yusuf", name: "Yusuf Maulana", guest_count: 1, kelompok: "Kolega Kantor Reza", kategori: "bukan", nomor_wa: "0878-2299-4411", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-09T00:00:00Z", updated_at: "2026-07-09T00:00:00Z", approved_at: "2026-07-09T00:00:00Z", rejected_at: null },
-  { id: "g10", slug: "intan-permatasari", qr_token: "qr_intan", name: "Intan Permatasari", guest_count: 1, kelompok: "Teman Kuliah Ashila", kategori: "bukan", nomor_wa: "0812-6677-8899", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-10T00:00:00Z", updated_at: "2026-07-10T00:00:00Z", approved_at: "2026-07-10T00:00:00Z", rejected_at: null },
-  { id: "g11", slug: "galih-prakoso", qr_token: "qr_galih", name: "Galih Prakoso", guest_count: 2, kelompok: "Sahabat Reza", kategori: "bukan", nomor_wa: "0857-1122-3344", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-11T00:00:00Z", updated_at: "2026-07-11T00:00:00Z", approved_at: "2026-07-11T00:00:00Z", rejected_at: null },
-  { id: "g12", slug: "keluarga-hastono", qr_token: "qr_hastono", name: "Keluarga Hastono", guest_count: 5, kelompok: "Keluarga Reza", kategori: "keluarga", nomor_wa: "0811-2233-4455", approval_status: "approved", edited_status: null, notes: null, version: 1, created_at: "2026-07-12T00:00:00Z", updated_at: "2026-07-12T00:00:00Z", approved_at: "2026-07-12T00:00:00Z", rejected_at: null },
-];
-
-export interface GuestCheckin {
+/** Reservation + derived fields dari check_in_transactions */
+export interface GuestWithMeta extends Reservation {
   checkedIn: number;
   checkedInAt: string | null;
   rsvp: 'hadir' | 'tidak' | 'belum';
   flag: string | null;
 }
 
-/** Runtime check-in / RSVP data (nanti dari derived fields Supabase) */
-export const guestMeta: Record<string, GuestCheckin> = {
-  g1: { checkedIn: 3, checkedInAt: "2026-08-22T10:14:00", rsvp: "hadir", flag: null },
-  g2: { checkedIn: 0, checkedInAt: null, rsvp: "belum", flag: null },
-  g3: { checkedIn: 0, checkedInAt: null, rsvp: "hadir", flag: "RSVP lebih dari 2 orang di luar keluarga" },
-  g4: { checkedIn: 7, checkedInAt: "2026-08-22T11:05:00", rsvp: "hadir", flag: "Check-in melebihi kuota — override oleh admin" },
-  g5: { checkedIn: 1, checkedInAt: "2026-08-22T09:02:00", rsvp: "hadir", flag: null },
-  g6: { checkedIn: 0, checkedInAt: null, rsvp: "tidak", flag: null },
-  g7: { checkedIn: 0, checkedInAt: null, rsvp: "belum", flag: null },
-  g8: { checkedIn: 2, checkedInAt: "2026-08-22T10:41:00", rsvp: "hadir", flag: null },
-  g9: { checkedIn: 1, checkedInAt: "2026-08-22T08:55:00", rsvp: "hadir", flag: null },
-  g10: { checkedIn: 0, checkedInAt: null, rsvp: "belum", flag: null },
-  g11: { checkedIn: 0, checkedInAt: null, rsvp: "tidak", flag: null },
-  g12: { checkedIn: 5, checkedInAt: "2026-08-22T09:30:00", rsvp: "hadir", flag: null },
-};
+/** Daftar tamu aktif — diisi oleh fetchGuests() */
+export let guestList: GuestWithMeta[] = [];
+
+/** Loading/error state */
+export let guestLoading = false;
+export let guestError: string | null = null;
 
 // --- filter / page / sort state ---
 export let currentPage = 0;
 export let pageSize = 10;
-export let sortKey = "name";
-export let sortDir: 'asc' | 'desc' = "asc";
-export let searchQuery = "";
-export let filters: Record<string, string> = { checkin: "", rsvp: "", kategori: "", kelompok: "" };
+export let sortKey = 'name';
+export let sortDir: 'asc' | 'desc' = 'asc';
+export let searchQuery = '';
+export let filters: Record<string, string> = { checkin: '', rsvp: '', kategori: '', kelompok: '' };
 export const selectedIds = new Set<string>();
-export let guestTableInited = false;
 
 export function setCurrentPage(v: number): void { currentPage = v; }
 export function setPageSize(v: number): void { pageSize = v; currentPage = 0; }
 export function setSortKey(k: string): void {
-  if (sortKey === k) sortDir = sortDir === "asc" ? "desc" : "asc";
-  else { sortKey = k; sortDir = "asc"; }
+  if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortKey = k; sortDir = 'asc'; }
   currentPage = 0;
 }
 export function setSearchQuery(q: string): void { searchQuery = q; currentPage = 0; }
 
 export function resetFilters(): void {
-  searchQuery = "";
-  filters = { checkin: "", rsvp: "", kategori: "", kelompok: "" };
-  const input = document.getElementById("guest-search") as HTMLInputElement | null;
-  if (input) input.value = "";
-  ["checkin", "rsvp", "kategori", "kelompok"].forEach((k) => {
-    const el = document.getElementById("filter-" + k) as HTMLSelectElement | null;
-    if (el) el.value = "";
+  searchQuery = '';
+  filters = { checkin: '', rsvp: '', kategori: '', kelompok: '' };
+  const input = document.getElementById('guest-search') as HTMLInputElement | null;
+  if (input) input.value = '';
+  ['checkin', 'rsvp', 'kategori', 'kelompok'].forEach((k) => {
+    const el = document.getElementById('filter-' + k) as HTMLSelectElement | null;
+    if (el) el.value = '';
   });
-  document.getElementById("search-box")?.classList.remove("has-value");
+  document.getElementById('search-box')?.classList.remove('has-value');
   currentPage = 0;
 }
 
-export function checkinStatus(meta: GuestCheckin, guestCount: number): 'sudah' | 'sebagian' | 'belum' {
-  if (meta.checkedIn <= 0) return "belum";
-  if (meta.checkedIn < guestCount) return "sebagian";
-  return "sudah";
+/** Status check-in berdasarkan checkedIn vs guest_count */
+export function checkinStatus(guest: { checkedIn: number; guest_count: number }): 'sudah' | 'sebagian' | 'belum' {
+  if (guest.checkedIn <= 0) return 'belum';
+  if (guest.checkedIn < guest.guest_count) return 'sebagian';
+  return 'sudah';
+}
+
+/** Summary statistik tamu */
+export interface GuestSummary {
+  total: number;
+  hadirRsvp: number;
+  tidakRsvp: number;
+  belumRsvp: number;
+  sudahCheckin: number;
+  belumCheckin: number;
+}
+
+export function getGuestSummary(): GuestSummary {
+  const total = guestList.length;
+  const hadirRsvp = guestList.filter(g => g.rsvp === 'hadir').length;
+  const tidakRsvp = guestList.filter(g => g.rsvp === 'tidak').length;
+  const belumRsvp = guestList.filter(g => g.rsvp === 'belum').length;
+  const sudahCheckin = guestList.filter(g => checkinStatus(g) === 'sudah').length;
+  const belumCheckin = guestList.filter(g => checkinStatus(g) === 'belum').length;
+  return { total, hadirRsvp, tidakRsvp, belumRsvp, sudahCheckin, belumCheckin };
+}
+
+// --- Anomaly detection (4.17) ---
+
+function detectAnomaly(
+  g: Reservation,
+  checkedIn: number,
+  rsvp: GuestWithMeta['rsvp'],
+  allGuests: readonly GuestWithMeta[],
+): string | null {
+  if (checkedIn > g.guest_count) return 'Check-in melebihi kuota — override oleh admin';
+  if (rsvp === 'hadir' && g.kategori === 'bukan' && g.guest_count > 2) return 'RSVP lebih dari 2 orang di luar keluarga';
+  if (rsvp === 'tidak' && checkedIn > 0) return 'Tamu RSVP tidak hadir tetapi sudah check-in';
+  if (g.nomor_wa) {
+    const sameWa = allGuests.filter(o => o.id !== g.id && o.nomor_wa === g.nomor_wa);
+    if (sameWa.length > 0) return `Nomor WhatsApp sama dengan ${sameWa[0].name}`;
+  }
+  const similar = allGuests.find(o => o.id !== g.id && isNameSimilar(g.name, o.name));
+  if (similar) return `Nama mirip dengan ${similar.name}`;
+  return null;
+}
+
+function isNameSimilar(a: string, b: string): boolean {
+  const na = a.toLowerCase().replace(/\s+/g, ' ').trim();
+  const nb = b.toLowerCase().replace(/\s+/g, ' ').trim();
+  if (na === nb) return true;
+  const maxLen = Math.max(na.length, nb.length);
+  if (maxLen < 5) return false;
+  let matches = 0;
+  for (let i = 0; i < na.length - 2; i++) {
+    if (nb.includes(na.substring(i, i + 3))) matches++;
+  }
+  const similarity = matches / Math.max(1, na.length - 2);
+  return similarity > 0.5 || ((na.includes(nb) || nb.includes(na)) && maxLen > 6);
+}
+
+// --- Data fetching (4.1) ---
+
+export async function fetchGuests(): Promise<GuestWithMeta[]> {
+  guestLoading = true;
+  guestError = null;
+
+  const [resResult, ciResult] = await Promise.all([
+    supabase.from('reservations').select('*').order('name', { ascending: true }),
+    supabase.from('check_in_transactions').select('reservation_id, delta, created_at'),
+  ]);
+
+  if (resResult.error) {
+    guestLoading = false;
+    guestError = resResult.error.message;
+    throw new Error(resResult.error.message);
+  }
+
+  // Build check-in aggregate map
+  const ciMap = new Map<string, { checkedIn: number; checkedInAt: string | null }>();
+  (ciResult.data || []).forEach((c: { reservation_id: string; delta: number; created_at: string }) => {
+    const cur = ciMap.get(c.reservation_id) ?? { checkedIn: 0, checkedInAt: null as string | null };
+    cur.checkedIn += c.delta;
+    if (!cur.checkedInAt || c.created_at > cur.checkedInAt) cur.checkedInAt = c.created_at;
+    ciMap.set(c.reservation_id, cur);
+  });
+
+  const rawList: GuestWithMeta[] = (resResult.data || []).map((r: Reservation) => {
+    const ci = ciMap.get(r.id) ?? { checkedIn: 0, checkedInAt: null };
+    const rsvp: GuestWithMeta['rsvp'] =
+      r.approval_status === 'approved' ? 'hadir' :
+      r.approval_status === 'rejected' ? 'tidak' : 'belum';
+    return { ...r, checkedIn: ci.checkedIn, checkedInAt: ci.checkedInAt, rsvp, flag: null };
+  });
+
+  guestList = rawList.map(g => ({
+    ...g,
+    flag: detectAnomaly(g, g.checkedIn, g.rsvp, rawList),
+  }));
+  guestLoading = false;
+  return guestList;
+}
+
+// --- CRUD operations (4.13, 4.15, 4.16) ---
+
+export async function insertGuest(guest: {
+  name: string;
+  guest_count: number;
+  kelompok: string | null;
+  kategori: 'keluarga' | 'bukan';
+  nomor_wa: string | null;
+  notes: string | null;
+}): Promise<GuestWithMeta> {
+  const slug =
+    guest.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') +
+    '-' +
+    Math.random().toString(36).substring(2, 8);
+  const qrToken = 'qr_' + Math.random().toString(36).substring(2, 14);
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .insert({
+      slug,
+      qr_token: qrToken,
+      name: guest.name,
+      guest_count: guest.guest_count,
+      kelompok: guest.kelompok,
+      kategori: guest.kategori,
+      nomor_wa: guest.nomor_wa,
+      notes: guest.notes,
+      approval_status: 'approved',
+      edited_status: 'admin',
+    })
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  const g: GuestWithMeta = {
+    ...(data as Reservation),
+    checkedIn: 0,
+    checkedInAt: null,
+    rsvp: 'hadir',
+    flag: null,
+  };
+  guestList = [...guestList, g].sort((a, b) => a.name.localeCompare(b.name));
+  return g;
+}
+
+export async function updateGuest(
+  id: string,
+  expectedVersion: number,
+  updates: {
+    name?: string;
+    guest_count?: number;
+    kelompok?: string | null;
+    kategori?: 'keluarga' | 'bukan';
+    nomor_wa?: string | null;
+    notes?: string | null;
+  },
+): Promise<GuestWithMeta> {
+  const { data, error } = await supabase
+    .from('reservations')
+    .update({
+      ...updates,
+      edited_status: 'admin',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('version', expectedVersion)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error('Data telah berubah. Silakan refresh.');
+
+  const idx = guestList.findIndex(g => g.id === id);
+  if (idx !== -1) {
+    const existing = guestList[idx];
+    guestList[idx] = {
+      ...existing,
+      ...(data as Reservation),
+      checkedIn: existing.checkedIn,
+      checkedInAt: existing.checkedInAt,
+      rsvp: existing.rsvp,
+      flag: existing.flag,
+    };
+  }
+
+  return guestList[idx];
+}
+
+export async function addCheckin(
+  reservationId: string,
+  adminId: string,
+  delta: number,
+  method: 'qr' | 'manual' = 'manual',
+  isOverride = false,
+  notes: string | null = null,
+): Promise<void> {
+  const { error } = await supabase
+    .from('check_in_transactions')
+    .insert({
+      reservation_id: reservationId,
+      admin_id: adminId,
+      delta,
+      method,
+      is_override: isOverride,
+      notes,
+    });
+
+  if (error) throw error;
+
+  const idx = guestList.findIndex(g => g.id === reservationId);
+  if (idx !== -1) {
+    const newCheckedIn = guestList[idx].checkedIn + delta;
+    guestList[idx] = {
+      ...guestList[idx],
+      checkedIn: newCheckedIn,
+      checkedInAt: new Date().toISOString(),
+      flag: detectAnomaly(guestList[idx], newCheckedIn, guestList[idx].rsvp, guestList),
+    };
+  }
+}
+
+// --- Audit log (4.18) ---
+
+export interface CheckinLogEntry {
+  id: string;
+  reservationId: string;
+  guestName: string;
+  adminName: string;
+  delta: number;
+  method: 'qr' | 'manual';
+  isOverride: boolean;
+  notes: string | null;
+  createdAt: string;
+}
+
+export async function fetchCheckinLog(): Promise<CheckinLogEntry[]> {
+  const { data, error } = await supabase
+    .from('check_in_transactions')
+    .select('id, reservation_id, admin_id, delta, method, is_override, notes, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error || !data) return [];
+
+  const guestNames = new Map(guestList.map(g => [g.id, g.name]));
+  const { data: admins } = await supabase.from('admin_users').select('id, email');
+  const adminNames = new Map(
+    (admins || []).map((a: { id: string; email: string }) => [a.id, a.email]),
+  );
+
+  return (data as Record<string, unknown>[]).map(row => ({
+    id: row.id as string,
+    reservationId: row.reservation_id as string,
+    guestName: guestNames.get(row.reservation_id as string) ?? '(tidak dikenal)',
+    adminName: adminNames.get(row.admin_id as string) ?? '(tidak dikenal)',
+    delta: row.delta as number,
+    method: row.method as 'qr' | 'manual',
+    isOverride: row.is_override as boolean,
+    notes: row.notes as string | null,
+    createdAt: row.created_at as string,
+  }));
+}
+
+// --- Realtime (4.19) ---
+
+let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+
+export function setupRealtime(onUpdate: (guest: GuestWithMeta) => void): () => void {
+  realtimeChannel = supabase
+    .channel('reservations-changes')
+    .on(
+      'postgres_changes' as never,
+      { event: '*', schema: 'public', table: 'reservations' } as never,
+      (payload: { eventType: string; new: Reservation; old: Record<string, unknown> }) => {
+        if (payload.eventType === 'INSERT') {
+          const rsvp: GuestWithMeta['rsvp'] =
+            payload.new.approval_status === 'approved' ? 'hadir' :
+            payload.new.approval_status === 'rejected' ? 'tidak' : 'belum';
+          const g: GuestWithMeta = {
+            ...payload.new, checkedIn: 0, checkedInAt: null, rsvp, flag: null,
+          };
+          guestList = [...guestList, g].sort((a, b) => a.name.localeCompare(b.name));
+          onUpdate(g);
+        } else if (payload.eventType === 'UPDATE') {
+          const idx = guestList.findIndex(g => g.id === payload.new.id);
+          if (idx !== -1) {
+            guestList[idx] = {
+              ...guestList[idx],
+              ...payload.new,
+              flag: detectAnomaly(payload.new, guestList[idx].checkedIn, guestList[idx].rsvp, guestList),
+            };
+            onUpdate(guestList[idx]);
+          }
+        } else if (payload.eventType === 'DELETE') {
+          const id = payload.old.id as string;
+          guestList = guestList.filter(g => g.id !== id);
+        }
+      },
+    )
+    .subscribe();
+
+  return () => {
+    realtimeChannel?.unsubscribe();
+    realtimeChannel = null;
+  };
 }

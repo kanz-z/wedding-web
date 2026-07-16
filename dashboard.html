@@ -286,7 +286,22 @@
           <button class="back-btn" type="button" data-back>
             <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
           </button>
-          <div class="page-head"><h1>Kelola Tamu</h1></div>
+          <div class="page-head">
+            <h1>Kelola Tamu</h1>
+            <button class="btn-dash btn-dash-outline" id="btn-reload-guests" type="button" style="min-height:40px">
+              <i class="bi bi-arrow-clockwise"></i> Reload Data
+            </button>
+          </div>
+
+          <!-- Summary cards (4.3) -->
+          <div class="summary-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:var(--space-lg)" id="guest-summary-row">
+            <div class="summary-card guest-summary-card"><div class="summary-card__icon"><i class="bi bi-people-fill"></i></div><div><div class="summary-card__value">0</div><div class="summary-card__label">Total Tamu</div></div></div>
+            <div class="summary-card guest-summary-card summary-card--success"><div class="summary-card__icon"><i class="bi bi-envelope-check-fill"></i></div><div><div class="summary-card__value">0</div><div class="summary-card__label">Hadir RSVP</div></div></div>
+            <div class="summary-card guest-summary-card summary-card--muted"><div class="summary-card__icon"><i class="bi bi-envelope-x-fill"></i></div><div><div class="summary-card__value">0</div><div class="summary-card__label">Tidak Hadir</div></div></div>
+            <div class="summary-card guest-summary-card summary-card--muted"><div class="summary-card__icon"><i class="bi bi-hourglass-split"></i></div><div><div class="summary-card__value">0</div><div class="summary-card__label">Belum Merespons</div></div></div>
+            <div class="summary-card guest-summary-card summary-card--success"><div class="summary-card__icon"><i class="bi bi-qr-code-scan"></i></div><div><div class="summary-card__value">0</div><div class="summary-card__label">Sudah Check-in</div></div></div>
+            <div class="summary-card guest-summary-card summary-card--muted"><div class="summary-card__icon"><i class="bi bi-hourglass-split"></i></div><div><div class="summary-card__value">0</div><div class="summary-card__label">Belum Check-in</div></div></div>
+          </div>
 
           <div class="table-toolbar">
             <div class="search-box" id="search-box">
@@ -324,16 +339,13 @@
           </div>
 
           <div class="page-actions mb-3" style="justify-content: flex-end; display: flex">
-            <button class="btn-dash btn-dash-outline" id="btn-simulate-update" type="button">
-              <i class="bi bi-arrow-repeat"></i> Simulasikan Update Realtime
-            </button>
             <button class="btn-dash btn-dash-outline" type="button">
               <i class="bi bi-upload"></i> Import
             </button>
             <button class="btn-dash btn-dash-outline" type="button">
               <i class="bi bi-download"></i> Export
             </button>
-            <button class="btn-dash btn-dash-accent" type="button">
+            <button class="btn-dash btn-dash-accent" type="button" id="btn-add-guest">
               <i class="bi bi-plus-lg"></i> Tambah Tamu
             </button>
           </div>
@@ -360,7 +372,7 @@
             <table class="guest-table">
               <thead>
                 <tr>
-                  <th style="width:40px"><i class="bi bi-check2-square"></i></th>
+                  <th style="width:40px"><input type="checkbox" id="select-all-guests" aria-label="Pilih semua tamu di halaman ini"></th>
                   <th class="is-sortable" data-sort="name" tabindex="0">Nama <i class="bi bi-arrow-down-up"></i></th>
                   <th>Kelompok</th>
                   <th>Kategori</th>
@@ -489,6 +501,8 @@
             </div>
             <h3 style="font-size:0.8125rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);margin-bottom:var(--space-sm)">Riwayat Check-in Terbaru</h3>
             <div id="checkin-log-list"></div>
+            <h3 style="font-size:0.8125rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);margin:var(--space-xl) 0 var(--space-sm)">Audit Log</h3>
+            <div id="audit-log-list"></div>
           </div>
         </div>
       </main>
@@ -733,8 +747,119 @@
         <div class="modal-dash__body" id="modal-guest-body"></div>
         <div class="modal-dash__footer">
           <button class="btn-dash btn-dash-outline" data-modal-close type="button">Tutup</button>
-          <button class="btn-dash btn-dash-outline" type="button"><i class="bi bi-pencil"></i> Edit</button>
+          <button class="btn-dash btn-dash-outline" id="modal-detail-edit-btn" type="button"><i class="bi bi-pencil"></i> Edit</button>
           <button class="btn-dash btn-dash-accent" id="modal-checkin-btn" type="button"><i class="bi bi-qr-code-scan"></i> Check-in</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= MODAL EDIT TAMU (4.15) ======================================================= -->
+    <div class="modal-overlay" id="edit-modal-overlay" data-version="0">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+        <div class="modal-dash__header">
+          <h2 id="edit-modal-title">Edit Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="dash-field">
+            <label for="edit-guest-name">Nama</label>
+            <input type="text" class="form-control" id="edit-guest-name" />
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-count">Jumlah Tamu</label>
+            <input type="number" class="form-control" id="edit-guest-count" min="1" />
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-kelompok">Kelompok</label>
+            <select class="form-control" id="edit-guest-kelompok">
+              <option value="">Tanpa Kelompok</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-kategori">Kategori</label>
+            <select class="form-control" id="edit-guest-kategori">
+              <option value="bukan">Bukan Keluarga</option>
+              <option value="keluarga">Keluarga</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-wa">No. WhatsApp</label>
+            <input type="text" class="form-control" id="edit-guest-wa" placeholder="08xx-xxxx-xxxx" />
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-notes">Catatan</label>
+            <textarea class="form-control" id="edit-guest-notes" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" data-modal-close type="button">Batal</button>
+          <button class="btn-dash btn-dash-accent" id="edit-guest-save-btn" type="button">Simpan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= MODAL TAMBAH TAMU (4.13) ======================================================= -->
+    <div class="modal-overlay" id="add-modal-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
+        <div class="modal-dash__header">
+          <h2 id="add-modal-title">Tambah Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="dash-field">
+            <label for="add-guest-name">Nama</label>
+            <input type="text" class="form-control" id="add-guest-name" />
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-count">Jumlah Tamu</label>
+            <input type="number" class="form-control" id="add-guest-count" min="1" value="1" />
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-kelompok">Kelompok</label>
+            <select class="form-control" id="add-guest-kelompok">
+              <option value="">Tanpa Kelompok</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-kategori">Kategori</label>
+            <select class="form-control" id="add-guest-kategori">
+              <option value="bukan">Bukan Keluarga</option>
+              <option value="keluarga">Keluarga</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-wa">No. WhatsApp</label>
+            <input type="text" class="form-control" id="add-guest-wa" placeholder="08xx-xxxx-xxxx" />
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-notes">Catatan</label>
+            <textarea class="form-control" id="add-guest-notes" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" data-modal-close type="button">Batal</button>
+          <button class="btn-dash btn-dash-accent" id="add-guest-save-btn" type="button">Tambah</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= DIALOG CHECK-IN (4.16) ======================================================= -->
+    <div class="modal-overlay" id="checkin-dialog-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="checkin-dialog-name" style="max-width:440px">
+        <div class="modal-dash__header">
+          <h2 id="checkin-dialog-name">Check-in Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <p id="checkin-dialog-detail" style="color:var(--ink-muted);font-size:0.875rem;margin-bottom:var(--space-md)"></p>
+          <button class="btn-dash btn-dash-accent" id="checkin-dialog-all" type="button" style="width:100%;margin-bottom:var(--space-sm);justify-content:center">Masuk Semua</button>
+          <div style="display:flex;gap:var(--space-sm);align-items:center">
+            <input type="number" class="form-control" id="checkin-dialog-partial-input" min="1" style="width:80px;flex:none" />
+            <button class="btn-dash btn-dash-outline" id="checkin-dialog-partial-btn" type="button" style="flex:1;justify-content:center">Masuk Sebagian</button>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" data-modal-close type="button" style="width:100%;justify-content:center">Batal</button>
         </div>
       </div>
     </div>
