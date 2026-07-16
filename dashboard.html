@@ -459,10 +459,15 @@
                 <div class="scanner-overlay"></div>
                 <div class="scanner-viewfinder"></div>
               </div>
-              <p class="scanner-instruction">Arahkan kamera ke QR code tamu</p>
-              <button class="btn-scan-start" id="btn-start-scan" type="button">
-                <i class="bi bi-camera-fill"></i> Mulai Scan
-              </button>
+              <p class="scanner-instruction" id="scanner-status">Arahkan kamera ke QR code tamu</p>
+              <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+                <button class="btn-scan-start" id="btn-start-scan" type="button">
+                  <i class="bi bi-camera-fill"></i> Mulai Scan
+                </button>
+                <button class="btn-scan-start d-none-important" id="btn-switch-camera" type="button" title="Ganti kamera depan/belakang">
+                  <i class="bi bi-arrow-repeat"></i> Ganti Kamera
+                </button>
+              </div>
               <button class="btn-scan-manual" id="btn-toggle-manual" type="button">
                 <i class="bi bi-search"></i> Check-in Manual
               </button>
@@ -874,6 +879,61 @@
       <hr />
       <div class="group-picker__label">Daftar kelompok</div>
       <div id="group-picker-list"></div>
+    </div>
+
+    <!-- ======================================================= POST-SCAN MODAL (5.2) ======================================================= -->
+    <div class="modal-overlay" id="postscan-modal-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="postscan-guest-name" style="max-width:500px">
+        <div class="modal-dash__header">
+          <h2 id="postscan-guest-name">Nama Tamu</h2>
+          <button class="modal-dash__close" data-modal-close="true" aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <p id="postscan-guest-detail" style="color:var(--ink-muted);font-size:0.875rem;margin-bottom:var(--space-md)"></p>
+          <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-md);font-size:1.25rem;font-weight:600" id="postscan-checked-in-count"></div>
+          <div id="postscan-guest-body" style="margin-bottom:var(--space-md)"></div>
+          <button class="btn-dash btn-dash-accent" id="postscan-btn-all" type="button" style="width:100%;margin-bottom:var(--space-sm);justify-content:center">
+            <span id="postscan-all-label">Masuk Semua</span>
+          </button>
+          <div style="display:flex;gap:var(--space-sm);align-items:center;margin-bottom:var(--space-sm)">
+            <input type="number" class="form-control" id="postscan-partial-input" min="1" style="width:80px;flex:none" />
+            <button class="btn-dash btn-dash-outline" id="postscan-btn-partial" type="button" style="flex:1;justify-content:center">Masuk Sebagian</button>
+          </div>
+          <div style="display:flex;gap:var(--space-sm);align-items:center">
+            <button class="btn-dash btn-dash-outline" id="postscan-btn-override" type="button" style="flex:1;justify-content:center;color:var(--warning);border-color:var(--warning)">Override Kuota</button>
+            <button class="btn-dash btn-dash-outline" id="postscan-btn-log" type="button" style="flex:1;justify-content:center">Lihat Log</button>
+            <button class="btn-dash btn-dash-outline" id="postscan-btn-edit" type="button" style="flex:1;justify-content:center">Edit</button>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" id="postscan-btn-close" type="button" style="width:100%;justify-content:center">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= OVERRIDE MODAL (5.4) ======================================================= -->
+    <div class="modal-overlay" id="override-modal-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="override-modal-title" style="max-width:440px">
+        <div class="modal-dash__header">
+          <h2 id="override-modal-title" style="color:var(--warning)"><i class="bi bi-shield-exclamation"></i> Override Kuota</h2>
+          <button class="modal-dash__close" data-modal-close="true" aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <p id="override-warning" style="color:var(--ink-muted);font-size:0.875rem;margin-bottom:var(--space-md)"></p>
+          <div class="dash-field">
+            <label for="override-delta">Jumlah Tambahan</label>
+            <input type="number" class="form-control" id="override-delta" min="1" value="1" />
+          </div>
+          <div class="dash-field">
+            <label for="override-notes">Alasan Override <span style="color:var(--danger)">*</span></label>
+            <textarea class="form-control" id="override-notes" rows="3" placeholder="Alasan mengapa check-in melebihi kuota…"></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" id="override-cancel-btn" type="button">Batal</button>
+          <button class="btn-dash btn-dash-accent" id="override-confirm-btn" type="button" style="background:var(--warning);border-color:var(--warning)">Konfirmasi Override</button>
+        </div>
+      </div>
     </div>
 
     <div id="toast" class="toast-global"></div>

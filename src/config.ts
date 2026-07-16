@@ -7,4 +7,5 @@ export const config: EnvConfig = {
   SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY ?? '',
   SITE_URL: env.VITE_SITE_URL ?? '',
   RSVP_EDGE_FUNCTION: env.VITE_RSVP_EDGE_FUNCTION ?? '',
+  CHECK_IN_EDGE_FUNCTION: env.VITE_CHECK_IN_EDGE_FUNCTION ?? '',
 };

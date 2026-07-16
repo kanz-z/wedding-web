@@ -113,13 +113,19 @@ function isNameSimilar(a: string, b: string): boolean {
 
 // --- Data fetching (4.1) ---
 
+let fetchAbortController: AbortController | null = null;
+
 export async function fetchGuests(): Promise<GuestWithMeta[]> {
+  // Cancel previous in-flight request
+  fetchAbortController?.abort();
+  fetchAbortController = new AbortController();
+
   guestLoading = true;
   guestError = null;
 
   const [resResult, ciResult] = await Promise.all([
-    supabase.from('reservations').select('*').order('name', { ascending: true }),
-    supabase.from('check_in_transactions').select('reservation_id, delta, created_at'),
+    supabase.from('reservations').select('*').order('name', { ascending: true }).abortSignal(fetchAbortController.signal),
+    supabase.from('check_in_transactions').select('reservation_id, delta, created_at').abortSignal(fetchAbortController.signal),
   ]);
 
   if (resResult.error) {
@@ -248,25 +254,41 @@ export async function updateGuest(
 
 export async function addCheckin(
   reservationId: string,
-  adminId: string,
+  _adminId: string, // kept for backward compat, edge function derives from token
   delta: number,
   method: 'qr' | 'manual' = 'manual',
   isOverride = false,
   notes: string | null = null,
 ): Promise<void> {
-  const { error } = await supabase
-    .from('check_in_transactions')
-    .insert({
-      reservation_id: reservationId,
-      admin_id: adminId,
-      delta,
-      method,
-      is_override: isOverride,
-      notes,
-    });
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error('Sesi tidak valid — silakan login kembali');
 
-  if (error) throw error;
+  const resp = await fetch(
+    `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        reservation_id: reservationId,
+        delta,
+        method,
+        is_override: isOverride,
+        notes,
+      }),
+    },
+  );
 
+  const result = await resp.json();
+
+  if (!resp.ok) {
+    throw new Error((result as Record<string, unknown>).error as string || 'Gagal check-in');
+  }
+
+  // Optimistic update local state
   const idx = guestList.findIndex(g => g.id === reservationId);
   if (idx !== -1) {
     const newCheckedIn = guestList[idx].checkedIn + delta;

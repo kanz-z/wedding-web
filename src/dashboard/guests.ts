@@ -679,4 +679,13 @@ export function initGuestEvents(): void {
   window.addEventListener('page-changed', ((e: CustomEvent) => {
     if (e.detail.page === 'checkin') renderAuditLog();
   }) as EventListener);
+
+  // Cross-module events from checkin.ts (5.2, 5.7)
+  window.addEventListener('open-checkin-dialog', ((e: CustomEvent) => {
+    if (e.detail?.id) openCheckinDialog(e.detail.id);
+  }) as EventListener);
+
+  window.addEventListener('open-edit-guest', ((e: CustomEvent) => {
+    if (e.detail?.id) openEditModal(e.detail.id);
+  }) as EventListener);
 }

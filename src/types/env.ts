@@ -4,4 +4,5 @@ export interface EnvConfig {
   SUPABASE_ANON_KEY: string;
   SITE_URL: string;
   RSVP_EDGE_FUNCTION: string;
+  CHECK_IN_EDGE_FUNCTION: string;
 }
