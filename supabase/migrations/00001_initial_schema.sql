@@ -132,6 +132,12 @@ CREATE POLICY "auth_all_guestbook" ON guestbook
   USING (true)
   WITH CHECK (true);
 
+-- tambahan perbaikan
+GRANT ALL ON public.reservations TO authenticated;
+GRANT ALL ON public.guestbook TO authenticated;
+GRANT SELECT ON public.admin_users TO authenticated;
+GRANT SELECT ON public.guestbook TO anon;
+
 -- rate_limits: no policy = fully denied for anon/authenticated (service_role only)
 
 -- ============================================================

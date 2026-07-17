@@ -134,6 +134,11 @@ export async function fetchGuests(): Promise<GuestWithMeta[]> {
     throw new Error(resResult.error.message);
   }
 
+  // Log check-in query error jika ada, tapi tetap lanjutkan dengan data reservasi
+  if (ciResult.error) {
+    console.error('Gagal memuat data check-in:', ciResult.error.message);
+  }
+
   // Build check-in aggregate map
   const ciMap = new Map<string, { checkedIn: number; checkedInAt: string | null }>();
   (ciResult.data || []).forEach((c: { reservation_id: string; delta: number; created_at: string }) => {

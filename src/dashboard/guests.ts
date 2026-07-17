@@ -38,9 +38,10 @@ function renderSummaryCards(): void {
   const cards = document.querySelectorAll<HTMLElement>('.guest-summary-card');
   if (cards.length < 6) return;
   const vals = [s.total, s.hadirRsvp, s.tidakRsvp, s.belumRsvp, s.sudahCheckin, s.belumCheckin];
+  // Gunakan i % 6 karena ada beberapa grup 6 card di halaman berbeda (Hub + Kelola Tamu)
   cards.forEach((c, i) => {
     const valEl = c.querySelector('.summary-card__value');
-    if (valEl) valEl.textContent = String(vals[i] ?? 0);
+    if (valEl) valEl.textContent = String(vals[i % 6] ?? 0);
   });
 }
 

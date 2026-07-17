@@ -7,7 +7,7 @@ import "./styles/dashboard.css";
 
 // Dashboard modules
 import { initNotifications, initModals, initKeyboard } from "./dashboard/ui";
-import { initGuestEvents, initGuestTable } from "./dashboard/guests";
+import { initGuestEvents, initGuestTable, reloadGuests } from "./dashboard/guests";
 import { initAuth, initRouting, checkSession } from "./dashboard/auth";
 import { initCheckinEvents, renderCheckinLog } from "./dashboard/checkin";
 import { initReservations } from "./dashboard/reservations";
@@ -27,12 +27,16 @@ function initDashboard(): void {
   initMessages();
   initAdmin();
 
-  // Lazy-init guest table on first visit to guests page
+  // Init guest table pada first visit, reload data pada kunjungan berikutnya
   let guestTableInited = false;
   window.addEventListener("page-changed", ((e: CustomEvent) => {
-    if (e.detail.page === "guests" && !guestTableInited) {
-      guestTableInited = true;
-      initGuestTable();
+    if (e.detail.page === "guests") {
+      if (!guestTableInited) {
+        guestTableInited = true;
+        initGuestTable();
+      } else {
+        reloadGuests();
+      }
     }
     if (e.detail.page === "checkin") renderCheckinLog();
   }) as EventListener);

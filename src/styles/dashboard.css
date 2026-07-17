@@ -1212,11 +1212,16 @@
   font-size: 0.8125rem;
   text-align: center;
   padding: var(--space-md);
+  width: 70%;
+  max-width: 260px;
+  margin: auto;
+
+  i {
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.25);
+  }
 }
-.scanner-placeholder i {
-  font-size: 2rem;
-  color: rgba(255, 255, 255, 0.25);
-}
+
 .scanner-instruction {
   text-align: center;
   color: var(--ink-body);
