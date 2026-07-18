@@ -304,6 +304,13 @@ async function saveEdit(): Promise<void> {
 
   if (!name || !gc || gc < 1) { showToast('Nama dan jumlah tamu wajib diisi', true); return; }
 
+  // GAP-007: validasi guest_count tidak boleh dikurangi di bawah checked_in
+  const g = guestList.find(x => x.id === activeGuestId);
+  if (g && g.checkedIn > gc) {
+    showToast(`Jumlah tamu tidak boleh kurang dari yang sudah check-in (${g.checkedIn}). Batalkan check-in terlebih dahulu.`, true);
+    return;
+  }
+
   try {
     await updateGuest(activeGuestId, v, { name, guest_count: gc, kelompok, kategori, nomor_wa: wa, notes });
     hideModal('edit-modal-overlay');
@@ -621,7 +628,29 @@ export function initGuestEvents(): void {
   });
 
   // Bulk actions (4.12)
-  document.getElementById('bulk-resend')?.addEventListener('click', () => { showToast(selectedIds.size + ' undangan dikirim ulang'); });
+  document.getElementById('bulk-resend')?.addEventListener('click', async () => {
+    if (selectedIds.size === 0) return;
+    const btn = document.getElementById('bulk-resend') as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    try {
+      const ids = [...selectedIds];
+      const { error } = await supabase
+        .from('reservations')
+        .update({ approval_status: 'approved', approved_at: new Date().toISOString(), edited_status: 'admin' })
+        .in('id', ids);
+      if (error) throw error;
+      showToast(ids.length + ' tamu di-approve');
+      selectedIds.clear();
+      updateBulkBar();
+      await fetchGuests();
+      populateKelompokFilter();
+      renderGuestTable();
+    } catch (err: unknown) {
+      showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
   document.getElementById('bulk-clear')?.addEventListener('click', () => { selectedIds.clear(); updateBulkBar(); renderGuestTable(); });
 
   // Detail modal check-in button

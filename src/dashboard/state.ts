@@ -230,6 +230,7 @@ export async function updateGuest(
     .from('reservations')
     .update({
       ...updates,
+      version: expectedVersion + 1,
       edited_status: 'admin',
       updated_at: new Date().toISOString(),
     })
@@ -354,7 +355,7 @@ let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
 
 export function setupRealtime(onUpdate: (guest: GuestWithMeta) => void): () => void {
   realtimeChannel = supabase
-    .channel('reservations-changes')
+    .channel('dashboard-changes')
     .on(
       'postgres_changes' as never,
       { event: '*', schema: 'public', table: 'reservations' } as never,
@@ -382,6 +383,18 @@ export function setupRealtime(onUpdate: (guest: GuestWithMeta) => void): () => v
           const id = payload.old.id as string;
           guestList = guestList.filter(g => g.id !== id);
         }
+      },
+    )
+    // GAP-003 + GAP-008: subscribe ke check_in_transactions untuk realtime checkedIn
+    .on(
+      'postgres_changes' as never,
+      { event: 'INSERT', schema: 'public', table: 'check_in_transactions' } as never,
+      () => {
+        // Refresh penuh untuk recalculate checkedIn dari SUM(delta)
+        fetchGuests().then(() => {
+          const lastGuest = guestList[guestList.length - 1];
+          if (lastGuest) onUpdate(lastGuest);
+        }).catch(() => {/* silent */});
       },
     )
     .subscribe();
@@ -475,9 +488,20 @@ export async function rejectReservation(id: string): Promise<void> {
 export let eventStatus: 'online' | 'offline' =
   (localStorage.getItem('event_status') as 'online' | 'offline') || 'online';
 
-export function setEventStatus(status: 'online' | 'offline'): void {
+export async function setEventStatus(status: 'online' | 'offline'): Promise<void> {
   eventStatus = status;
   localStorage.setItem('event_status', status);
+  // GAP-004: sync ke database agar edge function bisa enforce
+  try {
+    await supabase
+      .from('event_config')
+      .upsert({ key: 'event_status', value: JSON.stringify(status), updated_at: new Date().toISOString() })
+      .select('*')
+      .maybeSingle();
+  } catch {
+    // Silent fail — localStorage tetap fallback
+    console.warn('Gagal sinkronisasi event_status ke database');
+  }
 }
 
 // --- Admin Management (Fase 6D) ---

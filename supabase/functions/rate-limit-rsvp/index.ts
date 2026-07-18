@@ -116,6 +116,37 @@ serve(async (req) => {
 
     if (rateError) throw rateError;
 
+    // GAP-004: cek event status dari event_config
+    const { data: eventStatusData } = await sb
+      .from("event_config")
+      .select("value")
+      .eq("key", "event_status")
+      .maybeSingle();
+
+    if (eventStatusData) {
+      const eventStatus = eventStatusData.value; // JSON string: "online" atau "offline"
+      if (eventStatus === "offline" || (typeof eventStatus === "string" && JSON.parse(eventStatus) === "offline")) {
+        return new Response(
+          JSON.stringify({
+            error: "Acara sedang offline. RSVP tidak dapat dilakukan saat ini.",
+          }),
+          { status: 503, headers },
+        );
+      }
+    }
+
+    // GAP-001: baca config approval mode dari event_config
+    let approvalMode: Record<string, unknown> = { type: "auto", threshold_non_keluarga: 2 };
+    const { data: amData } = await sb
+      .from("event_config")
+      .select("value")
+      .eq("key", "approval_mode")
+      .maybeSingle();
+
+    if (amData) {
+      approvalMode = amData.value as Record<string, unknown>;
+    }
+
     // Tentukan approval_status dari status yang dikirim client
     // "Hadir" → approved jika dalam batas, atau pending
     // "Tidak Hadir" → "rejected"
@@ -183,27 +214,42 @@ serve(async (req) => {
       isApproved = true; // rejected itu final, bukan pending
     } else {
       // "Hadir" — cek apakah auto-approved
-      // Keluarga: tidak dibatasi 2 orang
-      // Bukan (non-keluarga): maksimal 2 orang
+      // Gunakan config approval_mode dari database (GAP-001)
       var invitedCount = existing.guest_count;
-      if (existing.kategori === "keluarga") {
-        newApprovalStatus = "approved";
-        isApproved = true;
-      } else if (invitedCount <= 2) {
+      const modeType = approvalMode.type as string || "auto";
+      const threshold = (approvalMode.threshold_non_keluarga as number) || 2;
+
+      if (modeType === "manual") {
+        // Always manual — semua perlu approval
+        newApprovalStatus = "pending";
+        isApproved = false;
+      } else if (modeType === "auto") {
+        // Always auto — semua langsung approved
         newApprovalStatus = "approved";
         isApproved = true;
       } else {
-        // Non-keluarga dengan invited_count > 2 — perlu approval admin
-        newApprovalStatus = "pending";
-        isApproved = false;
+        // Threshold mode (default behavior)
+        // Keluarga: tidak dibatasi
+        // Bukan (non-keluarga): threshold-based
+        if (existing.kategori === "keluarga") {
+          newApprovalStatus = "approved";
+          isApproved = true;
+        } else if (invitedCount <= threshold) {
+          newApprovalStatus = "approved";
+          isApproved = true;
+        } else {
+          newApprovalStatus = "pending";
+          isApproved = false;
+        }
       }
     }
 
     // Update reservasi dengan data RSVP
+    // GAP-006: jangan overwrite guest_count (invited count di-set admin).
+    // jumlah_hadir dari tamu disimpan sebagai rsvp_count, bukan guest_count.
     var updateData: Record<string, unknown> = {
       name: nama,
       nomor_wa: waClean || null,
-      guest_count: hadir,
       approval_status: newApprovalStatus,
       notes: pesan || existing.notes,
       edited_status: "rsvp",
@@ -244,12 +290,19 @@ serve(async (req) => {
       { status: 200, headers },
     );
   } catch (err) {
-    console.error("Rate limit RSVP error:", err);
+    console.error("Rate limit RSVP error:", {
+      error: err,
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+
     return new Response(
       JSON.stringify({
-        error: err instanceof Error ? err.message : JSON.stringify(err),
+        error: "Internal Server Error",
       }),
-      { status: 500, headers },
+      {
+        status: 500,
+        headers,
+      },
     );
   }
 });
