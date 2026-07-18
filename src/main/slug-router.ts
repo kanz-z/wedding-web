@@ -54,7 +54,7 @@ export async function fetchGuestData(): Promise<void> {
 
   _fetchPromise = (async () => {
     try {
-      const res = await supabaseClient.rpc("get_guest_by_slug", { guest_slug: slug });
+      const res = await supabaseClient.rpc("get_guest_by_slug", { slug_param: slug });
       if (res.error) throw res.error;
       const data = res.data as unknown as GuestData[];
       if (!data || data.length === 0) {

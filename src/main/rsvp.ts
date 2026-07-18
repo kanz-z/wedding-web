@@ -117,7 +117,7 @@ function saveRsvpSubmitted(nama: string, status: string): void {
 
 async function fetchGuest(guestSlug: string): Promise<unknown> {
   const res = await supabaseClient.rpc("get_guest_by_slug", {
-    guest_slug: guestSlug,
+    slug_param: guestSlug,
   });
   if (res.error) throw res.error;
   return res.data;

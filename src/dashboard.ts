@@ -7,12 +7,13 @@ import "./styles/dashboard.css";
 
 // Dashboard modules
 import { initNotifications, initModals, initKeyboard } from "./dashboard/ui";
-import { initGuestEvents, initGuestTable, reloadGuests } from "./dashboard/guests";
+import { initGuestEvents, initGuestTable, reloadGuests, renderSummaryCards } from "./dashboard/guests";
 import { initAuth, initRouting, checkSession } from "./dashboard/auth";
 import { initCheckinEvents, renderCheckinLog } from "./dashboard/checkin";
 import { initReservations } from "./dashboard/reservations";
 import { initMessages } from "./dashboard/messages";
 import { initAdmin } from "./dashboard/admin";
+import { fetchGuests } from "./dashboard/state";
 
 // Initialize all modules
 function initDashboard(): void {
@@ -26,6 +27,11 @@ function initDashboard(): void {
   initReservations();
   initMessages();
   initAdmin();
+
+  // Fetch data tamu eagerly agar summary card di hub terisi sejak awal
+  fetchGuests().then(() => renderSummaryCards()).catch(() => {
+    // silent — tamu tab akan retry saat dikunjungi
+  });
 
   // Init guest table pada first visit, reload data pada kunjungan berikutnya
   let guestTableInited = false;

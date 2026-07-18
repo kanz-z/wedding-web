@@ -33,7 +33,7 @@ function kategoriBadge(k: string): string {
 }
 
 // --- Summary cards (4.3) ---
-function renderSummaryCards(): void {
+export function renderSummaryCards(): void {
   const s = getGuestSummary();
   const cards = document.querySelectorAll<HTMLElement>('.guest-summary-card');
   if (cards.length < 6) return;

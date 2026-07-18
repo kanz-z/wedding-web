@@ -1,6 +1,7 @@
 // src/main/guestbook.ts
 import { supabaseClient } from "./supabase-client";
 import { getNama } from "./slug-router";
+import { config } from "../config";
 import { showRsvpModal } from "./utils";
 import { escapeHtml, renderPagination } from "./utils";
 
@@ -66,12 +67,25 @@ async function submitGuestbook(
   pesanInput: string,
   rsvpId: string | null,
 ): Promise<void> {
-  const res = (await supabaseClient
-    .from("guestbook")
-    .insert([
-      { rsvp_id: rsvpId || null, nama: namaInput, pesan: pesanInput },
-    ])) as unknown as { error: unknown };
-  if (res.error) throw res.error;
+  const res = await fetch(config.GUESTBOOK_EDGE_FUNCTION, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: config.SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + config.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      nama: namaInput,
+      pesan: pesanInput,
+      reservation_id: rsvpId || null,
+    }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(function () {
+      return {};
+    });
+    throw new Error(errData.error || "Gagal mengirim ucapan. Silakan coba lagi.");
+  }
 }
 
 export async function fetchGuestbook(page?: number): Promise<void> {

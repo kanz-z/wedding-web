@@ -137,6 +137,7 @@ GRANT ALL ON public.reservations TO authenticated;
 GRANT ALL ON public.guestbook TO authenticated;
 GRANT SELECT ON public.admin_users TO authenticated;
 GRANT SELECT ON public.guestbook TO anon;
+GRANT SELECT ON public.check_in_transactions TO authenticated;
 
 -- rate_limits: no policy = fully denied for anon/authenticated (service_role only)
 
