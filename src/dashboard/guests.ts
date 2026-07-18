@@ -6,8 +6,8 @@ import {
   guestList,
   currentPage, pageSize, sortKey, sortDir, searchQuery, filters, selectedIds,
   resetFilters, setCurrentPage, setSortKey, setSearchQuery, setPageSize,
-  checkinStatus, getGuestSummary, fetchGuests,
-  insertGuest, updateGuest, addCheckin, fetchCheckinLog, setupRealtime,
+  checkinStatus, getGuestSummary, getAnomalyCount, fetchGuests,
+  insertGuest, updateGuest, addCheckin, undoCheckin, fetchCheckinLog, setupRealtime,
 } from './state';
 import { showModal, hideModal } from './ui';
 import { supabase } from './supabase-client';
@@ -43,6 +43,14 @@ export function renderSummaryCards(): void {
     const valEl = c.querySelector('.summary-card__value');
     if (valEl) valEl.textContent = String(vals[i % 6] ?? 0);
   });
+
+  // GAP-014: badge anomali
+  const anomalyBadge = document.getElementById('anomaly-badge');
+  if (anomalyBadge) {
+    const count = getAnomalyCount();
+    anomalyBadge.textContent = String(count);
+    anomalyBadge.style.display = count > 0 ? '' : 'none';
+  }
 }
 
 // --- Filter / sort ---
@@ -342,6 +350,10 @@ function openCheckinDialog(id: string): void {
   (document.getElementById('checkin-dialog-partial-input') as HTMLInputElement).value = String(Math.max(1, rem));
   (document.getElementById('checkin-dialog-partial-input') as HTMLInputElement).max = String(Math.max(1, rem));
 
+  // GAP-013: reset override checkbox
+  const overrideCb = document.getElementById('checkin-dialog-override') as HTMLInputElement | null;
+  if (overrideCb) overrideCb.checked = false;
+
   showModal('checkin-dialog-overlay');
 }
 
@@ -352,13 +364,17 @@ async function doCheckinAll(): Promise<void> {
   const rem = g.guest_count - g.checkedIn;
   const delta = rem > 0 ? rem : g.guest_count;
 
+  // GAP-013: override support via manual check-in
+  const overrideCb = document.getElementById('checkin-dialog-override') as HTMLInputElement | null;
+  const isOverride = overrideCb?.checked ?? false;
+
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual');
+    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual', isOverride);
     hideModal('checkin-dialog-overlay');
     renderGuestTable();
     flashRow(activeGuestId);
-    showToast(g.name + ' berhasil check-in (+' + delta + ')');
+    showToast(g.name + ' berhasil check-in (+' + delta + ')' + (isOverride ? ' [Override]' : ''));
     window.dispatchEvent(new CustomEvent('checkin-updated'));
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
@@ -373,9 +389,13 @@ async function doCheckinPartial(): Promise<void> {
   const delta = parseInt((document.getElementById('checkin-dialog-partial-input') as HTMLInputElement).value, 10);
   if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); return; }
 
+  // GAP-013: override support via manual check-in
+  const overrideCb = document.getElementById('checkin-dialog-override') as HTMLInputElement | null;
+  const isOverride = overrideCb?.checked ?? false;
+
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual');
+    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual', isOverride);
     hideModal('checkin-dialog-overlay');
     renderGuestTable();
     flashRow(activeGuestId);
@@ -465,6 +485,7 @@ async function renderAuditLog(): Promise<void> {
           <div class="scan-result-item__name">${escapeHtml(e.guestName)} ${e.isOverride ? '<span class="badge-dash badge-dash--danger ms-1">Override</span>' : ''}</div>
           <div class="scan-result-item__meta">+${e.delta} tamu via ${e.method === 'qr' ? 'QR' : 'manual'}${e.notes ? ' · ' + escapeHtml(e.notes) : ''} · oleh ${escapeHtml(e.adminName)} · ${formatTime(e.createdAt)}</div>
         </div>
+        ${e.delta > 0 ? `<button type="button" class="btn btn-sm btn-outline-danger ms-2 undo-checkin-btn" data-reservation-id="${e.reservationId}" data-delta="${e.delta}" title="Undo check-in"><i class="bi bi-arrow-counterclockwise"></i></button>` : ''}
       </div>`).join('');
   } catch {
     el.innerHTML = '<p style="color:var(--danger);font-size:0.8125rem;text-align:center">Gagal memuat audit log.</p>';
@@ -709,6 +730,27 @@ export function initGuestEvents(): void {
   window.addEventListener('page-changed', ((e: CustomEvent) => {
     if (e.detail.page === 'checkin') renderAuditLog();
   }) as EventListener);
+
+  // GAP-011: Undo check-in buttons di audit log
+  document.getElementById('audit-log-list')?.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.undo-checkin-btn');
+    if (!btn) return;
+    const reservationId = btn.dataset.reservationId!;
+    const delta = parseInt(btn.dataset.delta ?? '0', 10);
+    if (!confirm(`Undo check-in (+${delta})? Data check-in akan dikurangi.`)) return;
+    try {
+      btn.disabled = true;
+      await undoCheckin(reservationId, delta);
+      await fetchGuests();
+      renderGuestTable();
+      await renderAuditLog();
+      showToast('Check-in berhasil di-undo (-' + delta + ')');
+    } catch (err: unknown) {
+      showToast('Gagal undo: ' + (err instanceof Error ? err.message : String(err)), true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   // Cross-module events from checkin.ts (5.2, 5.7)
   window.addEventListener('open-checkin-dialog', ((e: CustomEvent) => {

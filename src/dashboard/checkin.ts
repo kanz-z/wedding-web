@@ -235,6 +235,18 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
   const remaining = reservation.guest_count - checkedIn;
   const isComplete = checkedIn >= reservation.guest_count;
 
+  // GAP-012: Auto check-in untuk kuota 1 — langsung check-in tanpa modal
+  if (reservation.guest_count === 1 && checkedIn === 0 && !isComplete) {
+    const overlay = document.getElementById('postscan-modal-overlay');
+    if (overlay) {
+      overlay.dataset.reservationId = reservation.id;
+      overlay.dataset.guestCount = String(reservation.guest_count);
+      overlay.dataset.checkedIn = String(checkedIn);
+    }
+    doPostscanCheckinAll();
+    return;
+  }
+
   if (detailEl) {
     detailEl.textContent = isComplete
       ? `Sudah check-in: ${checkedIn}/${reservation.guest_count} — semua sudah hadir`

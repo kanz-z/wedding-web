@@ -77,6 +77,11 @@ export function getGuestSummary(): GuestSummary {
   return { total, hadirRsvp, tidakRsvp, belumRsvp, sudahCheckin, belumCheckin };
 }
 
+// GAP-014: jumlah anomali untuk badge notifikasi
+export function getAnomalyCount(): number {
+  return guestList.filter(g => g.flag !== null).length;
+}
+
 // --- Anomaly detection (4.17) ---
 
 function detectAnomaly(
@@ -302,6 +307,46 @@ export async function addCheckin(
       ...guestList[idx],
       checkedIn: newCheckedIn,
       checkedInAt: new Date().toISOString(),
+      flag: detectAnomaly(guestList[idx], newCheckedIn, guestList[idx].rsvp, guestList),
+    };
+  }
+}
+
+// --- Undo check-in (GAP-011) ---
+export async function undoCheckin(reservationId: string, delta: number): Promise<void> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error('Sesi tidak valid — silakan login kembali');
+
+  const resp = await fetch(
+    `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        reservation_id: reservationId,
+        delta: -delta,
+        method: 'manual',
+        is_override: false,
+        notes: 'undo: koreksi check-in oleh admin',
+      }),
+    },
+  );
+
+  const result = await resp.json();
+  if (!resp.ok) {
+    throw new Error((result as Record<string, unknown>).error as string || 'Gagal undo check-in');
+  }
+
+  const idx = guestList.findIndex(g => g.id === reservationId);
+  if (idx !== -1) {
+    const newCheckedIn = Math.max(0, guestList[idx].checkedIn - delta);
+    guestList[idx] = {
+      ...guestList[idx],
+      checkedIn: newCheckedIn,
       flag: detectAnomaly(guestList[idx], newCheckedIn, guestList[idx].rsvp, guestList),
     };
   }

@@ -8,7 +8,7 @@ export interface Reservation {
   kelompok: string | null;
   kategori: 'keluarga' | 'bukan';
   nomor_wa: string | null;
-  approval_status: 'pending' | 'approved' | 'rejected';
+  approval_status: 'pending' | 'approved' | 'rejected' | 'cancelled';
   edited_status: 'rsvp' | 'admin' | null;
   notes: string | null;
   version: number;
