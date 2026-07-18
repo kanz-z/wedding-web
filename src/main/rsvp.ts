@@ -4,8 +4,6 @@ import { supabaseClient } from "./supabase-client";
 import { config } from "../config";
 import { showToast, showRsvpModal, hideRsvpModal } from "./utils";
 
-import html2canvas from "html2canvas";
-import QRCode from "qrcodejs";
 
 interface RsvpSubmitResult {
   is_approved: boolean;

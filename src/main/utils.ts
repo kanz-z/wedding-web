@@ -1,33 +1,9 @@
 // src/main/utils.ts — ES module version
+// GAP-022: escapeHtml dan showToast diimpor dari shared/ui, tidak duplikat
 
-export function showToast(msg: string, isError?: boolean): void {
-  let el = document.getElementById("toast") as HTMLElement | null;
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "toast";
-    el.className = "toast-global";
-    document.body.appendChild(el);
-  }
-  clearTimeout(
-    (el as unknown as Record<string, unknown>)._timer as number | undefined,
-  );
-  clearTimeout(
-    (el as unknown as Record<string, unknown>)._hideTimer as number | undefined,
-  );
-  el.textContent = msg;
-  el.className = "toast-global" + (isError ? " is-error" : "");
-  void el.offsetWidth;
-  el.classList.add("show");
-  (el as unknown as Record<string, ReturnType<typeof setTimeout>>)._timer =
-    setTimeout(function () {
-      el.classList.remove("show");
-      (
-        el as unknown as Record<string, ReturnType<typeof setTimeout>>
-      )._hideTimer = setTimeout(function () {
-        el.style.display = "none";
-      }, 250);
-    }, 3000);
-}
+import { escapeHtml, showToast } from "@/shared/ui";
+
+export { escapeHtml, showToast };
 
 interface RsvpModalButton {
   text: string;
@@ -145,12 +121,6 @@ export function copyToClipboard(text: string): void {
     .catch(function () {
       prompt("Salin nomor rekening:", text);
     });
-}
-
-export function escapeHtml(str: string): string {
-  const d = document.createElement("div");
-  d.textContent = str || "";
-  return d.innerHTML;
 }
 
 export function createPageItem(

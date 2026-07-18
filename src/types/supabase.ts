@@ -62,9 +62,10 @@ export interface RateLimitGuestbook {
   created_at: string;
 }
 
-// --- Legacy types (used by main page) — tetap dipertahankan ---
+// --- Legacy types (digunakan oleh main page) — tetap dipertahankan untuk kompatibilitas ---
+// GAP-019: @deprecated — gunakan Reservation, GuestbookEntry, CheckInTransaction sebagai gantinya
 
-/** Tipe untuk tabel 'guests' di Supabase */
+/** @deprecated Gunakan Reservation */
 export interface DbGuest {
   id: string;
   nama: string;
@@ -75,7 +76,7 @@ export interface DbGuest {
   created_at: string;
 }
 
-/** Tipe untuk tabel 'rsvps' di Supabase */
+/** @deprecated Gunakan Reservation & CheckInTransaction */
 export interface DbRsvp {
   id: string;
   guest_id: string;
@@ -89,7 +90,7 @@ export interface DbRsvp {
   created_at: string;
 }
 
-/** Tipe untuk tabel 'guestbook' di Supabase */
+/** @deprecated Gunakan GuestbookEntry */
 export interface DbGuestbook {
   id: string;
   rsvp_id: string | null;
@@ -99,7 +100,7 @@ export interface DbGuestbook {
   created_at: string;
 }
 
-/** Tipe untuk response dari fungsi Supabase RPC */
+/** @deprecated Gunakan CheckInTransaction */
 export interface DbCheckinLog {
   rsvp_id: { nama: string } | null;
   checked_in_at: string;
