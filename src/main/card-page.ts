@@ -229,6 +229,8 @@ function handleDownload(): void {
   const btnText = btn?.querySelector(".btn-download-card__text");
   const el = document.querySelector(".invitation-card") as HTMLElement | null;
   const guest = getGuestData() as GuestData | null;
+  const card = document.querySelector(".invitation-card") as HTMLElement;
+  card.classList.add("exporting");
 
   if (!el || !btn) return;
 
@@ -281,6 +283,7 @@ function handleDownload(): void {
       if (btnText) {
         btnText.textContent = "Unduh Kartu";
       }
+      card.classList.remove("exporting");
     });
 }
 
