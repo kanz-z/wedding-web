@@ -528,6 +528,38 @@ export async function rejectReservation(id: string): Promise<void> {
   if (error) throw error;
 }
 
+/** Edit status reservasi yang sudah final (approved/rejected → pending/rejected/approved) */
+export async function updateReservationStatus(
+  id: string,
+  newStatus: 'approved' | 'rejected' | 'pending',
+): Promise<void> {
+  const updates: Record<string, unknown> = { approval_status: newStatus };
+  if (newStatus === 'approved') {
+    updates.approved_at = new Date().toISOString();
+    updates.rejected_at = null;
+  } else if (newStatus === 'rejected') {
+    updates.rejected_at = new Date().toISOString();
+    updates.approved_at = null;
+  } else {
+    updates.approved_at = null;
+    updates.rejected_at = null;
+  }
+  const { error } = await supabase
+    .from('reservations')
+    .update(updates)
+    .eq('id', id);
+  if (error) throw error;
+  // Update local state
+  const idx = guestList.findIndex(g => g.id === id);
+  if (idx !== -1) {
+    guestList[idx] = {
+      ...guestList[idx],
+      approval_status: newStatus,
+      rsvp: newStatus === 'approved' ? 'hadir' : newStatus === 'rejected' ? 'tidak' : 'belum',
+    };
+  }
+}
+
 // --- Event Status (Fase 6C) ---
 
 export let eventStatus: 'online' | 'offline' =

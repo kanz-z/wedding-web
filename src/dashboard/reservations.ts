@@ -7,6 +7,7 @@ import {
   fetchGuests,
   approveReservation,
   rejectReservation,
+  updateReservationStatus,
   eventStatus,
   setEventStatus,
 } from './state';
@@ -45,7 +46,10 @@ export function initReservations(): void {
 
 async function loadReservations(): Promise<void> {
   show(document.getElementById('res-skeleton'));
-  hide(document.getElementById('reservation-grid'));
+  // Hanya sembunyikan grid jika belum ada data — hindari flash saat reload
+  if (guestList.length === 0) {
+    hide(document.getElementById('reservation-grid'));
+  }
   hide(document.getElementById('res-empty'));
   hide(document.getElementById('res-error'));
 
@@ -60,9 +64,14 @@ async function loadReservations(): Promise<void> {
 
     renderReservations();
     show(document.getElementById('reservation-grid'));
-  } catch {
+  } catch (err) {
     hide(document.getElementById('res-skeleton'));
-    show(document.getElementById('res-error'));
+    // Jangan tampilkan error jika data sudah ada (aborted retry, dsb.)
+    if (guestList.length === 0) {
+      show(document.getElementById('res-error'));
+    } else {
+      console.error('Gagal refresh reservasi:', err);
+    }
   }
 }
 
@@ -86,9 +95,12 @@ function renderReservations(): void {
             <button class="btn-dash btn-dash-outline btn-reject" data-id="${r.id}" type="button" style="font-size:0.75rem;padding:2px 8px">Reject</button>
           </div>`
             : `
-          <span class="badge-dash badge-dash--${r.approval_status === 'approved' ? 'success' : 'danger'}" style="margin-top:4px;display:inline-block">${
+          <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+            <span class="badge-dash badge-dash--${r.approval_status === 'approved' ? 'success' : 'danger'}" style="display:inline-block">${
               r.approval_status === 'approved' ? 'Disetujui' : 'Ditolak'
-            }</span>`
+            }</span>
+            <button class="btn-edit-status" data-id="${r.id}" data-status="${r.approval_status}" type="button" title="Ubah status" style="font-size:0.7rem;padding:0 4px;background:none;border:1px solid var(--panel-border);border-radius:4px;color:var(--ink-muted);cursor:pointer;line-height:1.5">✎</button>
+          </div>`
         }
         <div class="reservation-card__actions">
           <button type="button" data-copy-link="${BASE_URL}/invitation/${escapeHtml(r.slug)}"><i class="bi bi-clipboard"></i> Salin</button>
@@ -132,6 +144,32 @@ function renderReservations(): void {
         ?.writeText(btn.dataset.copyLink ?? '')
         .then(() => showToast('Tautan disalin'))
         .catch(() => showToast('Gagal menyalin tautan', true));
+    });
+  });
+
+  // Edit status untuk reservasi yang sudah final (6.10)
+  grid.querySelectorAll<HTMLButtonElement>('.btn-edit-status').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id!;
+      const currentStatus = btn.dataset.status!;
+      const guest = guestList.find(g => g.id === id);
+      const guestName = guest?.name ?? 'tamu ini';
+
+      const newStatus = confirm(
+        'Ubah status reservasi "' + guestName + '"?\n\n' +
+        'Status saat ini: ' + (currentStatus === 'approved' ? 'Disetujui' : 'Ditolak') + '\n\n' +
+        'Klik OK untuk mengembalikan ke Pending\n' +
+        'Klik Cancel untuk batal.'
+      );
+      if (!newStatus) return;
+
+      try {
+        await updateReservationStatus(id, 'pending');
+        showToast('Status dikembalikan ke pending');
+        await loadReservations();
+      } catch {
+        showToast('Gagal mengubah status', true);
+      }
     });
   });
 }

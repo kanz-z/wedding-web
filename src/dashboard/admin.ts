@@ -61,11 +61,26 @@ function renderAdminTable(): void {
     return `<span class="badge-dash ${map[role] || ''}">${label}</span>`;
   };
 
+  /**
+   * Cek apakah current admin boleh menghapus admin dengan role tertentu.
+   *   Superadmin → hapus Admin & Operator
+   *   Admin      → hapus Operator
+   *   Operator   → tidak bisa hapus siapa pun
+   *   Role setara tidak boleh saling hapus
+   */
+  const canDelete = (targetRole: string): boolean => {
+    if (currentAdminRole === 'superadmin') return targetRole === 'admin' || targetRole === 'operator';
+    if (currentAdminRole === 'admin') return targetRole === 'operator';
+    return false;
+  };
+
   const isSuperadmin = currentAdminRole === 'superadmin';
 
   tbody.innerHTML = adminUsers
     .map(
-      (a) => `
+      (a) => {
+        const canDel = a.id !== currentAdminId && canDelete(a.role);
+        return `
     <tr>
       <td class="guest-name">${escapeHtml(a.email)}</td>
       <td>${roleBadge(a.role)}</td>
@@ -73,13 +88,14 @@ function renderAdminTable(): void {
       <td>
         <div class="row-actions">
           <button title="Hapus" data-delete-admin="${a.id}"
-            ${!isSuperadmin || a.id === currentAdminId ? 'disabled class="is-disabled"' : ''}>
+            ${!canDel ? 'disabled class="is-disabled"' : ''}>
             <i class="bi bi-trash"></i>
           </button>
         </div>
       </td>
     </tr>
-  `,
+  `;
+      },
     )
     .join('');
 

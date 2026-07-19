@@ -4,6 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  throw new Error("SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY tidak di-set");
+}
 const sb = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const RATE_LIMIT_MAX = 3;
@@ -20,9 +23,10 @@ const ALLOWED_ORIGINS = [
 ];
 
 const KATA_KASAR = [
-  "anjing", "babi", "bangsat", "goblok", "tolol", "bodoh",
-  "kontol", "memek", "jancok", "jancuk", "ngentot", "bajingan",
-  "brengsek", "laknat", "sialan", "kampret", "bego", "setan",
+  "anjing", "babi", "bangsat", "goblok", "tolol",
+  "bodoh", "kontol", "memek", "jancok", "jancuk",
+  "ngentot", "bajingan", "brengsek", "laknat", "sialan",
+  "kampret", "bego", "setan",
 ];
 
 function sensorKataKasar(text: string): boolean {
@@ -30,6 +34,23 @@ function sensorKataKasar(text: string): boolean {
     if (new RegExp("\\b" + KATA_KASAR[i] + "\\b", "i").test(text)) return true;
   }
   return false;
+}
+
+// Serialize error object menjadi string untuk response/debug
+function dumpError(e: unknown): Record<string, unknown> {
+  if (typeof e !== "object" || e === null) return { _value: String(e) };
+  const obj = e as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  try {
+    for (const k of Object.getOwnPropertyNames(obj)) {
+      const v = obj[k];
+      if (typeof v === "function") continue;
+      out[k] = v;
+    }
+  } catch {
+    out._string = String(e);
+  }
+  return out;
 }
 
 serve(async (req) => {
@@ -45,18 +66,18 @@ serve(async (req) => {
     "Content-Type": "application/json",
   };
 
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers });
-  }
-
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers,
-    });
-  }
-
   try {
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers });
+    }
+
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers,
+      });
+    }
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
@@ -66,10 +87,10 @@ serve(async (req) => {
     const { nama, pesan, reservation_id } = body;
 
     if (!nama || !pesan) {
-      return new Response(JSON.stringify({ error: "Nama dan ucapan wajib diisi." }), {
-        status: 400,
-        headers,
-      });
+      return new Response(
+        JSON.stringify({ error: "Nama dan ucapan wajib diisi." }),
+        { status: 400, headers },
+      );
     }
 
     if (pesan.length > 500) {
@@ -87,6 +108,7 @@ serve(async (req) => {
     }
 
     // Cek rate limit
+    console.log("[guestbook] step 1: cek rate limit, ip=" + ip);
     const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
     const { count, error: countError } = await sb
       .from("rate_limits_guestbook")
@@ -94,42 +116,51 @@ serve(async (req) => {
       .eq("ip_address", ip)
       .gte("created_at", since);
 
-    if (countError) throw countError;
+    if (countError) {
+      console.error("rate-limit-guestbook: SELECT rate_limits_guestbook gagal:", dumpError(countError));
+      throw countError;
+    }
 
     if (count && count >= RATE_LIMIT_MAX) {
       return new Response(
-        JSON.stringify({
-          error: "Terlalu banyak permintaan. Silakan coba lagi dalam beberapa menit.",
-          rate_limited: true,
-        }),
+        JSON.stringify({ error: "Terlalu banyak permintaan. Silakan coba lagi dalam beberapa menit.", rate_limited: true }),
         { status: 429, headers },
       );
     }
 
     // Insert ke rate_limits_guestbook
+    console.log("[guestbook] step 3: insert rate limit");
     const { error: rateError } = await sb
       .from("rate_limits_guestbook")
       .insert([{ ip_address: ip }]);
 
-    if (rateError) throw rateError;
+    if (rateError) {
+      console.error("rate-limit-guestbook: INSERT rate_limits_guestbook gagal:", dumpError(rateError));
+      throw rateError;
+    }
 
     // Insert guestbook (pakai service_role, tembus RLS)
-    const { error: insertError } = await sb
-      .from("guestbook")
-      .insert([{ reservation_id: reservation_id || null, name: nama, message: pesan, is_approved: true }]);
+    console.log("[guestbook] step 5: insert guestbook");
+    const { error: insertError } = await sb.from("guestbook").insert([
+      { reservation_id: reservation_id || null, name: nama, message: pesan, is_approved: true },
+    ]);
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error("rate-limit-guestbook: INSERT guestbook gagal:", dumpError(insertError));
+      throw insertError;
+    }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers },
-    );
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   } catch (err) {
-    console.error("Rate limit guestbook error:", err);
+    const debug = dumpError(err);
+    console.error("Rate limit guestbook error:", JSON.stringify(debug));
+
+    // Ekstrak pesan yang bisa ditampilkan ke user
+    const msg = String(debug.message || debug.details || debug.hint || "Internal Server Error");
+    const code = debug.code || "UNKNOWN";
+
     return new Response(
-      JSON.stringify({
-        error: err instanceof Error ? err.message : JSON.stringify(err),
-      }),
+      JSON.stringify({ error: msg, code, _debug: debug }),
       { status: 500, headers },
     );
   }

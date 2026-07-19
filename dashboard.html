@@ -99,6 +99,8 @@
             <span class="d-none d-md-inline">Keluar</span>
           </button>
 
+          <!-- Overlay notifikasi mobile -->
+          <div class="notif-overlay" id="notif-overlay"></div>
           <div
             class="notif-panel"
             id="notif-panel"
@@ -116,41 +118,11 @@
                 &times;
               </button>
             </div>
-            <div class="notif-item is-flagged">
-              <div class="notif-item__icon">
-                <i class="bi bi-flag-fill"></i>
-              </div>
-              <div class="notif-item__body">
-                <p>
-                  <strong>Damar Wicaksono</strong> mengisi RSVP untuk
-                  <strong>4 orang</strong> — di luar keluarga.
-                </p>
-                <span class="notif-item__time">8 menit lalu</span>
-              </div>
+            <div id="notif-list">
+              <!-- notifikasi diisi dinamis dari JS -->
             </div>
-            <div class="notif-item">
-              <div class="notif-item__icon">
-                <i class="bi bi-envelope-heart-fill"></i>
-              </div>
-              <div class="notif-item__body">
-                <p>
-                  <strong>Siti Amara</strong> mengisi form RSVP — menunggu
-                  persetujuan.
-                </p>
-                <span class="notif-item__time">42 menit lalu</span>
-              </div>
-            </div>
-            <div class="notif-item">
-              <div class="notif-item__icon">
-                <i class="bi bi-chat-heart-fill"></i>
-              </div>
-              <div class="notif-item__body">
-                <p>
-                  <strong>Rangga Prasetyo</strong> mengirim ucapan baru di
-                  guestbook.
-                </p>
-                <span class="notif-item__time">2 jam lalu</span>
-              </div>
+            <div id="notif-empty" class="text-center py-4" style="color: var(--ink-muted); font-size: 0.85rem;">
+              Tidak ada notifikasi
             </div>
           </div>
         </div>

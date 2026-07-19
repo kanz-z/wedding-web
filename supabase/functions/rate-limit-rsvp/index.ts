@@ -4,6 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  throw new Error("SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY tidak di-set");
+}
 const sb = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const RATE_LIMIT_MAX = 5;
@@ -32,18 +35,18 @@ serve(async (req) => {
     "Content-Type": "application/json",
   };
 
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers });
-  }
-
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers,
-    });
-  }
-
   try {
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers });
+    }
+
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers,
+      });
+    }
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
@@ -96,7 +99,13 @@ serve(async (req) => {
       .eq("ip_address", ip)
       .gte("created_at", since);
 
-    if (countError) throw countError;
+    if (countError) {
+      console.error(
+        "rate-limit-rsvp: SELECT rate_limits_rsvp gagal:",
+        JSON.stringify(countError),
+      );
+      throw countError;
+    }
 
     if (count && count >= RATE_LIMIT_MAX) {
       return new Response(
@@ -114,7 +123,13 @@ serve(async (req) => {
       .from("rate_limits_rsvp")
       .insert([{ ip_address: ip }]);
 
-    if (rateError) throw rateError;
+    if (rateError) {
+      console.error(
+        "rate-limit-rsvp: INSERT rate_limits_rsvp gagal:",
+        JSON.stringify(rateError),
+      );
+      throw rateError;
+    }
 
     // GAP-004: cek event status dari event_config
     const { data: eventStatusData } = await sb
@@ -125,7 +140,11 @@ serve(async (req) => {
 
     if (eventStatusData) {
       const eventStatus = eventStatusData.value; // JSON string: "online" atau "offline"
-      if (eventStatus === "offline" || (typeof eventStatus === "string" && JSON.parse(eventStatus) === "offline")) {
+      if (
+        eventStatus === "offline" ||
+        (typeof eventStatus === "string" &&
+          JSON.parse(eventStatus) === "offline")
+      ) {
         return new Response(
           JSON.stringify({
             error: "Acara sedang offline. RSVP tidak dapat dilakukan saat ini.",
@@ -136,7 +155,10 @@ serve(async (req) => {
     }
 
     // GAP-001: baca config approval mode dari event_config
-    let approvalMode: Record<string, unknown> = { type: "auto", threshold_non_keluarga: 2 };
+    let approvalMode: Record<string, unknown> = {
+      type: "auto",
+      threshold_non_keluarga: 2,
+    };
     const { data: amData } = await sb
       .from("event_config")
       .select("value")
@@ -216,7 +238,7 @@ serve(async (req) => {
       // "Hadir" — cek apakah auto-approved
       // Gunakan config approval_mode dari database (GAP-001)
       var invitedCount = existing.guest_count;
-      const modeType = approvalMode.type as string || "auto";
+      const modeType = (approvalMode.type as string) || "auto";
       const threshold = (approvalMode.threshold_non_keluarga as number) || 2;
 
       if (modeType === "manual") {
@@ -275,7 +297,13 @@ serve(async (req) => {
       .select("qr_token, guest_count, notes")
       .single();
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error(
+        "rate-limit-rsvp: INSERT RSVP gagal:",
+        JSON.stringify(updateError),
+      );
+      throw updateError;
+    }
 
     return new Response(
       JSON.stringify({
@@ -290,19 +318,31 @@ serve(async (req) => {
       { status: 200, headers },
     );
   } catch (err) {
-    console.error("Rate limit RSVP error:", {
-      error: err,
-      stack: err instanceof Error ? err.stack : undefined,
-    });
+    function dumpError(e: unknown): Record<string, unknown> {
+      if (typeof e !== "object" || e === null) return { _value: String(e) };
+      const obj = e as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      try {
+        for (const k of Object.getOwnPropertyNames(obj)) {
+          const v = obj[k];
+          if (typeof v === "function") continue;
+          out[k] = v;
+        }
+      } catch {
+        out._string = String(e);
+      }
+      return out;
+    }
+
+    const debug = dumpError(err);
+    console.error("Rate limit RSVP error:", JSON.stringify(debug));
+
+    const msg = String(debug.message || debug.details || debug.hint || "Internal Server Error");
+    const code = debug.code || "UNKNOWN";
 
     return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-      }),
-      {
-        status: 500,
-        headers,
-      },
+      JSON.stringify({ error: msg, code, _debug: debug }),
+      { status: 500, headers },
     );
   }
 });

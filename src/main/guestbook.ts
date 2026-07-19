@@ -1,6 +1,6 @@
 // src/main/guestbook.ts
 import { supabaseClient } from "./supabase-client";
-import { getNama } from "./slug-router";
+import { getNama, getGuestId } from "./slug-router";
 import { config } from "../config";
 import { showRsvpModal } from "./utils";
 import { escapeHtml, renderPagination } from "./utils";
@@ -81,10 +81,15 @@ async function submitGuestbook(
     }),
   });
   if (!res.ok) {
-    const errData = await res.json().catch(function () {
-      return {};
-    });
-    throw new Error(errData.error || "Gagal mengirim ucapan. Silakan coba lagi.");
+    let errMsg = "Gagal mengirim ucapan. Silakan coba lagi.";
+    try {
+      const errData = await res.json();
+      const raw = String(errData.error || "");
+      if (raw && raw !== "{}" && !raw.startsWith('{')) errMsg = raw;
+    } catch (_) {
+      errMsg = "Server error (" + res.status + ")";
+    }
+    throw new Error(errMsg);
   }
 }
 
@@ -200,7 +205,7 @@ export function initGuestbook(): void {
     const span = this.querySelector("#statusMessage")!;
     span.textContent = "Mengirim...";
     try {
-      await submitGuestbook(nm, psn, null);
+      await submitGuestbook(nm, psn, getGuestId());
       showRsvpModal({ message: "Ucapan berhasil dikirim! Terima kasih!" });
       namaEl.value = "";
       pesanEl.value = "";

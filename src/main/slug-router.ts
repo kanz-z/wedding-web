@@ -1,11 +1,11 @@
 // src/main/slug-router.ts
-// Slug-based routing — pengganti url-params.ts.
+// Slug-based routing
 // Membaca window.location.pathname, ekstrak slug, dan fetch data tamu dari Supabase.
 //
 // Route:
-//   /              → Cover default, tidak ada data tamu
-//   /[slug]        → Halaman undangan dengan data tamu
-//   /[slug]/card   → Halaman kartu undangan setelah RSVP
+//   /                          → Cover default, tidak ada data tamu
+//   /invitation/[slug]         → Halaman undangan dengan data tamu
+//   /invitation/[slug]/card    → Halaman kartu undangan setelah RSVP
 
 import { supabaseClient } from "./supabase-client";
 
@@ -28,14 +28,35 @@ export type RouteType = "cover" | "undangan" | "card";
 const path = window.location.pathname.replace(/\/+$/, ""); // hapus trailing slash
 const segments = path.split("/").filter(Boolean);
 
-export const routeType: RouteType =
-  segments.length === 2 && segments[1] === "card"
-    ? "card"
-    : segments.length === 1
-      ? "undangan"
-      : "cover";
+function detectRoute(segs: string[]): { routeType: RouteType; slug: string } {
+  // Format: /invitation/[slug]/card
+  if (
+    segs.length >= 3 &&
+    segs[0] === "invitation" &&
+    segs[segs.length - 1] === "card"
+  ) {
+    return { routeType: "card", slug: segs[1] ?? "" };
+  }
+  // Format: /invitation/[slug]
+  if (segs.length === 2 && segs[0] === "invitation") {
+    return { routeType: "undangan", slug: segs[1] ?? "" };
+  }
+  // Legacy: /[slug]/card
+  if (segs.length === 2 && segs[1] === "card") {
+    return { routeType: "card", slug: segs[0] ?? "" };
+  }
+  // Legacy: /[slug]
+  if (segs.length === 1) {
+    return { routeType: "undangan", slug: segs[0] ?? "" };
+  }
+  // Root or unknown
+  return { routeType: "cover", slug: "" };
+}
 
-export const slug: string = segments[0] ?? "";
+const detected = detectRoute(segments);
+
+export const routeType: RouteType = detected.routeType;
+export const slug: string = detected.slug;
 
 // ---------------------------------------------------------------------------
 // Data tamu — diisi secara async, null sebelum fetch selesai
@@ -54,14 +75,24 @@ export async function fetchGuestData(): Promise<void> {
 
   _fetchPromise = (async () => {
     try {
-      const res = await supabaseClient.rpc("get_guest_by_slug", { slug_param: slug });
+      const res = await supabaseClient.rpc("get_guest_by_slug", {
+        slug_param: slug,
+      });
       if (res.error) throw res.error;
       const data = res.data as unknown as GuestData[];
       if (!data || data.length === 0) {
         _fetchError = "Undangan tidak ditemukan";
         return;
       }
-      _guestData = data[0];
+      const raw = data[0] as unknown as Record<string, unknown>;
+      _guestData = {
+        id: raw.id as string,
+        nama: raw.name as string,
+        slug: raw.slug as string,
+        token: raw.qr_token as string | null,
+        phone: raw.nomor_wa as string | null | undefined,
+        address: null,
+      };
     } catch (err) {
       console.error("Gagal fetch data tamu:", err);
       _fetchError =

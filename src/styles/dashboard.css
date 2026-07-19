@@ -343,10 +343,38 @@
 }
 @media (max-width: 767px) {
   .notif-panel {
-    top: 64px;
-    right: var(--space-md);
-    left: var(--space-md);
-    width: auto;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: auto;
+    width: 88vw;
+    max-width: 420px;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    transform: translateX(100%);
+    transition:
+      transform 250ms ease,
+      opacity 250ms ease;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+  }
+  .notif-panel.show {
+    transform: translateX(0);
+  }
+  /* Overlay gelap di belakang drawer */
+  .notif-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease;
+  }
+  .notif-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 

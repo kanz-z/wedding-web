@@ -44,10 +44,15 @@ async function submitRSVP(
     }),
   });
   if (!res.ok) {
-    const errData = await res.json().catch(function () {
-      return {};
-    });
-    throw new Error(errData.error || "Gagal mengirim RSVP. Silakan coba lagi.");
+    let errMsg = "Gagal mengirim RSVP. Silakan coba lagi.";
+    try {
+      const errData = await res.json();
+      const raw = String(errData.error || "");
+      if (raw && raw !== "{}" && !raw.startsWith('{')) errMsg = raw;
+    } catch (_) {
+      errMsg = "Server error (" + res.status + ")";
+    }
+    throw new Error(errMsg);
   }
   const data = (await res.json()) as { data: RsvpSubmitResult };
   return {
