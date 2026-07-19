@@ -3,11 +3,14 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "aos/dist/aos.css";
 import "./styles/main.css";
+import "./styles/card.css";
 import "./styles/circle.css";
 
 import AOS from "aos";
 
 import { config } from "./config";
+import { fetchGuestData, routeType, getNama } from "./main/slug-router";
+import { renderCardPage } from "./main/card-page";
 import { initCountdown } from "./main/countdown";
 import { supabaseClient } from "./main/supabase-client";
 import { enableScroll, showBottomNav } from "./main/navigation";
@@ -32,7 +35,146 @@ window.showBottomNav = showBottomNav;
 window.copyToClipboard = copyToClipboard;
 window.fetchGuestbook = fetchGuestbook;
 
-// Init modules
-initCountdown();
-initRsvp();
-initGuestbook();
+function switchOrientation(): void {
+  const orientationInputs = document.querySelectorAll<HTMLInputElement>(
+    'input[name="orientation"]',
+  );
+
+  const card = document.getElementById("invitationCard");
+
+  function setOrientation(orientation: "landscape" | "portrait"): void {
+    if (!card) return;
+    card.classList.remove("landscape", "portrait");
+    card.classList.add(orientation);
+  }
+
+  orientationInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+
+      setOrientation(
+        input.id === "orientation-portrait" ? "portrait" : "landscape",
+      );
+    });
+  });
+}
+
+function hideLoading(): void {
+  const overlay = document.getElementById("loading-overlay");
+  if (overlay) {
+    overlay.classList.add("is-done");
+    // Hapus dari DOM setelah transisi selesai
+    setTimeout(() => overlay.remove(), 500);
+  }
+}
+
+function showOffline(): void {
+  hideLoading();
+  document.getElementById("offline-overlay")?.classList.remove("d-none");
+}
+
+function showError(): void {
+  hideLoading();
+  document.getElementById("error-overlay")?.classList.remove("d-none");
+}
+
+async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
+  try {
+    const { data } = await supabaseClient
+      .from("event_config")
+      .select("value")
+      .eq("key", "event_status")
+      .maybeSingle();
+
+    if (!data) return "online"; // tidak ada config = default online
+
+    const val = (data as { value: string }).value;
+    let status: string = val;
+    // Handle JSON string seperti '"online"' atau '"offline"'
+    if (
+      typeof val === "string" &&
+      (val === '"online"' || val === '"offline"')
+    ) {
+      status = JSON.parse(val);
+    }
+    return status === "offline" ? "offline" : "online";
+  } catch {
+    return "online"; // error saat cek = default online (fail open utk tamu)
+  }
+}
+
+// Init modules — async karena fetchGuestData() perlu resolve dulu
+async function initApp(): Promise<void> {
+  try {
+    // Cek status event dengan timeout + minimum display time
+    const MIN_LOAD_MS = 2000;
+    const TIMEOUT_MS = 5000;
+    const startTime = Date.now();
+
+    const statusPromise =
+      routeType !== "cover"
+        ? checkEventStatus()
+        : Promise.resolve("online" as const);
+
+    // Race: status check vs timeout
+    let status: "online" | "offline" | "error";
+    try {
+      const result = await Promise.race([
+        statusPromise,
+        new Promise<"error">((resolve) =>
+          setTimeout(() => resolve("error"), TIMEOUT_MS),
+        ),
+      ]);
+      status = result;
+    } catch {
+      status = "error";
+    }
+
+    // Pastikan loading screen tampil minimal MIN_LOAD_MS
+    const elapsed = Date.now() - startTime;
+    if (elapsed < MIN_LOAD_MS) {
+      await new Promise((r) => setTimeout(r, MIN_LOAD_MS - elapsed));
+    }
+
+    // Handle status
+    if (status === "offline") {
+      showOffline();
+      return;
+    }
+    if (status === "error") {
+      showError();
+      return;
+    }
+
+    // Online — sembunyikan loading, lanjutkan init normal
+    hideLoading();
+
+    if (routeType !== "cover") {
+      await fetchGuestData();
+    }
+
+    if (routeType === "card") {
+      enableScroll();
+      renderCardPage(document.body);
+      return;
+    }
+
+    // Isi nama tamu di hero untuk rute undangan
+    const nama = getNama();
+    const namaContainer = document.querySelector<HTMLElement>(".hero h4 span");
+    if (namaContainer) {
+      namaContainer.innerText = nama
+        ? " " + nama + ","
+        : " Mr/Mrs/Ms Invited Guest,";
+    }
+
+    initCountdown();
+    initRsvp();
+    initGuestbook();
+  } catch {
+    // Fallback: jika ada error tak terduga, tetap tampilkan halaman
+    hideLoading();
+  }
+}
+
+initApp();

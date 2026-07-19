@@ -5,85 +5,307 @@
 
 import { getGuestData, getNama } from "./slug-router";
 import html2canvas from "html2canvas";
-import QRCode from "qrcodejs";
+import QRCode from "qrcode";
 
 interface CardData {
   nama: string;
-  guestCount: number;
   qrToken: string;
   tanggal: string;
   lokasi: string;
   dressCode: string;
 }
 
-/** Tampilkan overlay kartu undangan setelah RSVP sukses */
+interface GuestData {
+  token?: string;
+  slug?: string;
+  [key: string]: unknown;
+}
+
+/** Tampilkan halaman kartu undangan setelah RSVP sukses */
 export function renderCardPage(container: HTMLElement): void {
-  const guest = getGuestData();
+  const guest = getGuestData() as GuestData | null;
   if (!guest) {
-    container.innerHTML = '<p class="text-center text-secondary">Data tamu tidak ditemukan.</p>';
+    container.innerHTML = buildErrorHTML();
     return;
   }
 
   const data: CardData = {
     nama: getNama(),
-    guestCount: 1,
     qrToken: guest.token ?? "",
     tanggal: "Sabtu, 22 Agustus 2026",
     lokasi: "RIVEA Riverside Cafe and Space, Ngaglik, Sleman, DIY",
-    dressCode: "Jas hitam",
+    dressCode: "Formal / semi-formal",
   };
 
-  container.innerHTML = buildCardHTML(data);
-  generateQR(data.qrToken);
-
-  document.getElementById("btn-download-card")?.addEventListener("click", () => {
-    downloadCard();
-  });
+  container.innerHTML = buildCardHTML(data, guest.slug ?? "");
+  bindEvents();
+  generateQR(data.qrToken, data.nama);
 }
 
-function buildCardHTML(d: CardData): string {
-  const slug = getGuestData()?.slug ?? "";
+/* ------------------------------------------------------------------ */
+/*  HTML Builders                                                     */
+/* ------------------------------------------------------------------ */
+
+function buildCardHTML(d: CardData, slug: string): string {
   return `
     <div class="card-page">
-      <a href="/${slug}" class="card-back-link">&larr; Kembali</a>
-      <div class="card-container">
-        <div class="card-header-section">
-          <p class="card-label">Kartu Undangan Pernikahan</p>
-          <h1 class="card-couple-name">REZA &amp; ASHILA</h1>
+      <header class="card-toolbar">
+        <div class="card-toolbar__start">
+          <a href="/${escAttr(slug)}" class="card-btn-back">
+            <span class="card-btn-back__arrow" aria-hidden="true">&#8592;</span>
+            <span>Kembali</span>
+          </a>
         </div>
-        <div class="card-body-layout">
-          <div class="card-info">
-            <table class="card-info-table">
-              <tr><td class="card-info-label">Nama</td><td class="card-info-value">${esc(d.nama)}</td></tr>
-              <tr><td class="card-info-label">Tanggal</td><td class="card-info-value">${esc(d.tanggal)}</td></tr>
-              <tr><td class="card-info-label">Lokasi</td><td class="card-info-value">${esc(d.lokasi)}</td></tr>
-              <tr><td class="card-info-label">Dress Code</td><td class="card-info-value">${esc(d.dressCode)}</td></tr>
-            </table>
-          </div>
-          <div class="card-qr-section">
-            <div id="card-qr" class="card-qr"></div>
+        <div class="card-toolbar__center">
+          <div class="card-orientation-toggle" role="radiogroup" aria-label="Pilih orientasi kartu">
+            <input type="radio" class="btn-check" name="cardOrientation" id="cardOrientationLandscape" autocomplete="off" checked aria-checked="true">
+            <label class="btn" for="cardOrientationLandscape">Landscape</label>
+            <input type="radio" class="btn-check" name="cardOrientation" id="cardOrientationPortrait" autocomplete="off" aria-checked="false">
+            <label class="btn" for="cardOrientationPortrait">Portrait</label>
           </div>
         </div>
-        <p class="card-instruction">Simpan kartu ini dan tunjukkan saat hari acara</p>
+        <div class="card-toolbar__end" aria-hidden="true"></div>
+      </header>
+
+      <div class="card-stage">
+        <section class="invitation-card landscape" id="invitationCard" aria-label="Kartu undangan pernikahan Reza dan Ashila">
+          <div class="card-header-section">
+            <p class="card-label">Kartu Undangan Pernikahan</p>
+            <h1 class="card-couple-name">Reza &amp; Ashila</h1>
+          </div>
+          <div class="card-body-row">
+            <div class="card-body-info">
+              <dl class="card-info-list">
+                <div class="card-info-row">
+                  <dt class="card-info-label">Nama</dt>
+                  <dd class="card-info-value">${esc(d.nama)}</dd>
+                </div>
+                <div class="card-info-row">
+                  <dt class="card-info-label">Tanggal</dt>
+                  <dd class="card-info-value">${esc(d.tanggal)}</dd>
+                </div>
+                <div class="card-info-row">
+                  <dt class="card-info-label">Lokasi</dt>
+                  <dd class="card-info-value">${esc(d.lokasi)}</dd>
+                </div>
+                <div class="card-info-row">
+                  <dt class="card-info-label">Dress code</dt>
+                  <dd class="card-info-value">${esc(d.dressCode)}</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="card-body-qr">
+              <div class="card-qr card-qr--loading" id="card-qr" role="img" aria-label="Memuat kode QR untuk ${escAttr(d.nama)}"></div>
+            </div>
+          </div>
+          <div class="card-footer-section">
+            <p class="card-instruction">Simpan kartu ini dan tunjukkan saat hari acara</p>
+          </div>
+        </section>
+
+        <div class="card-actions">
+          <button type="button" class="btn-download-card" id="btn-download-card">
+            <span class="btn-download-card__text">Unduh Kartu</span>
+          </button>
+        </div>
       </div>
-      <div class="card-actions">
-        <button id="btn-download-card" class="btn-download-card">Unduh Kartu</button>
+
+      <div class="card-toast" id="card-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  `;
+}
+
+function buildErrorHTML(): string {
+  return `
+    <div class="card-page">
+      <div class="card-error">
+        <div class="card-error__icon" aria-hidden="true">📋</div>
+        <h1 class="card-error__title">Data Tamu Tidak Ditemukan</h1>
+        <p class="card-error__message">
+          Sepertinya sesi Anda telah berakhir atau data tamu belum tersedia. 
+          Silakan kembali ke halaman utama untuk mengisi RSVP kembali.
+        </p>
+        <a href="/" class="card-btn-back" style="margin-top: 1rem;">
+          <span class="card-btn-back__arrow" aria-hidden="true">&#8592;</span>
+          <span>Kembali ke Beranda</span>
+        </a>
       </div>
     </div>
   `;
 }
 
-function generateQR(token: string): void {
-  const el = document.getElementById("card-qr");
-  if (!el || !token) return;
-  new QRCode(el, {
-    text: token,
-    width: 200,
-    height: 200,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-  });
+/* ------------------------------------------------------------------ */
+/*  QR Code                                                           */
+/* ------------------------------------------------------------------ */
+
+function generateQR(token: string, guestName: string): void {
+  const container = document.getElementById("card-qr");
+  if (!container || !token) {
+    if (container) {
+      container.classList.remove("card-qr--loading");
+      container.setAttribute("aria-label", "Kode QR tidak tersedia");
+      container.innerHTML =
+        '<span style="color: var(--card-ink-500); font-size: 0.8rem;">QR tidak tersedia</span>';
+    }
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+
+  QRCode.toCanvas(
+    canvas,
+    token,
+    {
+      width: 300,
+      margin: 2,
+      color: { dark: "#0a0a0a", light: "#ffffff" },
+      errorCorrectionLevel: "H",
+    },
+    (err: Error | null | undefined) => {
+      container.classList.remove("card-qr--loading");
+
+      if (err) {
+        console.error("Gagal membuat QR code:", err);
+        container.setAttribute("aria-label", "Gagal memuat kode QR");
+        container.innerHTML =
+          '<span style="color: var(--card-ink-500); font-size: 0.8rem;">Gagal memuat QR</span>';
+        showToast("Gagal memuat kode QR. Silakan refresh halaman.", "error");
+        return;
+      }
+
+      container.appendChild(canvas);
+      container.setAttribute(
+        "aria-label",
+        `Kode QR undangan untuk ${guestName}`,
+      );
+    },
+  );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Events                                                            */
+/* ------------------------------------------------------------------ */
+
+function bindEvents(): void {
+  const card = document.getElementById("invitationCard");
+  const landscapeInput = document.getElementById(
+    "cardOrientationLandscape",
+  ) as HTMLInputElement | null;
+  const portraitInput = document.getElementById(
+    "cardOrientationPortrait",
+  ) as HTMLInputElement | null;
+
+  landscapeInput?.addEventListener("change", () => {
+    if (landscapeInput.checked && card) {
+      card.classList.remove("portrait");
+      card.classList.add("landscape");
+      landscapeInput.setAttribute("aria-checked", "true");
+      portraitInput?.setAttribute("aria-checked", "false");
+    }
+  });
+
+  portraitInput?.addEventListener("change", () => {
+    if (portraitInput.checked && card) {
+      card.classList.remove("landscape");
+      card.classList.add("portrait");
+      portraitInput.setAttribute("aria-checked", "true");
+      landscapeInput?.setAttribute("aria-checked", "false");
+    }
+  });
+
+  document
+    .getElementById("btn-download-card")
+    ?.addEventListener("click", handleDownload);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Download                                                          */
+/* ------------------------------------------------------------------ */
+
+function handleDownload(): void {
+  const btn = document.getElementById(
+    "btn-download-card",
+  ) as HTMLButtonElement | null;
+  const btnText = btn?.querySelector(".btn-download-card__text");
+  const el = document.querySelector(".invitation-card") as HTMLElement | null;
+  const guest = getGuestData() as GuestData | null;
+  const card = document.querySelector(".invitation-card") as HTMLElement;
+  card.classList.add("exporting");
+
+  if (!el || !btn) return;
+
+  // Set loading state
+  btn.disabled = true;
+  if (btnText) {
+    btnText.innerHTML =
+      '<span class="btn-download-card__spinner"></span> Memproses...';
+  }
+
+  const scale = window.devicePixelRatio > 1 ? 2 : 1;
+
+  html2canvas(el, {
+    scale,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
+    onclone: (clonedDoc: Document) => {
+      // Ensure cloned card has no transition/transform artifacts
+      const clonedCard = clonedDoc.querySelector(
+        ".invitation-card",
+      ) as HTMLElement | null;
+      if (clonedCard) {
+        clonedCard.style.transition = "none";
+        clonedCard.style.transform = "none";
+      }
+    },
+  })
+    .then((canvas: HTMLCanvasElement) => {
+      const link = document.createElement("a");
+      const fileName = guest?.slug
+        ? `kartu-undangan-${guest.slug}.png`
+        : "kartu-undangan.png";
+      link.download = fileName;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      showToast("Kartu berhasil diunduh!", "success");
+    })
+    .catch((err: unknown) => {
+      console.error("Gagal mengunduh kartu:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat mengunduh kartu.";
+      showToast(message, "error");
+    })
+    .finally(() => {
+      btn.disabled = false;
+      if (btnText) {
+        btnText.textContent = "Unduh Kartu";
+      }
+      card.classList.remove("exporting");
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Toast                                                             */
+/* ------------------------------------------------------------------ */
+
+function showToast(message: string, type: "success" | "error"): void {
+  const toast = document.getElementById("card-toast");
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.className = `card-toast card-toast--${type} card-toast--visible`;
+
+  setTimeout(() => {
+    toast.classList.remove("card-toast--visible");
+  }, 4000);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Utilities                                                         */
+/* ------------------------------------------------------------------ */
 
 function esc(s: string): string {
   const div = document.createElement("div");
@@ -91,17 +313,8 @@ function esc(s: string): string {
   return div.innerHTML;
 }
 
-function downloadCard(): void {
-  const el = document.querySelector(".card-container") as HTMLElement;
-  if (!el) return;
-  html2canvas(el, { scale: 2, useCORS: true })
-    .then((canvas: HTMLCanvasElement) => {
-      const link = document.createElement("a");
-      link.download = "kartu-undangan.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    })
-    .catch((err: unknown) => {
-      console.error("Gagal mengunduh kartu:", err);
-    });
+function escAttr(s: string): string {
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }

@@ -1,141 +1,660 @@
-/* ===== KARTU UNDANGAN — [slug]/card ===== */
-/* Palet: hitam (#000) di atas putih (#FFF) — minimalis wedding stationery */
-/* Playfair Display untuk semua teks. */
+/* ==========================================================================
+   Invitation Card — Fixed Canvas with Viewport Auto-Scale
+   ========================================================================== */
 
+/*
+ * The Invitation Card is a fixed-size design canvas.
+ * The canvas auto-scales to fit the available viewport while preserving
+ * all internal proportions.
+ *
+ * Internal layout, typography, colors, spacing — NEVER reflow or change.
+ * Only the overall scale changes based on viewport width.
+ *
+ * JS may override --card-scale via inline style for custom behaviour.
+ */
+
+/* --------------------------------------------------------------------------
+   Tokens
+   -------------------------------------------------------------------------- */
+:root {
+  --card-cream-50: #faf9f6;
+  --card-cream-100: #f3f1ec;
+  --card-cream-200: #e8e4db;
+  --card-ink-900: #0a0a0a;
+  --card-ink-700: #2d2d2d;
+  --card-ink-500: #6b6b6b;
+  --card-pink-500: #f14e95;
+  --card-pink-600: #d93d7f;
+  --card-white: #ffffff;
+
+  --card-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --card-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Page
+   -------------------------------------------------------------------------- */
 .card-page {
   min-height: 100vh;
-  background: #ffffff;
-  color: #000000;
-  font-family: "Playfair Display", Georgia, serif;
+  background: var(--card-cream-100);
+  color: var(--card-ink-900);
+  font-family: var(--card-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --------------------------------------------------------------------------
+   Toolbar (external UI — responsive only for its own layout)
+   -------------------------------------------------------------------------- */
+.card-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(243, 241, 236, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-toolbar__start,
+.card-toolbar__center,
+.card-toolbar__end {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  min-width: max-content;
+}
+
+.card-toolbar__start {
+  justify-content: flex-start;
+}
+.card-toolbar__center {
+  justify-content: center;
+  order: 2;
+}
+.card-toolbar__end {
+  justify-content: flex-end;
+  order: 3;
+}
+
+/* Back button */
+.card-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--card-cream-200);
+  background: var(--card-white);
+  color: var(--card-ink-900);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.card-btn-back:hover {
+  background: var(--card-cream-50);
+  border-color: var(--card-pink-500);
+  color: var(--card-pink-600);
+}
+
+.card-btn-back:active {
+  transform: translateY(1px);
+}
+
+.card-btn-back__arrow {
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 150ms ease;
+}
+
+.card-btn-back:hover .card-btn-back__arrow {
+  transform: translateX(-2px);
+}
+
+/* Orientation toggle */
+.card-orientation-toggle {
+  display: inline-flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--card-cream-200);
+}
+
+.card-orientation-toggle .btn-check {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  pointer-events: none;
+}
+
+.card-orientation-toggle .btn {
+  font-family: var(--card-sans);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 8px 20px;
+  border: none;
+  background: var(--card-white);
+  color: var(--card-ink-700);
+  cursor: pointer;
+  transition: all 150ms ease;
+  position: relative;
+}
+
+.card-orientation-toggle .btn:hover {
+  background: var(--card-cream-50);
+  color: var(--card-pink-600);
+}
+
+.card-orientation-toggle .btn-check:checked + .btn,
+.card-orientation-toggle .btn-check:active + .btn {
+  background-color: var(--card-pink-500);
+  color: var(--card-white);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card-orientation-toggle .btn-check:focus-visible + .btn {
+  box-shadow: 0 0 0 3px rgba(95, 125, 92, 0.35);
+  z-index: 1;
+}
+
+/* Scoped focus */
+.card-page :focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(95, 125, 92, 0.35);
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Stage — viewport container
+   -------------------------------------------------------------------------- */
+.card-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1rem;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding: 20px;
+  overflow: hidden;
 }
 
-.card-back-link {
-  align-self: flex-start;
-  color: #000;
-  text-decoration: none;
-  font-family: "Inter", sans-serif;
-  font-size: 0.875rem;
-  margin-bottom: 2rem;
+/* --------------------------------------------------------------------------
+   Invitation Card — FIXED CANVAS with auto-scale
+   -------------------------------------------------------------------------- */
+
+/*
+ * Landscape canvas: 800px × 566px  (A4 ratio)
+ * Portrait canvas:  400px × 566px  (A4 inverted)
+ *
+ * --card-scale is auto-calculated from viewport width.
+ * It never exceeds 1 (canvas never grows beyond designed size).
+ * JS may override --card-scale for custom fitting logic.
+ */
+
+.invitation-card {
+  position: relative;
+  background: var(--card-white);
+  border-radius: 14px;
+  box-shadow:
+    0 50px 90px -35px rgba(30, 28, 20, 0.32),
+    0 18px 36px -18px rgba(30, 28, 20, 0.14);
+  overflow: hidden;
+  border: 1px solid rgba(30, 28, 20, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  /* Scale the entire canvas as one unit */
+  transform: scale(var(--card-scale));
+  transform-origin: top center;
 }
 
-.card-container {
-  max-width: 680px;
-  width: 100%;
+/* Landscape */
+.invitation-card.landscape {
+  --canvas-width: 800px;
+  --canvas-height: 566px;
+  --card-scale: min(1, calc((100vw - 48px) / 800px));
+
+  width: 800px;
+  height: 566px;
+  padding: 32px 40px;
+  gap: 20px;
+
+  /* Compensate layout space so content below sits flush */
+  margin-bottom: calc(var(--canvas-height) * (var(--card-scale) - 1));
+}
+
+/* Portrait */
+.invitation-card.portrait {
+  --canvas-width: 400px;
+  --canvas-height: 566px;
+  --card-scale: min(1, calc((100vw - 48px) / 400px));
+
+  width: 400px;
+  height: 566px;
+  padding: 28px 32px;
+  gap: 16px;
+
+  margin-bottom: calc(var(--canvas-height) * (var(--card-scale) - 1));
+}
+
+/* --------------------------------------------------------------------------
+   Card Header — FIXED sizes, never change
+   -------------------------------------------------------------------------- */
+.card-header-section {
   text-align: center;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .card-label {
-  font-size: 0.75rem;
-  font-weight: 400;
-  letter-spacing: 2px;
+  margin: 0 0 8px;
+  font-family: var(--card-serif);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--card-ink-500);
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
 }
 
 .card-couple-name {
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 1.5rem 0;
+  margin: 0;
+  font-family: var(--card-serif);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  font-size: 32px;
+  color: var(--card-ink-900);
+  line-height: 1.1;
 }
 
-.card-body-layout {
+/* --------------------------------------------------------------------------
+   Card Body — FIXED layout, never reflows
+   -------------------------------------------------------------------------- */
+.card-body-row {
   display: flex;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Landscape: row — ALWAYS row, never changes */
+.invitation-card.landscape .card-body-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 32px;
+}
+
+.invitation-card.landscape .card-body-info {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.invitation-card.landscape .card-body-qr {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Portrait: column — ALWAYS column, never changes */
+.invitation-card.portrait .card-body-row {
   flex-direction: column;
   align-items: center;
-  gap: 3rem;
-  margin: 2rem 0;
+  justify-content: space-evenly;
+  gap: 20px;
 }
 
-.card-info-table {
-  text-align: left;
-  border-collapse: collapse;
+.invitation-card.portrait .card-body-qr {
+  order: -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.card-info-table tr {
-  display: block;
-  margin-bottom: 0.75rem;
+/* --------------------------------------------------------------------------
+   Guest Info — FIXED sizes
+   -------------------------------------------------------------------------- */
+.card-body-info {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.card-info-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-info-row {
+  display: flex;
+  gap: 16px;
+  font-family: var(--card-serif);
+  font-size: 15px;
+  line-height: 1.4;
+  align-items: flex-start;
 }
 
 .card-info-label {
-  font-size: 0.875rem;
-  font-weight: 400;
-  padding-right: 1.5rem;
-  vertical-align: top;
-  width: 120px;
+  font-weight: 600;
+  flex: 0 0 100px;
+  color: var(--card-ink-500);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .card-info-value {
-  font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
+  color: var(--card-ink-900);
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
-.card-qr-section {
+/* --------------------------------------------------------------------------
+   QR Code — FIXED size
+   -------------------------------------------------------------------------- */
+.card-body-qr {
   display: flex;
+  align-items: center;
   justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .card-qr {
-  background: #ffffff;
-  padding: 10px;
-  box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.5);
-  border-radius: 12px;
+  position: relative;
+  z-index: 0;
+  width: 180px;
+  height: 180px;
+  background: var(--card-white);
+  border-radius: 24%;
+  box-shadow:
+    0 22px 40px -12px rgba(30, 28, 20, 0.18),
+    0 8px 18px -6px rgba(30, 28, 20, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.card-qr img,
-.card-qr canvas {
-  width: 200px !important;
-  height: 200px !important;
+.card-qr::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(30, 28, 20, 0.08),
+    rgba(30, 28, 20, 0) 72%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+.card-qr canvas,
+.card-qr img {
+  border-radius: 20%;
+  max-width: 144px;
+  max-height: 144px;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+/* QR loading skeleton */
+.card-qr--loading {
+  background: linear-gradient(
+    90deg,
+    var(--card-cream-50) 25%,
+    var(--card-cream-100) 50%,
+    var(--card-cream-50) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Card Footer — FIXED
+   -------------------------------------------------------------------------- */
+.card-footer-section {
+  text-align: center;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .card-instruction {
-  font-size: 0.75rem;
+  margin: 0;
+  font-family: var(--card-serif);
   font-style: italic;
-  margin-top: 3rem;
+  font-size: 14px;
+  color: var(--card-ink-500);
+  line-height: 1.5;
 }
 
+/* --------------------------------------------------------------------------
+   Download Button
+   -------------------------------------------------------------------------- */
 .card-actions {
-  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 40px;
+  margin-top: 24px;
+  flex-shrink: 0;
 }
 
 .btn-download-card {
-  background: #000;
-  color: #fff;
-  border: 1px solid #000;
-  font-family: "Inter", sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--card-sans);
   font-weight: 500;
-  padding: 0.6rem 1.5rem;
-  border-radius: 8px;
+  font-size: 15px;
+  padding: 12px 40px;
+  border-radius: 10px;
+  border: 2px solid var(--card-pink-500);
+  background: var(--card-pink-500);
+  color: var(--card-white);
   cursor: pointer;
-  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  transition: all 150ms ease;
 }
 
-.btn-download-card:hover {
-  background: #333;
+.btn-download-card:hover,
+.btn-download-card:focus-visible {
+  color: var(--card-pink-500);
+  background: var(--card-white);
 }
 
-/* Desktop / Landscape (≥768px) */
-@media (min-width: 768px) {
-  .card-body-layout {
-    flex-direction: row;
-    justify-content: center;
-    gap: 4rem;
+.btn-download-card:active {
+  transform: translateY(1px);
+  background: var(--card-cream-50);
+}
+
+.btn-download-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-download-card__spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Error State
+   -------------------------------------------------------------------------- */
+.card-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 32px;
+  gap: 16px;
+}
+
+.card-error__icon {
+  font-size: 48px;
+  color: var(--card-ink-500);
+  opacity: 0.5;
+}
+
+.card-error__title {
+  font-family: var(--card-serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--card-ink-900);
+  margin: 0;
+}
+
+.card-error__message {
+  font-family: var(--card-sans);
+  color: var(--card-ink-500);
+  font-size: 16px;
+  max-width: 384px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Toast Notification
+   -------------------------------------------------------------------------- */
+.card-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: 16px 24px;
+  border-radius: 14px;
+  font-family: var(--card-sans);
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow:
+    0 10px 15px -3px rgba(30, 28, 20, 0.1),
+    0 4px 6px -4px rgba(30, 28, 20, 0.1);
+  z-index: 100;
+  opacity: 0;
+  transition: all 250ms ease;
+  pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.card-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.card-toast--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.card-toast--success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* --------------------------------------------------------------------------
+   Export State
+   -------------------------------------------------------------------------- */
+.invitation-card.exporting {
+  box-shadow: none !important;
+}
+
+.invitation-card.exporting .card-qr {
+  box-shadow: none !important;
+}
+
+.invitation-card.exporting .card-qr::before {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Media Query: Very small viewports (≤ 360px)
+   Only affects external UI, NEVER the card canvas itself.
+   -------------------------------------------------------------------------- */
+@media (max-width: 360px) {
+  .card-toolbar {
+    padding: 12px 12px;
+    gap: 8px;
   }
 
-  .card-info {
-    flex: 0 0 60%;
+  .card-toolbar__center {
+    display: none;
   }
 
-  .card-qr-section {
-    flex: 0 0 40%;
+  .card-stage {
+    padding: 12px;
+  }
+
+  .card-actions {
+    margin-top: 16px;
+    padding-bottom: 24px;
+  }
+
+  .btn-download-card {
+    padding: 10px 28px;
+    font-size: 14px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .card-qr--loading {
+    animation: none;
+    background: var(--card-cream-100);
   }
 }

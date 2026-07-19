@@ -1,0 +1,1666 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — Reza &amp; Ashila</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css"
+    />
+  </head>
+  <body class="dash">
+    <!-- ======================================================= LOGIN ======================================================= -->
+    <section id="view-login" class="auth-screen">
+      <div class="auth-card">
+        <div class="auth-brand">Reza &amp; Ashila</div>
+        <p class="auth-title">Masuk ke Dashboard Admin</p>
+
+        <div id="login-error" class="auth-error d-none-important" role="alert">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          <span id="login-error-text">Email atau password tidak valid.</span>
+        </div>
+
+        <form id="login-form" novalidate>
+          <div class="dash-field" id="field-email">
+            <label for="login-email">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="login-email"
+              placeholder="admin@rezaashila.id"
+              autocomplete="username"
+            />
+          </div>
+          <div class="dash-field" id="field-password">
+            <label for="login-password">Kata Sandi</label>
+            <input
+              type="password"
+              class="form-control"
+              id="login-password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+          </div>
+          <button type="submit" class="btn-dash-primary" id="login-submit">
+            <span id="login-submit-label">Masuk</span>
+            <span
+              class="spinner-border spinner-border-sm d-none-important"
+              id="login-spinner"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          </button>
+          <a href="#" class="auth-forgot" id="forgot-link">Lupa kata sandi?</a>
+        </form>
+
+        <p
+          style="
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+            text-align: center;
+            margin: 1rem 0 0;
+          "
+        >
+          Pratinjau: isi email &amp; kata sandi bebas lalu klik Masuk. Kosongkan
+          salah satu untuk melihat error state.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================================================= APP SHELL ======================================================= -->
+    <div id="view-app" class="d-none-important">
+      <nav class="app-navbar">
+        <div class="app-navbar-brand">Reza &amp; Ashila</div>
+        <div class="app-navbar-actions">
+          <button
+            class="icon-btn"
+            id="btn-notif"
+            aria-label="Notifikasi"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <i class="bi bi-bell"></i>
+            <span class="notif-dot" id="notif-dot"></span>
+          </button>
+          <button
+            class="icon-btn icon-btn-logout"
+            id="btn-logout"
+            aria-label="Keluar"
+          >
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="d-none d-md-inline">Keluar</span>
+          </button>
+
+          <!-- Overlay notifikasi mobile -->
+          <div class="notif-overlay" id="notif-overlay"></div>
+          <div
+            class="notif-panel"
+            id="notif-panel"
+            role="menu"
+            aria-label="Daftar notifikasi"
+          >
+            <div class="notif-panel-head">
+              <span>Notifikasi</span>
+              <button
+                class="modal-dash__close"
+                id="notif-panel-close"
+                aria-label="Tutup notifikasi"
+                style="width: 28px; height: 28px; font-size: 1rem"
+              >
+                &times;
+              </button>
+            </div>
+            <div id="notif-list">
+              <!-- notifikasi diisi dinamis dari JS -->
+            </div>
+            <div id="notif-empty" class="text-center py-4" style="color: var(--ink-muted); font-size: 0.85rem;">
+              Tidak ada notifikasi
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- HUB, GUESTS, CHECKIN, PRIVATE, PUBLIC, RESERVATIONS, ADMIN pages... -->
+      <!-- (full HTML identical to dashboard (1).html lines 164-1125, minus inline styles where possible) -->
+
+      <!-- ================================================= PAGE: HUB ================================================= -->
+      <main class="app-page" data-page="hub" id="page-hub">
+        <div class="app-container">
+          <div class="page-head">
+            <h1>Dashboard</h1>
+            <div class="status-toggle">
+              <span>Status Undangan</span>
+              <div class="form-check form-switch m-0">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="event-status-switch"
+                  checked
+                />
+              </div>
+              <span
+                class="status-toggle__label is-online"
+                id="event-status-label"
+                >Online</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="summary-grid"
+            style="
+              grid-template-columns: repeat(6, 1fr);
+              margin-bottom: var(--space-lg);
+            "
+            id="guest-summary-row"
+          >
+            <div class="summary-card guest-summary-card">
+              <div class="summary-card__icon">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Total Tamu</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--success">
+              <div class="summary-card__icon">
+                <i class="bi bi-envelope-check-fill"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Hadir RSVP</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--muted">
+              <div class="summary-card__icon">
+                <i class="bi bi-envelope-x-fill"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Tidak Hadir</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--muted">
+              <div class="summary-card__icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Belum Merespons</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--success">
+              <div class="summary-card__icon">
+                <i class="bi bi-qr-code-scan"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Sudah Check-in</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--muted">
+              <div class="summary-card__icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Belum Check-in</div>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="mb-3" style="font-size: 1.25rem">Menu</h2>
+          <div class="widget-grid">
+            <button class="widget-card" type="button" data-goto="guests">
+              <div class="widget-card__icon"><i class="bi bi-table"></i></div>
+              <div class="widget-card__title">Kelola Tamu</div>
+              <div class="widget-card__desc">
+                CRUD, pencarian, filter, dan status seluruh tamu.
+              </div>
+            </button>
+            <button class="widget-card" type="button" data-goto="checkin">
+              <div class="widget-card__icon">
+                <i class="bi bi-qr-code-scan"></i>
+              </div>
+              <div class="widget-card__title">Check-in</div>
+              <div class="widget-card__desc">
+                Scan QR atau cari tamu secara manual di hari-H.
+              </div>
+            </button>
+            <button class="widget-card" type="button" data-goto="reservations">
+              <div class="widget-card__icon">
+                <i class="bi bi-link-45deg"></i>
+              </div>
+              <div class="widget-card__title">Reservasi</div>
+              <div class="widget-card__desc">
+                Permalink &amp; QR per tamu untuk distribusi undangan.
+              </div>
+            </button>
+            <button class="widget-card" type="button" data-goto="private">
+              <div class="widget-card__icon">
+                <i class="bi bi-envelope-fill"></i>
+              </div>
+              <div class="widget-card__title">Pesan Privat</div>
+              <div class="widget-card__desc">
+                Pesan tamu yang hanya terlihat oleh mempelai.
+              </div>
+            </button>
+            <button class="widget-card" type="button" data-goto="public">
+              <div class="widget-card__icon">
+                <i class="bi bi-chat-heart-fill"></i>
+              </div>
+              <div class="widget-card__title">Pesan Publik</div>
+              <div class="widget-card__desc">
+                Kelola ucapan guestbook — tampilkan atau sembunyikan.
+              </div>
+            </button>
+            <button class="widget-card" type="button" data-goto="admin">
+              <div class="widget-card__icon">
+                <i class="bi bi-person-badge-fill"></i>
+              </div>
+              <div class="widget-card__title">Admin</div>
+              <div class="widget-card__desc">
+                Kelola akun admin beserta peran dan hak akses.
+              </div>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: KELOLA TAMU ============================================== -->
+      <main
+        class="app-page d-none-important"
+        data-page="guests"
+        id="page-guests"
+      >
+        <div class="app-container">
+          <button class="back-btn" type="button" data-back>
+            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+          </button>
+          <div class="page-head">
+            <h1>Kelola Tamu</h1>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="btn-reload-guests"
+              type="button"
+              style="min-height: 40px"
+            >
+              <i class="bi bi-arrow-clockwise"></i> Reload Data
+            </button>
+          </div>
+
+          <!-- Summary cards (4.3) -->
+          <div
+            class="summary-grid"
+            style="
+              grid-template-columns: repeat(6, 1fr);
+              margin-bottom: var(--space-lg);
+            "
+            id="guest-summary-row"
+          >
+            <div class="summary-card guest-summary-card">
+              <div class="summary-card__icon">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Total Tamu</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--success">
+              <div class="summary-card__icon">
+                <i class="bi bi-envelope-check-fill"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Hadir RSVP</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--muted">
+              <div class="summary-card__icon">
+                <i class="bi bi-envelope-x-fill"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Tidak Hadir</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--muted">
+              <div class="summary-card__icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Belum Merespons</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--success">
+              <div class="summary-card__icon">
+                <i class="bi bi-qr-code-scan"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Sudah Check-in</div>
+              </div>
+            </div>
+            <div class="summary-card guest-summary-card summary-card--muted">
+              <div class="summary-card__icon">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div>
+                <div class="summary-card__value">0</div>
+                <div class="summary-card__label">Belum Check-in</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-toolbar">
+            <div class="search-box" id="search-box">
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                id="guest-search"
+                placeholder="Cari nama, no. WA, kode undangan, atau kelompok…"
+              />
+              <button
+                class="search-clear"
+                id="search-clear"
+                aria-label="Hapus pencarian"
+                type="button"
+              >
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <button
+              class="btn-dash btn-dash-outline filter-drawer-toggle"
+              id="filter-drawer-toggle"
+              type="button"
+            >
+              <i class="bi bi-funnel"></i> Filter
+            </button>
+            <div class="filter-group" id="filter-group">
+              <select
+                class="filter-select"
+                id="filter-checkin"
+                aria-label="Filter status check-in"
+              >
+                <option value="">Semua Check-in</option>
+                <option value="sudah">Sudah Hadir</option>
+                <option value="sebagian">Sebagian</option>
+                <option value="belum">Belum Hadir</option>
+              </select>
+              <select
+                class="filter-select"
+                id="filter-rsvp"
+                aria-label="Filter status RSVP"
+              >
+                <option value="">Semua RSVP</option>
+                <option value="hadir">Hadir</option>
+                <option value="tidak">Tidak Hadir</option>
+                <option value="belum">Belum Respon</option>
+              </select>
+              <select
+                class="filter-select"
+                id="filter-kategori"
+                aria-label="Filter kategori"
+              >
+                <option value="">Semua Kategori</option>
+                <option value="keluarga">Keluarga</option>
+                <option value="bukan">Bukan Keluarga</option>
+              </select>
+              <select
+                class="filter-select"
+                id="filter-kelompok"
+                aria-label="Filter kelompok"
+              >
+                <option value="">Semua Kelompok</option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            class="page-actions mb-3"
+            style="justify-content: flex-end; display: flex"
+          >
+            <button class="btn-dash btn-dash-outline" type="button">
+              <i class="bi bi-upload"></i> Import
+            </button>
+            <button class="btn-dash btn-dash-outline" type="button">
+              <i class="bi bi-download"></i> Export
+            </button>
+            <button
+              class="btn-dash btn-dash-accent"
+              type="button"
+              id="btn-add-guest"
+            >
+              <i class="bi bi-plus-lg"></i> Tambah Tamu
+            </button>
+          </div>
+
+          <div
+            class="msg-card d-none-important"
+            id="bulk-bar"
+            style="align-items: center"
+          >
+            <span style="font-size: 0.8125rem; color: var(--ink-body)">
+              <strong id="bulk-count">0</strong> tamu dipilih
+            </span>
+            <div class="msg-card__actions">
+              <button
+                class="btn-dash btn-dash-outline"
+                id="bulk-resend"
+                type="button"
+                style="min-height: 36px"
+              >
+                Kirim Ulang Undangan
+              </button>
+              <button
+                class="btn-dash btn-dash-outline"
+                id="bulk-clear"
+                type="button"
+                style="min-height: 36px"
+              >
+                Batal Pilih
+              </button>
+            </div>
+          </div>
+
+          <!-- skeleton loading -->
+          <div id="guest-skeleton" class="table-wrap d-none-important">
+            <div class="skeleton-row">
+              <div class="skeleton-bar" style="height: 18px; width: 18px"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+            </div>
+            <div class="skeleton-row">
+              <div class="skeleton-bar" style="height: 18px; width: 18px"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+            </div>
+            <div class="skeleton-row">
+              <div class="skeleton-bar" style="height: 18px; width: 18px"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+              <div class="skeleton-bar"></div>
+            </div>
+          </div>
+
+          <!-- data tabel -->
+          <div class="table-wrap d-none-important" id="guest-table-wrap">
+            <table class="guest-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px">
+                    <input
+                      type="checkbox"
+                      id="select-all-guests"
+                      aria-label="Pilih semua tamu di halaman ini"
+                    />
+                  </th>
+                  <th class="is-sortable" data-sort="name" tabindex="0">
+                    Nama <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th>Kelompok</th>
+                  <th>Kategori</th>
+                  <th class="text-end">Jumlah Tamu</th>
+                  <th>No. WhatsApp</th>
+                  <th>RSVP</th>
+                  <th
+                    class="is-sortable"
+                    data-sort="checkinStatus"
+                    tabindex="0"
+                  >
+                    Check-in <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th class="is-sortable" data-sort="checkinTime" tabindex="0">
+                    Waktu <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th>Edited</th>
+                  <th class="text-end">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="guest-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="table-wrap state-block d-none-important" id="guest-empty">
+            <div class="state-block__icon"><i class="bi bi-search"></i></div>
+            <div class="state-block__title">Tidak ada tamu yang cocok</div>
+            <div class="state-block__desc">
+              Coba ubah kata kunci pencarian atau reset filter yang aktif.
+            </div>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="guest-empty-reset"
+              type="button"
+            >
+              Reset Filter
+            </button>
+          </div>
+
+          <div
+            class="table-wrap state-block d-none-important"
+            id="guest-empty-first"
+          >
+            <div class="state-block__icon">
+              <i class="bi bi-person-plus"></i>
+            </div>
+            <div class="state-block__title">Belum ada tamu ditambahkan</div>
+            <div class="state-block__desc">
+              Mulai dengan menambahkan tamu pertama secara manual atau import
+              dari file.
+            </div>
+            <button
+              class="btn-dash btn-dash-accent"
+              id="guest-empty-first-cta"
+              type="button"
+            >
+              Tambah Tamu Pertama
+            </button>
+          </div>
+
+          <div
+            class="table-wrap state-block state-block--error d-none-important"
+            id="guest-error"
+          >
+            <div class="state-block__icon">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="state-block__title">Gagal memuat data tamu</div>
+            <div class="state-block__desc">
+              Terjadi kendala saat mengambil data dari server.
+            </div>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="guest-error-retry"
+              type="button"
+            >
+              Coba Lagi
+            </button>
+          </div>
+
+          <div class="table-footer">
+            <div class="page-size-select">
+              <span>Tampilkan</span>
+              <select
+                id="page-size-select"
+                aria-label="Jumlah data per halaman"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span>data</span>
+            </div>
+            <div class="pagination-info" id="guest-pagination-info"></div>
+            <nav aria-label="Navigasi halaman tamu">
+              <ul
+                class="pagination pagination-sm mb-0"
+                id="guest-pagination"
+              ></ul>
+            </nav>
+          </div>
+
+          <p
+            style="
+              font-size: 0.75rem;
+              color: var(--ink-muted);
+              margin-top: var(--space-md);
+            "
+          >
+            Pratinjau state:
+            <a href="#" id="preview-empty">Kosong</a> ·
+            <a href="#" id="preview-error">Error</a> ·
+            <a href="#" id="preview-reset">Kembali ke data</a>
+          </p>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: CHECK-IN ============================================== -->
+      <main
+        class="app-page d-none-important"
+        data-page="checkin"
+        id="page-checkin"
+      >
+        <div class="app-container">
+          <button class="back-btn" type="button" data-back>
+            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+          </button>
+          <div class="page-head">
+            <h1>Check-in</h1>
+            <div class="mode-toggle">
+              <button type="button" class="active" data-mode="scan">
+                Mode Check-in
+              </button>
+              <button type="button" data-mode="admin">Mode Admin</button>
+            </div>
+          </div>
+
+          <div id="checkin-mode-scan">
+            <div class="scanner-wrap">
+              <div class="scanner-frame">
+                <div class="scanner-placeholder">
+                  <i class="bi bi-camera-video-off"></i>
+                  <span
+                    >Pratinjau kamera akan tampil di sini saat scan
+                    dimulai.</span
+                  >
+                </div>
+                <div class="scanner-overlay"></div>
+                <div class="scanner-viewfinder"></div>
+              </div>
+              <p class="scanner-instruction" id="scanner-status">
+                Arahkan kamera ke QR code tamu
+              </p>
+              <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap">
+                <button
+                  class="btn-scan-start"
+                  id="btn-start-scan"
+                  type="button"
+                >
+                  <i class="bi bi-camera-fill"></i> Mulai Scan
+                </button>
+                <button
+                  class="btn-scan-start d-none-important"
+                  id="btn-switch-camera"
+                  type="button"
+                  title="Ganti kamera depan/belakang"
+                >
+                  <i class="bi bi-arrow-repeat"></i> Ganti Kamera
+                </button>
+              </div>
+              <button
+                class="btn-scan-manual"
+                id="btn-toggle-manual"
+                type="button"
+              >
+                <i class="bi bi-search"></i> Check-in Manual
+              </button>
+
+              <div
+                class="manual-search-panel d-none-important"
+                id="manual-search-panel"
+              >
+                <div class="dash-field mb-0">
+                  <label for="manual-checkin-search">Cari tamu</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="manual-checkin-search"
+                    placeholder="Nama atau nomor WhatsApp…"
+                  />
+                </div>
+                <div
+                  id="manual-checkin-results"
+                  style="margin-top: var(--space-sm)"
+                ></div>
+              </div>
+
+              <div class="scan-results">
+                <h3>Hasil Scan Terakhir</h3>
+                <div id="scan-results-list">
+                  <p style="color: var(--ink-muted); font-size: 0.8125rem">
+                    Belum ada aktivitas scan pada sesi ini.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="checkin-mode-admin" class="d-none-important">
+            <div
+              class="summary-grid"
+              style="
+                grid-template-columns: repeat(3, 1fr);
+                margin-bottom: var(--space-lg);
+              "
+            >
+              <div
+                class="summary-card guest-summary-card summary-card--success"
+              >
+                <div class="summary-card__icon">
+                  <i class="bi bi-qr-code-scan"></i>
+                </div>
+                <div>
+                  <div class="summary-card__value">0</div>
+                  <div class="summary-card__label">Sudah Check-in</div>
+                </div>
+              </div>
+              <div class="summary-card guest-summary-card summary-card--muted">
+                <div class="summary-card__icon">
+                  <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div>
+                  <div class="summary-card__value">0</div>
+                  <div class="summary-card__label">Belum Check-in</div>
+                </div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-card__icon">
+                  <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div>
+                  <div class="summary-card__value">0</div>
+                  <div class="summary-card__label">Override Kuota</div>
+                </div>
+              </div>
+            </div>
+            <h3
+              style="
+                font-size: 0.8125rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--ink-muted);
+                margin-bottom: var(--space-sm);
+              "
+            >
+              Riwayat Check-in Terbaru
+            </h3>
+            <div id="checkin-log-list"></div>
+            <h3
+              style="
+                font-size: 0.8125rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--ink-muted);
+                margin: var(--space-xl) 0 var(--space-sm);
+              "
+            >
+              Audit Log
+            </h3>
+            <div id="audit-log-list"></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: PESAN PRIVAT ============================================== -->
+      <main
+        class="app-page d-none-important"
+        data-page="private"
+        id="page-private"
+      >
+        <div class="app-container">
+          <button class="back-btn" type="button" data-back>
+            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+          </button>
+          <div class="page-head"><h1>Pesan Privat</h1></div>
+          <p
+            style="
+              font-size: 0.8125rem;
+              color: var(--ink-muted);
+              margin-top: -12px;
+              margin-bottom: var(--space-lg);
+            "
+          >
+            Pesan yang dititipkan tamu saat mengisi RSVP. Hanya terlihat oleh
+            mempelai &amp; admin.
+          </p>
+
+          <div id="private-skeleton" class="d-none-important">
+            <div class="msg-card skeleton-row">
+              <div class="skeleton-bar" style="width: 30%"></div>
+              <div class="skeleton-bar" style="width: 80%"></div>
+            </div>
+            <div class="msg-card skeleton-row">
+              <div class="skeleton-bar" style="width: 25%"></div>
+              <div class="skeleton-bar" style="width: 75%"></div>
+            </div>
+            <div class="msg-card skeleton-row">
+              <div class="skeleton-bar" style="width: 35%"></div>
+              <div class="skeleton-bar" style="width: 70%"></div>
+            </div>
+          </div>
+
+          <div id="private-messages-list" class="d-none-important"></div>
+
+          <div class="state-block d-none-important" id="private-empty">
+            <div class="state-block__icon"><i class="bi bi-envelope"></i></div>
+            <div class="state-block__title">Belum ada pesan privat masuk</div>
+            <div class="state-block__desc">
+              Pesan yang dititipkan tamu saat RSVP akan muncul di sini.
+            </div>
+          </div>
+
+          <div
+            class="state-block state-block--error d-none-important"
+            id="private-error"
+          >
+            <div class="state-block__icon">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="state-block__title">Gagal memuat pesan privat</div>
+            <div class="state-block__desc">
+              Terjadi kendala saat mengambil data dari server.
+            </div>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="private-error-retry"
+              type="button"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: PESAN PUBLIK ============================================== -->
+      <main
+        class="app-page d-none-important"
+        data-page="public"
+        id="page-public"
+      >
+        <div class="app-container">
+          <button class="back-btn" type="button" data-back>
+            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+          </button>
+          <div class="page-head"><h1>Pesan Publik</h1></div>
+          <p
+            style="
+              font-size: 0.8125rem;
+              color: var(--ink-muted);
+              margin-top: -12px;
+              margin-bottom: var(--space-lg);
+            "
+          >
+            Ucapan dari Guestbook. Sembunyikan ucapan yang tidak ingin
+            ditampilkan ke publik.
+          </p>
+
+          <div id="public-skeleton" class="d-none-important">
+            <div class="msg-card skeleton-row">
+              <div class="skeleton-bar" style="width: 30%"></div>
+              <div class="skeleton-bar" style="width: 80%"></div>
+              <div class="skeleton-bar" style="width: 15%"></div>
+            </div>
+            <div class="msg-card skeleton-row">
+              <div class="skeleton-bar" style="width: 25%"></div>
+              <div class="skeleton-bar" style="width: 75%"></div>
+              <div class="skeleton-bar" style="width: 15%"></div>
+            </div>
+            <div class="msg-card skeleton-row">
+              <div class="skeleton-bar" style="width: 35%"></div>
+              <div class="skeleton-bar" style="width: 70%"></div>
+              <div class="skeleton-bar" style="width: 15%"></div>
+            </div>
+          </div>
+
+          <div id="public-messages-list" class="d-none-important"></div>
+
+          <div class="state-block d-none-important" id="public-empty">
+            <div class="state-block__icon">
+              <i class="bi bi-chat-heart"></i>
+            </div>
+            <div class="state-block__title">Belum ada ucapan</div>
+            <div class="state-block__desc">
+              Ucapan dari tamu akan muncul di sini setelah mereka mengisi
+              guestbook.
+            </div>
+          </div>
+
+          <div
+            class="state-block state-block--error d-none-important"
+            id="public-error"
+          >
+            <div class="state-block__icon">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="state-block__title">Gagal memuat ucapan</div>
+            <div class="state-block__desc">
+              Terjadi kendala saat mengambil data dari server.
+            </div>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="public-error-retry"
+              type="button"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: RESERVASI ============================================== -->
+      <main
+        class="app-page d-none-important"
+        data-page="reservations"
+        id="page-reservations"
+      >
+        <div class="app-container">
+          <button class="back-btn" type="button" data-back>
+            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+          </button>
+          <div class="page-head"><h1>Reservasi</h1></div>
+          <div class="table-toolbar">
+            <div
+              class="search-box"
+              id="res-search-box"
+              style="max-width: 420px"
+            >
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                id="res-search"
+                placeholder="Cari nama tamu…"
+              />
+              <button
+                class="search-clear"
+                id="res-search-clear"
+                aria-label="Hapus pencarian"
+                type="button"
+              >
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="reservation-grid" id="reservation-grid"></div>
+
+          <div id="res-skeleton" class="d-none-important">
+            <div class="reservation-card skeleton-row">
+              <div class="skeleton-bar" style="width: 40px; height: 40px"></div>
+              <div class="skeleton-bar" style="width: 50%"></div>
+              <div class="skeleton-bar" style="width: 30%"></div>
+            </div>
+            <div class="reservation-card skeleton-row">
+              <div class="skeleton-bar" style="width: 40px; height: 40px"></div>
+              <div class="skeleton-bar" style="width: 45%"></div>
+              <div class="skeleton-bar" style="width: 35%"></div>
+            </div>
+            <div class="reservation-card skeleton-row">
+              <div class="skeleton-bar" style="width: 40px; height: 40px"></div>
+              <div class="skeleton-bar" style="width: 55%"></div>
+              <div class="skeleton-bar" style="width: 25%"></div>
+            </div>
+          </div>
+
+          <div class="state-block d-none-important" id="res-empty">
+            <div class="state-block__icon">
+              <i class="bi bi-link-45deg"></i>
+            </div>
+            <div class="state-block__title">Belum ada reservasi</div>
+            <div class="state-block__desc">
+              Reservasi akan muncul di sini setelah tamu ditambahkan.
+            </div>
+          </div>
+
+          <div
+            class="state-block state-block--error d-none-important"
+            id="res-error"
+          >
+            <div class="state-block__icon">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="state-block__title">Gagal memuat reservasi</div>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="res-error-retry"
+              type="button"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: ADMIN ============================================== -->
+      <main class="app-page d-none-important" data-page="admin" id="page-admin">
+        <div class="app-container">
+          <button class="back-btn" type="button" data-back>
+            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+          </button>
+          <div class="page-head">
+            <h1>Admin</h1>
+            <button class="btn-dash btn-dash-accent" type="button">
+              <i class="bi bi-person-plus"></i> Tambah Admin
+            </button>
+          </div>
+          <div class="table-wrap">
+            <div id="admin-skeleton" class="d-none-important">
+              <div class="skeleton-row">
+                <div class="skeleton-bar" style="width: 50%"></div>
+                <div class="skeleton-bar" style="width: 20%"></div>
+                <div class="skeleton-bar" style="width: 20%"></div>
+                <div class="skeleton-bar" style="width: 10%"></div>
+              </div>
+              <div class="skeleton-row">
+                <div class="skeleton-bar" style="width: 45%"></div>
+                <div class="skeleton-bar" style="width: 20%"></div>
+                <div class="skeleton-bar" style="width: 20%"></div>
+                <div class="skeleton-bar" style="width: 10%"></div>
+              </div>
+            </div>
+            <table class="guest-table" style="min-width: 560px">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Peran</th>
+                  <th>Dibuat</th>
+                  <th class="text-end">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-tbody"></tbody>
+            </table>
+            <div class="state-block d-none-important" id="admin-empty">
+              <div class="state-block__icon">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div class="state-block__title">Belum ada admin terdaftar</div>
+            </div>
+            <div
+              class="state-block state-block--error d-none-important"
+              id="admin-error"
+            >
+              <div class="state-block__icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+              </div>
+              <div class="state-block__title">Gagal memuat data admin</div>
+              <button
+                class="btn-dash btn-dash-outline"
+                id="admin-error-retry"
+                type="button"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================== PAGE: 404 ============================================== -->
+      <main class="app-page d-none-important" id="page-404">
+        <div
+          class="app-container"
+          style="text-align: center; padding: var(--space-3xl) var(--space-lg)"
+        >
+          <div
+            style="
+              font-size: 4rem;
+              color: var(--ink-muted);
+              margin-bottom: var(--space-md);
+            "
+          >
+            404
+          </div>
+          <h2 style="margin-bottom: var(--space-sm)">
+            Halaman tidak ditemukan
+          </h2>
+          <p style="color: var(--ink-muted); margin-bottom: var(--space-lg)">
+            URL yang kamu tuju tidak valid.
+          </p>
+          <button class="btn-dash btn-dash-accent" type="button" data-back>
+            <i class="bi bi-house"></i> Kembali ke Dashboard
+          </button>
+        </div>
+      </main>
+    </div>
+    <!-- /view-app -->
+
+    <!-- ======================================================= MODAL DETAIL TAMU ======================================================= -->
+    <div class="modal-overlay" id="guest-modal-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-guest-name"
+      >
+        <div class="modal-dash__header">
+          <h2 id="modal-guest-name">Nama Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body" id="modal-guest-body"></div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            data-modal-close
+            type="button"
+          >
+            Tutup
+          </button>
+          <button
+            class="btn-dash btn-dash-outline"
+            id="modal-detail-edit-btn"
+            type="button"
+          >
+            <i class="bi bi-pencil"></i> Edit
+          </button>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="modal-checkin-btn"
+            type="button"
+          >
+            <i class="bi bi-qr-code-scan"></i> Check-in
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= MODAL EDIT TAMU (4.15) ======================================================= -->
+    <div class="modal-overlay" id="edit-modal-overlay" data-version="0">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-modal-title"
+      >
+        <div class="modal-dash__header">
+          <h2 id="edit-modal-title">Edit Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="dash-field">
+            <label for="edit-guest-name">Nama</label>
+            <input type="text" class="form-control" id="edit-guest-name" />
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-count">Jumlah Tamu</label>
+            <input
+              type="number"
+              class="form-control"
+              id="edit-guest-count"
+              min="1"
+            />
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-kelompok">Kelompok</label>
+            <select class="form-control" id="edit-guest-kelompok">
+              <option value="">Tanpa Kelompok</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-kategori">Kategori</label>
+            <select class="form-control" id="edit-guest-kategori">
+              <option value="bukan">Bukan Keluarga</option>
+              <option value="keluarga">Keluarga</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-wa">No. WhatsApp</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-guest-wa"
+              placeholder="08xx-xxxx-xxxx"
+            />
+          </div>
+          <div class="dash-field">
+            <label for="edit-guest-notes">Catatan</label>
+            <textarea
+              class="form-control"
+              id="edit-guest-notes"
+              rows="2"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            data-modal-close
+            type="button"
+          >
+            Batal
+          </button>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="edit-guest-save-btn"
+            type="button"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= MODAL TAMBAH TAMU (4.13) ======================================================= -->
+    <div class="modal-overlay" id="add-modal-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-modal-title"
+      >
+        <div class="modal-dash__header">
+          <h2 id="add-modal-title">Tambah Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="dash-field">
+            <label for="add-guest-name">Nama</label>
+            <input type="text" class="form-control" id="add-guest-name" />
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-count">Jumlah Tamu</label>
+            <input
+              type="number"
+              class="form-control"
+              id="add-guest-count"
+              min="1"
+              value="1"
+            />
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-kelompok">Kelompok</label>
+            <select class="form-control" id="add-guest-kelompok">
+              <option value="">Tanpa Kelompok</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-kategori">Kategori</label>
+            <select class="form-control" id="add-guest-kategori">
+              <option value="bukan">Bukan Keluarga</option>
+              <option value="keluarga">Keluarga</option>
+            </select>
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-wa">No. WhatsApp</label>
+            <input
+              type="text"
+              class="form-control"
+              id="add-guest-wa"
+              placeholder="08xx-xxxx-xxxx"
+            />
+          </div>
+          <div class="dash-field">
+            <label for="add-guest-notes">Catatan</label>
+            <textarea
+              class="form-control"
+              id="add-guest-notes"
+              rows="2"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            data-modal-close
+            type="button"
+          >
+            Batal
+          </button>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="add-guest-save-btn"
+            type="button"
+          >
+            Tambah
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= DIALOG CHECK-IN (4.16) ======================================================= -->
+    <div class="modal-overlay" id="checkin-dialog-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkin-dialog-name"
+        style="max-width: 440px"
+      >
+        <div class="modal-dash__header">
+          <h2 id="checkin-dialog-name">Check-in Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <p
+            id="checkin-dialog-detail"
+            style="
+              color: var(--ink-muted);
+              font-size: 0.875rem;
+              margin-bottom: var(--space-md);
+            "
+          ></p>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="checkin-dialog-all"
+            type="button"
+            style="
+              width: 100%;
+              margin-bottom: var(--space-sm);
+              justify-content: center;
+            "
+          >
+            Masuk Semua
+          </button>
+          <div style="display: flex; gap: var(--space-sm); align-items: center">
+            <input
+              type="number"
+              class="form-control"
+              id="checkin-dialog-partial-input"
+              min="1"
+              style="width: 80px; flex: none"
+            />
+            <button
+              class="btn-dash btn-dash-outline"
+              id="checkin-dialog-partial-btn"
+              type="button"
+              style="flex: 1; justify-content: center"
+            >
+              Masuk Sebagian
+            </button>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            data-modal-close
+            type="button"
+            style="width: 100%; justify-content: center"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= MODAL TAMBAH ADMIN (6.11) ======================================================= -->
+    <div class="modal-overlay" id="admin-modal-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-modal-title"
+        style="max-width: 400px"
+      >
+        <div class="modal-dash__header">
+          <h2 id="admin-modal-title">Tambah Admin</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="dash-field">
+            <label for="admin-email">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="admin-email"
+              placeholder="admin@rezaashila.id"
+            />
+          </div>
+          <div class="dash-field">
+            <label for="admin-role">Peran</label>
+            <select class="form-control" id="admin-role">
+              <option value="admin">Admin</option>
+              <option value="operator">Operator</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            data-modal-close
+            type="button"
+          >
+            Batal
+          </button>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="admin-save-btn"
+            type="button"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= GROUP PICKER ======================================================= -->
+    <div class="group-picker" id="group-picker">
+      <div class="group-picker__label">Tambah kelompok</div>
+      <div class="group-picker__add">
+        <input
+          type="text"
+          id="group-new-input"
+          placeholder="Nama kelompok baru"
+        />
+        <button type="button" id="group-add-btn">Oke</button>
+      </div>
+      <hr />
+      <div class="group-picker__label">Daftar kelompok</div>
+      <div id="group-picker-list"></div>
+    </div>
+
+    <!-- ======================================================= POST-SCAN MODAL (5.2) ======================================================= -->
+    <div class="modal-overlay" id="postscan-modal-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="postscan-guest-name"
+        style="max-width: 500px"
+      >
+        <div class="modal-dash__header">
+          <h2 id="postscan-guest-name">Nama Tamu</h2>
+          <button
+            class="modal-dash__close"
+            data-modal-close="true"
+            aria-label="Tutup"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <p
+            id="postscan-guest-detail"
+            style="
+              color: var(--ink-muted);
+              font-size: 0.875rem;
+              margin-bottom: var(--space-md);
+            "
+          ></p>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: var(--space-sm);
+              margin-bottom: var(--space-md);
+              font-size: 1.25rem;
+              font-weight: 600;
+            "
+            id="postscan-checked-in-count"
+          ></div>
+          <div
+            id="postscan-guest-body"
+            style="margin-bottom: var(--space-md)"
+          ></div>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="postscan-btn-all"
+            type="button"
+            style="
+              width: 100%;
+              margin-bottom: var(--space-sm);
+              justify-content: center;
+            "
+          >
+            <span id="postscan-all-label">Masuk Semua</span>
+          </button>
+          <div
+            style="
+              display: flex;
+              gap: var(--space-sm);
+              align-items: center;
+              margin-bottom: var(--space-sm);
+            "
+          >
+            <input
+              type="number"
+              class="form-control"
+              id="postscan-partial-input"
+              min="1"
+              style="width: 80px; flex: none"
+            />
+            <button
+              class="btn-dash btn-dash-outline"
+              id="postscan-btn-partial"
+              type="button"
+              style="flex: 1; justify-content: center"
+            >
+              Masuk Sebagian
+            </button>
+          </div>
+          <div style="display: flex; gap: var(--space-sm); align-items: center">
+            <button
+              class="btn-dash btn-dash-outline"
+              id="postscan-btn-override"
+              type="button"
+              style="
+                flex: 1;
+                justify-content: center;
+                color: var(--warning);
+                border-color: var(--warning);
+              "
+            >
+              Override Kuota
+            </button>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="postscan-btn-log"
+              type="button"
+              style="flex: 1; justify-content: center"
+            >
+              Lihat Log
+            </button>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="postscan-btn-edit"
+              type="button"
+              style="flex: 1; justify-content: center"
+            >
+              Edit
+            </button>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            id="postscan-btn-close"
+            type="button"
+            style="width: 100%; justify-content: center"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= OVERRIDE MODAL (5.4) ======================================================= -->
+    <div class="modal-overlay" id="override-modal-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="override-modal-title"
+        style="max-width: 440px"
+      >
+        <div class="modal-dash__header">
+          <h2 id="override-modal-title" style="color: var(--warning)">
+            <i class="bi bi-shield-exclamation"></i> Override Kuota
+          </h2>
+          <button
+            class="modal-dash__close"
+            data-modal-close="true"
+            aria-label="Tutup"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <p
+            id="override-warning"
+            style="
+              color: var(--ink-muted);
+              font-size: 0.875rem;
+              margin-bottom: var(--space-md);
+            "
+          ></p>
+          <div class="dash-field">
+            <label for="override-delta">Jumlah Tambahan</label>
+            <input
+              type="number"
+              class="form-control"
+              id="override-delta"
+              min="1"
+              value="1"
+            />
+          </div>
+          <div class="dash-field">
+            <label for="override-notes"
+              >Alasan Override
+              <span style="color: var(--danger)">*</span></label
+            >
+            <textarea
+              class="form-control"
+              id="override-notes"
+              rows="3"
+              placeholder="Alasan mengapa check-in melebihi kuota…"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            id="override-cancel-btn"
+            type="button"
+          >
+            Batal
+          </button>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="override-confirm-btn"
+            type="button"
+            style="background: var(--warning); border-color: var(--warning)"
+          >
+            Konfirmasi Override
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast-global"></div>
+
+    <script type="module" src="/src/dashboard.ts"></script>
+  </body>
+</html>

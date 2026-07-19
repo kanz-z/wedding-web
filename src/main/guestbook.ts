@@ -1,17 +1,33 @@
 // src/main/guestbook.ts
-import { supabaseClient } from './supabase-client';
-import { getNama } from './slug-router';
-import { showRsvpModal } from './utils';
-import { escapeHtml, renderPagination } from './utils';
+import { supabaseClient } from "./supabase-client";
+import { getNama, getGuestId } from "./slug-router";
+import { config } from "../config";
+import { showRsvpModal } from "./utils";
+import { escapeHtml, renderPagination } from "./utils";
 
 const GB_PAGE_SIZE = 5;
 let gbCurrentPage = 0;
 let gbTotalPages = 0;
 
 const KATA_KASAR = [
-  "anjing", "babi", "bangsat", "goblok", "tolol", "bodoh", "kontol",
-  "memek", "jancok", "jancuk", "ngentot", "bajingan", "brengsek",
-  "laknat", "sialan", "kampret", "bego", "setan",
+  "anjing",
+  "babi",
+  "bangsat",
+  "goblok",
+  "tolol",
+  "bodoh",
+  "kontol",
+  "memek",
+  "jancok",
+  "jancuk",
+  "ngentot",
+  "bajingan",
+  "brengsek",
+  "laknat",
+  "sialan",
+  "kampret",
+  "bego",
+  "setan",
 ] as const;
 
 function sensorKataKasar(text: string): boolean {
@@ -32,22 +48,49 @@ function formatWaktuRelatif(iso: string): string {
   return d.toLocaleDateString("id-ID", { dateStyle: "medium" });
 }
 
-function showGuestbookState(state: 'loading' | 'empty' | 'error'): void {
+function showGuestbookState(state: "loading" | "empty" | "error"): void {
   document.getElementById("gb-loading")!.classList.add("d-none");
   document.getElementById("gb-empty")!.classList.add("d-none");
   document.getElementById("gb-error")!.classList.add("d-none");
   document.getElementById("gb-list")!.innerHTML = "";
   document.getElementById("gb-pagination")!.classList.add("d-none");
-  if (state === "loading") document.getElementById("gb-loading")!.classList.remove("d-none");
-  else if (state === "empty") document.getElementById("gb-empty")!.classList.remove("d-none");
-  else if (state === "error") document.getElementById("gb-error")!.classList.remove("d-none");
+  if (state === "loading")
+    document.getElementById("gb-loading")!.classList.remove("d-none");
+  else if (state === "empty")
+    document.getElementById("gb-empty")!.classList.remove("d-none");
+  else if (state === "error")
+    document.getElementById("gb-error")!.classList.remove("d-none");
 }
 
-async function submitGuestbook(namaInput: string, pesanInput: string, rsvpId: string | null): Promise<void> {
-  const res = await supabaseClient
-    .from("guestbook")
-    .insert([{ rsvp_id: rsvpId || null, nama: namaInput, pesan: pesanInput }]) as unknown as { error: unknown };
-  if (res.error) throw res.error;
+async function submitGuestbook(
+  namaInput: string,
+  pesanInput: string,
+  rsvpId: string | null,
+): Promise<void> {
+  const res = await fetch(config.GUESTBOOK_EDGE_FUNCTION, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: config.SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + config.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      nama: namaInput,
+      pesan: pesanInput,
+      reservation_id: rsvpId || null,
+    }),
+  });
+  if (!res.ok) {
+    let errMsg = "Gagal mengirim ucapan. Silakan coba lagi.";
+    try {
+      const errData = await res.json();
+      const raw = String(errData.error || "");
+      if (raw && raw !== "{}" && !raw.startsWith('{')) errMsg = raw;
+    } catch (_) {
+      errMsg = "Server error (" + res.status + ")";
+    }
+    throw new Error(errMsg);
+  }
 }
 
 export async function fetchGuestbook(page?: number): Promise<void> {
@@ -56,29 +99,42 @@ export async function fetchGuestbook(page?: number): Promise<void> {
     const p = page ?? 0;
     const from = p * GB_PAGE_SIZE;
     const to = from + GB_PAGE_SIZE - 1;
-    const countRes = await supabaseClient
+    const countRes = (await supabaseClient
       .from("guestbook")
       .select("id", { count: "estimated", head: true })
-      .eq("is_approved", true) as unknown as { error: unknown; count: number | null };
+      .eq("is_approved", true)) as unknown as {
+      error: unknown;
+      count: number | null;
+    };
     if (countRes.error) throw countRes.error;
     const total = countRes.count || 0;
     gbTotalPages = Math.max(1, Math.ceil(total / GB_PAGE_SIZE));
-    const res = await supabaseClient
+    const res = (await supabaseClient
       .from("guestbook")
-      .select("nama, pesan, created_at")
+      .select("name, message, created_at")
       .eq("is_approved", true)
       .order("created_at", { ascending: false })
-      .range(from, to) as unknown as { error: unknown; data: Array<{ nama: string; pesan: string; created_at: string }> | null };
+      .range(from, to)) as unknown as {
+      error: unknown;
+      data: Array<{ name: string; message: string; created_at: string }> | null;
+    };
     if (res.error) throw res.error;
     const data = res.data || [];
     document.getElementById("gb-list")!.innerHTML = "";
     if (data.length === 0) {
       showGuestbookState("empty");
     } else {
-      data.forEach(function(m) {
+      data.forEach(function (m) {
         const div = document.createElement("div");
         div.className = "gb-entry";
-        div.innerHTML = '<div class="gb-name">' + escapeHtml(m.nama) + '</div><div class="gb-msg">' + escapeHtml(m.pesan) + '</div><div class="gb-time">' + formatWaktuRelatif(m.created_at) + "</div>";
+        div.innerHTML =
+          '<div class="gb-name">' +
+          escapeHtml(m.name) +
+          '</div><div class="gb-msg">' +
+          escapeHtml(m.message) +
+          '</div><div class="gb-time">' +
+          formatWaktuRelatif(m.created_at) +
+          "</div>";
         document.getElementById("gb-list")!.appendChild(div);
       });
     }
@@ -97,20 +153,32 @@ function renderGuestbookPagination(): void {
     container: document.getElementById("gb-pagination"),
     currentPage: gbCurrentPage,
     totalPages: gbTotalPages,
-    onPageChange: function(page) { fetchGuestbook(page); },
+    onPageChange: function (page) {
+      fetchGuestbook(page);
+    },
   });
 }
 
 function retryFetchGuestbook(attempt: number = 0): void {
-  if (attempt >= 3) { fetchGuestbook(0); return; }
-  setTimeout(function() {
-    if (supabaseClient) { fetchGuestbook(0); } else { retryFetchGuestbook(attempt + 1); }
-  }, 300 * (attempt + 1));
+  if (attempt >= 3) {
+    fetchGuestbook(0);
+    return;
+  }
+  setTimeout(
+    function () {
+      if (supabaseClient) {
+        fetchGuestbook(0);
+      } else {
+        retryFetchGuestbook(attempt + 1);
+      }
+    },
+    300 * (attempt + 1),
+  );
 }
 
 export function initGuestbook(): void {
   const form = document.getElementById("guestbook-form") as HTMLFormElement;
-  form.addEventListener("submit", async function(this: HTMLElement, e: Event) {
+  form.addEventListener("submit", async function (this: HTMLElement, e: Event) {
     e.preventDefault();
     const namaEl = document.getElementById("gb-nama") as HTMLInputElement;
     const pesanEl = document.getElementById("gb-pesan") as HTMLTextAreaElement;
@@ -127,7 +195,8 @@ export function initGuestbook(): void {
       return;
     }
     if (sensorKataKasar(psn)) {
-      errEl.textContent = "Ucapan mengandung kata tidak pantas. Mohon perbaiki.";
+      errEl.textContent =
+        "Ucapan mengandung kata tidak pantas. Mohon perbaiki.";
       errEl.classList.add("show");
       this.appendChild(errEl);
       return;
@@ -136,7 +205,7 @@ export function initGuestbook(): void {
     const span = this.querySelector("#statusMessage")!;
     span.textContent = "Mengirim...";
     try {
-      await submitGuestbook(nm, psn, null);
+      await submitGuestbook(nm, psn, getGuestId());
       showRsvpModal({ message: "Ucapan berhasil dikirim! Terima kasih!" });
       namaEl.value = "";
       pesanEl.value = "";
@@ -146,15 +215,19 @@ export function initGuestbook(): void {
       span.textContent = "Terkirim";
     } catch (err) {
       console.error("Gagal kirim ucapan:", err);
-      showRsvpModal({ message: "Gagal mengirim ucapan. Coba lagi.", isError: true });
+      showRsvpModal({
+        message: "Gagal mengirim ucapan. Coba lagi.",
+        isError: true,
+      });
     } finally {
       if (!gbSuccess) span.textContent = "Kirim Ucapan";
     }
   });
 
   const gbPesan = document.getElementById("gb-pesan") as HTMLTextAreaElement;
-  gbPesan.addEventListener("input", function() {
-    document.getElementById("gb-counter")!.textContent = gbPesan.value.length + "/500";
+  gbPesan.addEventListener("input", function () {
+    document.getElementById("gb-counter")!.textContent =
+      gbPesan.value.length + "/500";
   });
 
   (document.getElementById("gb-nama") as HTMLInputElement).value = getNama();

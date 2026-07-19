@@ -4,8 +4,6 @@ import { supabaseClient } from "./supabase-client";
 import { config } from "../config";
 import { showToast, showRsvpModal, hideRsvpModal } from "./utils";
 
-import html2canvas from "html2canvas";
-import QRCode from "qrcodejs";
 
 interface RsvpSubmitResult {
   is_approved: boolean;
@@ -46,10 +44,15 @@ async function submitRSVP(
     }),
   });
   if (!res.ok) {
-    const errData = await res.json().catch(function () {
-      return {};
-    });
-    throw new Error(errData.error || "Gagal mengirim RSVP. Silakan coba lagi.");
+    let errMsg = "Gagal mengirim RSVP. Silakan coba lagi.";
+    try {
+      const errData = await res.json();
+      const raw = String(errData.error || "");
+      if (raw && raw !== "{}" && !raw.startsWith('{')) errMsg = raw;
+    } catch (_) {
+      errMsg = "Server error (" + res.status + ")";
+    }
+    throw new Error(errMsg);
   }
   const data = (await res.json()) as { data: RsvpSubmitResult };
   return {
@@ -96,11 +99,11 @@ function applyAlreadySubmittedState(): void {
   });
   const submitBtn = form.querySelector<HTMLButtonElement>("button[type=submit]");
   if (submitBtn) submitBtn.textContent = "Lihat undangan ->";
-  if (submitBtn) submitBtn.onclick = () => { location.href = "/" + slug + "/card"; };
+  if (submitBtn) submitBtn.onclick = () => { if (slug) location.href = "/" + slug + "/card"; };
 }
 
 function getRsvpStorageKey(): string {
-  return "rsvp_submitted_" + (getNama() || "anon").toLowerCase();
+  return "rsvp_submitted_" + (slug || getNama() || "anon").toLowerCase();
 }
 
 function saveRsvpSubmitted(nama: string, status: string): void {
@@ -117,7 +120,7 @@ function saveRsvpSubmitted(nama: string, status: string): void {
 
 async function fetchGuest(guestSlug: string): Promise<unknown> {
   const res = await supabaseClient.rpc("get_guest_by_slug", {
-    guest_slug: guestSlug,
+    slug_param: guestSlug,
   });
   if (res.error) throw res.error;
   return res.data;
@@ -205,7 +208,7 @@ export function initRsvp(): void {
               text: "Lihat Undangan",
               className: "btn btn-primary px-5",
               onClick() {
-                location.href = "/" + slug + "/card";
+                if (slug) location.href = "/" + slug + "/card";
               },
             },
           ],

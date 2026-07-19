@@ -7,13 +7,19 @@ interface Window {
 }
 
 declare module "aos" {
-  const AOS: any;
+  interface AosOptions {
+    duration?: number;
+    easing?: string;
+    once?: boolean;
+    offset?: number;
+  }
+  interface AosInstance {
+    init(options?: AosOptions): void;
+    refresh(): void;
+    refreshHard(): void;
+  }
+  const AOS: AosInstance;
   export default AOS;
-}
-
-declare module "qrcodejs" {
-  const QRCode: any;
-  export default QRCode;
 }
 
 declare module "*.css" {
