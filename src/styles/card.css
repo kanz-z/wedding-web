@@ -1,132 +1,619 @@
 /* ==========================================================================
-   Kartu Undangan — /invitation/[slug]/card
-   Design tokens + flexbox layout, Playfair Display only.
+   Invitation Card — Production Design System
    ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tokens
+   -------------------------------------------------------------------------- */
 :root {
-  --card-page-bg: #f3f1ec;
-  --card-bg: #ffffff;
-  --card-ink: #0a0a0a;
-  --card-pink: #f14e95;
+  /* Palette */
+  --card-cream-50: #faf9f6;
+  --card-cream-100: #f3f1ec;
+  --card-cream-200: #e8e4db;
+  --card-ink-900: #0a0a0a;
+  --card-ink-700: #2d2d2d;
+  --card-ink-500: #6b6b6b;
+  --card-pink-500: #f14e95;
+  --card-pink-600: #d93d7f;
+  --card-white: #ffffff;
+
+  /* Typography */
   --card-serif: "Playfair Display", Georgia, "Times New Roman", serif;
   --card-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
-  --card-shadow:
+
+  /* Spacing (8px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.6rem;
+  --radius-lg: 0.9rem;
+  --radius-xl: 1.2rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(30, 28, 20, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(30, 28, 20, 0.1), 0 2px 4px -2px rgba(30, 28, 20, 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgba(30, 28, 20, 0.1), 0 4px 6px -4px rgba(30, 28, 20, 0.1);
+  --shadow-card:
     0 50px 90px -35px rgba(30, 28, 20, 0.32),
     0 18px 36px -18px rgba(30, 28, 20, 0.14);
-  --card-qr-shadow:
+  --shadow-qr:
     0 22px 40px -12px rgba(30, 28, 20, 0.18),
     0 8px 18px -6px rgba(30, 28, 20, 0.1);
-  --card-focus-ring: 0 0 0 3px rgba(95, 125, 92, 0.35);
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(95, 125, 92, 0.35);
+
+  /* Motion */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ==========================================================================
-   Page wrapper
-   ========================================================================== */
+/* --------------------------------------------------------------------------
+   Page
+   -------------------------------------------------------------------------- */
 .card-page {
   min-height: 100vh;
-  background: var(--card-page-bg);
-  color: var(--card-ink);
+  background: var(--card-cream-100);
+  color: var(--card-ink-900);
   font-family: var(--card-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ==========================================================================
+/* --------------------------------------------------------------------------
    Toolbar
-   ========================================================================== */
+   -------------------------------------------------------------------------- */
 .card-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
+  gap: var(--space-3);
+  padding: var(--space-5) clamp(var(--space-4), 4vw, var(--space-10));
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(243, 241, 236, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.card-toolbar__start {
-  flex: 1 1 0;
-  display: flex;
-  justify-content: flex-start;
-  min-width: max-content;
-}
-
-.card-toolbar__center {
-  flex: 1 1 0;
-  display: flex;
-  justify-content: center;
-  min-width: max-content;
-  order: 2;
-}
-
+.card-toolbar__start,
+.card-toolbar__center,
 .card-toolbar__end {
   flex: 1 1 0;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   min-width: max-content;
+}
+
+.card-toolbar__start {
+  justify-content: flex-start;
+}
+.card-toolbar__center {
+  justify-content: center;
+  order: 2;
+}
+.card-toolbar__end {
+  justify-content: flex-end;
   order: 3;
 }
 
+/* Back button */
 .card-btn-back {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  border: 1px solid #ded9cd;
-  background: #ffffff;
-  color: var(--card-ink);
+  gap: var(--space-2);
+  border: 1px solid var(--card-cream-200);
+  background: var(--card-white);
+  color: var(--card-ink-900);
   font-size: 0.95rem;
   font-weight: 500;
-  padding: 0.55rem 1.05rem;
-  border-radius: 0.6rem;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-family: inherit;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
+  text-decoration: none;
+  transition: all var(--transition-fast);
 }
 
 .card-btn-back:hover {
-  background: #faf9f6;
-  border-color: var(--card-pink);
+  background: var(--card-cream-50);
+  border-color: var(--card-pink-500);
+  color: var(--card-pink-600);
+}
+
+.card-btn-back:active {
+  transform: translateY(1px);
 }
 
 .card-btn-back__arrow {
   font-size: 1.05rem;
   line-height: 1;
+  transition: transform var(--transition-fast);
 }
 
-/* Orientation toggle — Bootstrap btn-group */
+.card-btn-back:hover .card-btn-back__arrow {
+  transform: translateX(-2px);
+}
+
+/* Orientation toggle — custom implementation, minimal Bootstrap */
+.card-orientation-toggle {
+  display: inline-flex;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--card-cream-200);
+}
+
+.card-orientation-toggle .btn-check {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  pointer-events: none;
+}
+
 .card-orientation-toggle .btn {
   font-family: var(--card-sans);
   font-size: 0.92rem;
   font-weight: 500;
-  padding: 0.55rem 1.35rem;
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  background: var(--card-white);
+  color: var(--card-ink-700);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
 }
 
-.card-orientation-toggle .btn-outline-primary {
-  --bs-btn-color: var(--card-pink);
-  --bs-btn-border-color: #ded9cd;
-  --bs-btn-hover-color: var(--card-ink);
-  --bs-btn-hover-bg: #f2f1ec;
-  --bs-btn-hover-border-color: var(--card-pink);
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: var(--card-pink);
-  --bs-btn-active-border-color: var(--card-pink);
+.card-orientation-toggle .btn:hover {
+  background: var(--card-cream-50);
+  color: var(--card-pink-600);
 }
 
-.card-orientation-toggle .btn-check:checked + .btn-outline-primary,
-.card-orientation-toggle .btn-check:active + .btn-outline-primary {
-  background-color: var(--card-pink);
-  border-color: var(--card-pink);
-  color: #fff;
-  box-shadow: none;
+.card-orientation-toggle .btn-check:checked + .btn,
+.card-orientation-toggle .btn-check:active + .btn {
+  background-color: var(--card-pink-500);
+  color: var(--card-white);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-:focus-visible {
+.card-orientation-toggle .btn-check:focus-visible + .btn {
+  box-shadow: var(--focus-ring);
+  z-index: 1;
+}
+
+/* Scoped focus */
+.card-page :focus-visible {
   outline: none;
-  box-shadow: var(--card-focus-ring);
-  border-radius: 0.4rem;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
-/* On small screens let the toggle drop to its own centered row */
+/* --------------------------------------------------------------------------
+   Stage
+   -------------------------------------------------------------------------- */
+.card-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(var(--space-6), 5vw, var(--space-12)) var(--space-4)
+    var(--space-10);
+  min-height: calc(100vh - 80px);
+}
+
+/* --------------------------------------------------------------------------
+   Card shell
+   -------------------------------------------------------------------------- */
+.invitation-card {
+  position: relative;
+  container-type: inline-size;
+  background: var(--card-white);
+  border-radius: clamp(var(--radius-lg), 1.6cqi, var(--radius-xl));
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  border: 1px solid rgba(30, 28, 20, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(var(--space-3), 2.4cqi, var(--space-6));
+  padding: clamp(var(--space-6), 3.6cqi, var(--space-10))
+    clamp(var(--space-6), 4.6cqi, var(--space-10));
+
+  /* Prevent flex overflow */
+  min-width: 0;
+  min-height: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Orientation classes
+   -------------------------------------------------------------------------- */
+.invitation-card.landscape {
+  width: min(60rem, 92vw);
+  aspect-ratio: 1.41421356;
+  min-height: 320px;
+}
+
+.invitation-card.portrait {
+  width: min(32rem, 92vw);
+  aspect-ratio: 0.70710678;
+  min-height: 480px;
+}
+
+/* Landscape: row layout for body */
+.invitation-card.landscape .card-body-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(var(--space-4), 4cqi, var(--space-8));
+  width: 100%;
+  min-height: 0;
+}
+
+.invitation-card.landscape .card-body-row .card-body-info,
+.invitation-card.landscape .card-body-row .card-body-qr {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Portrait: column layout for body */
+.invitation-card.portrait .card-body-row {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: clamp(var(--space-5), 2.4cqi, var(--space-8));
+  width: 100%;
+  min-height: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Card header
+   -------------------------------------------------------------------------- */
+.card-header-section {
+  text-align: center;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.card-label {
+  margin: 0 0 var(--space-2);
+  font-family: var(--card-serif);
+  font-size: clamp(0.85rem, 2.5cqi, 1.3rem);
+  letter-spacing: 0.05em;
+  color: var(--card-ink-500);
+  text-transform: uppercase;
+}
+
+.card-couple-name {
+  margin: 0;
+  font-family: var(--card-serif);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  font-size: clamp(1.7rem, 6.2cqi, 3rem);
+  color: var(--card-ink-900);
+  line-height: 1.1;
+}
+
+/* --------------------------------------------------------------------------
+   Body row (info + QR)
+   -------------------------------------------------------------------------- */
+.card-body-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(var(--space-3), 2.4cqi, var(--space-6));
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* Guest info */
+.card-body-info {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.card-info-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--space-2), 2.2cqi, var(--space-4));
+}
+
+.card-info-row {
+  display: flex;
+  gap: clamp(var(--space-3), 2cqi, var(--space-6));
+  font-family: var(--card-serif);
+  font-size: clamp(0.85rem, 2.5cqi, 1.2rem);
+  line-height: 1.4;
+  align-items: flex-start;
+}
+
+.card-info-label {
+  font-weight: 600;
+  flex: 0 0 clamp(5.2rem, 14cqi, 7rem);
+  color: var(--card-ink-500);
+  font-size: clamp(0.75rem, 2cqi, 0.95rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-info-value {
+  font-weight: 400;
+  color: var(--card-ink-900);
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* QR section */
+.card-body-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.card-qr {
+  position: relative;
+  z-index: 0;
+  width: min(100%, 15rem);
+  aspect-ratio: 1;
+  background: var(--card-white);
+  border-radius: 24%;
+  box-shadow: var(--shadow-qr);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.card-qr:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 28px 50px -14px rgba(30, 28, 20, 0.22),
+    0 12px 24px -8px rgba(30, 28, 20, 0.12);
+}
+
+/* QR inner glow */
+.card-qr::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(30, 28, 20, 0.08),
+    rgba(30, 28, 20, 0) 72%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* QR canvas sizing */
+.card-qr canvas,
+.card-qr img {
+  border-radius: 20%;
+  max-width: 80%;
+  max-height: 80%;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+}
+
+/* Portrait QR adjustments */
+.invitation-card.portrait .card-body-qr {
+  order: -1;
+}
+
+.invitation-card.portrait .card-qr {
+  width: min(100%, 15rem);
+}
+
+/* QR loading skeleton */
+.card-qr--loading {
+  background: linear-gradient(
+    90deg,
+    var(--card-cream-50) 25%,
+    var(--card-cream-100) 50%,
+    var(--card-cream-50) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Card footer
+   -------------------------------------------------------------------------- */
+.card-footer-section {
+  text-align: center;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.card-instruction {
+  margin: 0;
+  font-family: var(--card-serif);
+  font-style: italic;
+  font-size: clamp(0.8rem, 2.15cqi, 1.05rem);
+  color: var(--card-ink-500);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Download button
+   -------------------------------------------------------------------------- */
+.card-actions {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4) var(--space-10);
+}
+
+.btn-download-card {
+  margin-top: var(--space-8);
+  font-family: var(--card-sans);
+  font-weight: 500;
+  font-size: 0.98rem;
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--card-pink-500);
+  background: var(--card-pink-500);
+  color: var(--card-white);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.btn-download-card:hover,
+.btn-download-card:focus-visible {
+  color: var(--card-pink-500);
+  background: var(--card-white);
+}
+
+.btn-download-card:active {
+  transform: translateY(1px);
+  background: var(--card-cream-50);
+}
+
+.btn-download-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-download-card__spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin-right: var(--space-2);
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Error state
+   -------------------------------------------------------------------------- */
+.card-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: var(--space-8);
+  gap: var(--space-4);
+}
+
+.card-error__icon {
+  font-size: 3rem;
+  color: var(--card-ink-500);
+  opacity: 0.5;
+}
+
+.card-error__title {
+  font-family: var(--card-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--card-ink-900);
+  margin: 0;
+}
+
+.card-error__message {
+  font-family: var(--card-sans);
+  color: var(--card-ink-500);
+  font-size: 1rem;
+  max-width: 24rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Toast notification
+   -------------------------------------------------------------------------- */
+.card-toast {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-family: var(--card-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  opacity: 0;
+  transition: all var(--transition-base);
+  pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.card-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.card-toast--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.card-toast--success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
 @media (max-width: 560px) {
   .card-toolbar__start,
   .card-toolbar__center,
@@ -140,243 +627,83 @@
   .card-toolbar__end {
     order: 2;
   }
+
+  .invitation-card.landscape {
+    width: 96vw;
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .invitation-card.portrait {
+    width: 96vw;
+    padding: var(--space-4);
+  }
+
+  .card-info-row {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .card-info-label {
+    flex: none;
+    font-size: 0.75rem;
+  }
 }
 
-/* ==========================================================================
-   Stage & card shell
-   ========================================================================== */
-.card-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: clamp(1.5rem, 5vw, 3.5rem) 1rem 2.5rem;
+@media (max-width: 380px) {
+  .card-couple-name {
+    font-size: 1.4rem;
+  }
+
+  .card-info-row {
+    font-size: 0.8rem;
+  }
+
+  .card-qr {
+    width: min(100%, 9rem);
+  }
 }
 
-.invitation-card {
-  position: relative;
-  container-type: inline-size;
-  background: var(--card-bg);
-  border-radius: clamp(0.9rem, 1.6cqi, 1.6rem);
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
+@media (max-height: 600px) and (orientation: portrait) {
+  .card-stage {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(0.75rem, 2.4cqi, 1.75rem);
-  padding: clamp(1.5rem, 3.6cqi, 3.25rem) clamp(1.5rem, 4.6cqi, 4.25rem);
+  .invitation-card.portrait {
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .card-qr {
+    width: min(100%, 8rem);
+  }
+}
+
+@media (min-width: 2000px) {
+  .invitation-card.landscape {
+    width: 70rem;
+  }
+
+  .invitation-card.portrait {
+    width: 38rem;
+  }
 }
 
 /* --------------------------------------------------------------------------
-   Orientation classes
+   Reduced motion
    -------------------------------------------------------------------------- */
-.invitation-card.landscape {
-  width: min(60rem, 92vw);
-  aspect-ratio: 1.41421356;
-}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 
-.invitation-card.portrait {
-  width: min(32rem, 92vw);
-  aspect-ratio: 0.70710678;
-}
-
-/* Landscape: row layout for body (info + QR side by side) */
-.invitation-card.landscape .card-body-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: clamp(1rem, 4cqi, 3rem);
-  width: 100%;
-}
-
-.invitation-card.landscape .card-body-row .card-body-info,
-.invitation-card.landscape .card-body-row .card-body-qr {
-  flex: 1 1 0;
-}
-
-/* Portrait: column layout for body */
-.invitation-card.portrait .card-body-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.75rem, 2.4cqi, 1.75rem);
-  width: 100%;
-}
-
-/* ==========================================================================
-   Card header
-   ========================================================================== */
-.card-header-section {
-  text-align: center;
-  width: 100%;
-}
-
-.card-label {
-  margin: 0 0 0.35em;
-  font-family: var(--card-serif);
-  font-size: clamp(0.85rem, 2.5cqi, 1.3rem);
-  letter-spacing: 0.05em;
-  color: var(--card-ink);
-}
-
-.card-couple-name {
-  margin: 0;
-  font-family: var(--card-serif);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.045em;
-  font-size: clamp(1.7rem, 6.2cqi, 3rem);
-  color: var(--card-ink);
-}
-
-/* ==========================================================================
-   Body row (info + QR)
-   ========================================================================== */
-.card-body-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.75rem, 2.4cqi, 1.75rem);
-  width: 100%;
-}
-
-/* Guest info */
-.card-body-info {
-  width: 100%;
-}
-
-.card-info-list {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.6rem, 2.2cqi, 1.35rem);
-}
-
-.card-info-row {
-  display: flex;
-  gap: clamp(0.75rem, 2cqi, 1.5rem);
-  font-family: var(--card-serif);
-  font-size: clamp(0.85rem, 2.5cqi, 1.2rem);
-  line-height: 1.35;
-}
-
-.card-info-label {
-  font-weight: 600;
-  flex: 0 0 clamp(5.2rem, 14cqi, 7rem);
-  color: var(--card-ink);
-}
-
-.card-info-value {
-  font-weight: 400;
-  color: var(--card-ink);
-  margin: 0;
-}
-
-/* QR section */
-.card-body-qr {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.card-qr {
-  position: relative;
-  z-index: 0;
-  width: min(100%, 15rem);
-  aspect-ratio: 1;
-  background: var(--card-bg);
-  border-radius: 24%;
-  box-shadow: var(--card-qr-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* QR inner glow */
-.card-qr::before {
-  content: "";
-  position: absolute;
-  inset: -35%;
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    rgba(30, 28, 20, 0.1),
-    rgba(30, 28, 20, 0) 72%
-  );
-  z-index: -1;
-}
-
-/* Override qrcodejs canvas sizing */
-.card-qr canvas,
-.card-qr img {
-  border-radius: 20%;
-  max-width: 80%;
-  max-height: 80%;
-  width: auto !important;
-  height: auto !important;
-}
-
-.invitation-card.portrait .card-body-qr {
-  order: -1; /* QR above info in portrait */
-}
-
-.invitation-card.portrait .card-qr {
-  width: min(100%, 11rem);
-}
-
-/* ==========================================================================
-   Card footer
-   ========================================================================== */
-.card-footer-section {
-  text-align: center;
-  width: 100%;
-}
-
-.card-instruction {
-  margin: 0;
-  font-family: var(--card-serif);
-  font-style: italic;
-  font-size: clamp(0.8rem, 2.15cqi, 1.05rem);
-  color: var(--card-ink);
-}
-
-/* ==========================================================================
-   Download button below card
-   ========================================================================== */
-.card-actions {
-  display: flex;
-  justify-content: center;
-  padding: 0 1rem 3rem;
-}
-
-.btn-download-card {
-  font-family: var(--card-sans);
-  font-weight: 500;
-  font-size: 0.98rem;
-  padding: 0.75rem 2.25rem;
-  border-radius: 0.65rem;
-  border: none;
-  background: var(--card-pink);
-  color: #fff;
-  cursor: pointer;
-}
-
-.btn-download-card:hover,
-.btn-download-card:focus-visible {
-  color: var(--card-pink);
-  background: var(--card-bg);
-  outline: 2px solid var(--card-pink);
-}
-
-/* Reduced motion — no transition on orientation change */
-@media (prefers-reduced-motion: no-preference) {
-  .invitation-card {
-    transition:
-      width 0.4s ease,
-      aspect-ratio 0.4s ease,
-      height 0.4s ease;
+  .card-qr--loading {
+    animation: none;
+    background: var(--card-cream-100);
   }
 }

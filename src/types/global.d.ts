@@ -22,20 +22,6 @@ declare module "aos" {
   export default AOS;
 }
 
-declare module "qrcodejs" {
-  interface QrOptions {
-    text: string;
-    width?: number;
-    height?: number;
-    colorDark?: string;
-    colorLight?: string;
-  }
-  class QRCode {
-    constructor(el: HTMLElement | string, options: QrOptions);
-  }
-  export default QRCode;
-}
-
 declare module "*.css" {
   const content: string;
   export default content;

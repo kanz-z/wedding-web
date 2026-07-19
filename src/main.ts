@@ -154,6 +154,7 @@ async function initApp(): Promise<void> {
     }
 
     if (routeType === "card") {
+      enableScroll();
       renderCardPage(document.body);
       return;
     }

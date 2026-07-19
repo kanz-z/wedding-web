@@ -2,11 +2,10 @@
 // Halaman kartu undangan untuk route /[slug]/card.
 // Render setelah tamu mengisi RSVP — menampilkan kartu undangan digital
 // dengan data tamu, QR code, dan info acara.
-// Desain: flexbox, Playfair Display, toggle landscape/portrait.
 
 import { getGuestData, getNama } from "./slug-router";
 import html2canvas from "html2canvas";
-import QRCode from "qrcodejs";
+import QRCode from "qrcode";
 
 interface CardData {
   nama: string;
@@ -16,12 +15,17 @@ interface CardData {
   dressCode: string;
 }
 
+interface GuestData {
+  token?: string;
+  slug?: string;
+  [key: string]: unknown;
+}
+
 /** Tampilkan halaman kartu undangan setelah RSVP sukses */
 export function renderCardPage(container: HTMLElement): void {
-  const guest = getGuestData();
+  const guest = getGuestData() as GuestData | null;
   if (!guest) {
-    container.innerHTML =
-      '<p class="text-center text-secondary">Data tamu tidak ditemukan.</p>';
+    container.innerHTML = buildErrorHTML();
     return;
   }
 
@@ -33,14 +37,16 @@ export function renderCardPage(container: HTMLElement): void {
     dressCode: "Formal / semi-formal",
   };
 
-  container.innerHTML = buildCardHTML(data);
-  generateQR(data.qrToken);
+  container.innerHTML = buildCardHTML(data, guest.slug ?? "");
   bindEvents();
+  generateQR(data.qrToken, data.nama);
 }
 
-function buildCardHTML(d: CardData): string {
-  const slug = getGuestData()?.slug ?? "";
+/* ------------------------------------------------------------------ */
+/*  HTML Builders                                                     */
+/* ------------------------------------------------------------------ */
 
+function buildCardHTML(d: CardData, slug: string): string {
   return `
     <div class="card-page">
       <header class="card-toolbar">
@@ -51,11 +57,11 @@ function buildCardHTML(d: CardData): string {
           </a>
         </div>
         <div class="card-toolbar__center">
-          <div class="btn-group card-orientation-toggle" role="group" aria-label="Pilih orientasi kartu">
-            <input type="radio" class="btn-check" name="cardOrientation" id="cardOrientationLandscape" autocomplete="off" checked>
-            <label class="btn btn-outline-primary" for="cardOrientationLandscape">Landscape</label>
-            <input type="radio" class="btn-check" name="cardOrientation" id="cardOrientationPortrait" autocomplete="off">
-            <label class="btn btn-outline-primary" for="cardOrientationPortrait">Portrait</label>
+          <div class="card-orientation-toggle" role="radiogroup" aria-label="Pilih orientasi kartu">
+            <input type="radio" class="btn-check" name="cardOrientation" id="cardOrientationLandscape" autocomplete="off" checked aria-checked="true">
+            <label class="btn" for="cardOrientationLandscape">Landscape</label>
+            <input type="radio" class="btn-check" name="cardOrientation" id="cardOrientationPortrait" autocomplete="off" aria-checked="false">
+            <label class="btn" for="cardOrientationPortrait">Portrait</label>
           </div>
         </div>
         <div class="card-toolbar__end" aria-hidden="true"></div>
@@ -89,7 +95,7 @@ function buildCardHTML(d: CardData): string {
               </dl>
             </div>
             <div class="card-body-qr">
-              <div class="card-qr" id="card-qr" role="img" aria-label="Kode QR undangan"></div>
+              <div class="card-qr card-qr--loading" id="card-qr" role="img" aria-label="Memuat kode QR untuk ${escAttr(d.nama)}"></div>
             </div>
           </div>
           <div class="card-footer-section">
@@ -97,42 +103,104 @@ function buildCardHTML(d: CardData): string {
           </div>
         </section>
 
-        <div class="card-actions mt-5">
+        <div class="card-actions">
           <button type="button" class="btn-download-card" id="btn-download-card">
-            Unduh Kartu
+            <span class="btn-download-card__text">Unduh Kartu</span>
           </button>
         </div>
+      </div>
+
+      <div class="card-toast" id="card-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  `;
+}
+
+function buildErrorHTML(): string {
+  return `
+    <div class="card-page">
+      <div class="card-error">
+        <div class="card-error__icon" aria-hidden="true">📋</div>
+        <h1 class="card-error__title">Data Tamu Tidak Ditemukan</h1>
+        <p class="card-error__message">
+          Sepertinya sesi Anda telah berakhir atau data tamu belum tersedia. 
+          Silakan kembali ke halaman utama untuk mengisi RSVP kembali.
+        </p>
+        <a href="/" class="card-btn-back" style="margin-top: 1rem;">
+          <span class="card-btn-back__arrow" aria-hidden="true">&#8592;</span>
+          <span>Kembali ke Beranda</span>
+        </a>
       </div>
     </div>
   `;
 }
 
-function generateQR(token: string): void {
-  const el = document.getElementById("card-qr");
-  if (!el || !token) return;
-  new QRCode(el, {
-    text: token,
-    width: 300,
-    height: 300,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-  });
+/* ------------------------------------------------------------------ */
+/*  QR Code                                                           */
+/* ------------------------------------------------------------------ */
+
+function generateQR(token: string, guestName: string): void {
+  const container = document.getElementById("card-qr");
+  if (!container || !token) {
+    if (container) {
+      container.classList.remove("card-qr--loading");
+      container.setAttribute("aria-label", "Kode QR tidak tersedia");
+      container.innerHTML =
+        '<span style="color: var(--card-ink-500); font-size: 0.8rem;">QR tidak tersedia</span>';
+    }
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+
+  QRCode.toCanvas(
+    canvas,
+    token,
+    {
+      width: 300,
+      margin: 2,
+      color: { dark: "#0a0a0a", light: "#ffffff" },
+      errorCorrectionLevel: "H",
+    },
+    (err: Error | null | undefined) => {
+      container.classList.remove("card-qr--loading");
+
+      if (err) {
+        console.error("Gagal membuat QR code:", err);
+        container.setAttribute("aria-label", "Gagal memuat kode QR");
+        container.innerHTML =
+          '<span style="color: var(--card-ink-500); font-size: 0.8rem;">Gagal memuat QR</span>';
+        showToast("Gagal memuat kode QR. Silakan refresh halaman.", "error");
+        return;
+      }
+
+      container.appendChild(canvas);
+      container.setAttribute(
+        "aria-label",
+        `Kode QR undangan untuk ${guestName}`,
+      );
+    },
+  );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Events                                                            */
+/* ------------------------------------------------------------------ */
+
 function bindEvents(): void {
-  // Orientation toggle
   const card = document.getElementById("invitationCard");
   const landscapeInput = document.getElementById(
     "cardOrientationLandscape",
-  ) as HTMLInputElement;
+  ) as HTMLInputElement | null;
   const portraitInput = document.getElementById(
     "cardOrientationPortrait",
-  ) as HTMLInputElement;
+  ) as HTMLInputElement | null;
 
   landscapeInput?.addEventListener("change", () => {
     if (landscapeInput.checked && card) {
       card.classList.remove("portrait");
       card.classList.add("landscape");
+      landscapeInput.setAttribute("aria-checked", "true");
+      portraitInput?.setAttribute("aria-checked", "false");
     }
   });
 
@@ -140,16 +208,101 @@ function bindEvents(): void {
     if (portraitInput.checked && card) {
       card.classList.remove("landscape");
       card.classList.add("portrait");
+      portraitInput.setAttribute("aria-checked", "true");
+      landscapeInput?.setAttribute("aria-checked", "false");
     }
   });
 
-  // Download
   document
     .getElementById("btn-download-card")
-    ?.addEventListener("click", () => {
-      downloadCard();
+    ?.addEventListener("click", handleDownload);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Download                                                          */
+/* ------------------------------------------------------------------ */
+
+function handleDownload(): void {
+  const btn = document.getElementById(
+    "btn-download-card",
+  ) as HTMLButtonElement | null;
+  const btnText = btn?.querySelector(".btn-download-card__text");
+  const el = document.querySelector(".invitation-card") as HTMLElement | null;
+  const guest = getGuestData() as GuestData | null;
+
+  if (!el || !btn) return;
+
+  // Set loading state
+  btn.disabled = true;
+  if (btnText) {
+    btnText.innerHTML =
+      '<span class="btn-download-card__spinner"></span> Memproses...';
+  }
+
+  const scale = window.devicePixelRatio > 1 ? 2 : 1;
+
+  html2canvas(el, {
+    scale,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
+    onclone: (clonedDoc: Document) => {
+      // Ensure cloned card has no transition/transform artifacts
+      const clonedCard = clonedDoc.querySelector(
+        ".invitation-card",
+      ) as HTMLElement | null;
+      if (clonedCard) {
+        clonedCard.style.transition = "none";
+        clonedCard.style.transform = "none";
+      }
+    },
+  })
+    .then((canvas: HTMLCanvasElement) => {
+      const link = document.createElement("a");
+      const fileName = guest?.slug
+        ? `kartu-undangan-${guest.slug}.png`
+        : "kartu-undangan.png";
+      link.download = fileName;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      showToast("Kartu berhasil diunduh!", "success");
+    })
+    .catch((err: unknown) => {
+      console.error("Gagal mengunduh kartu:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat mengunduh kartu.";
+      showToast(message, "error");
+    })
+    .finally(() => {
+      btn.disabled = false;
+      if (btnText) {
+        btnText.textContent = "Unduh Kartu";
+      }
     });
 }
+
+/* ------------------------------------------------------------------ */
+/*  Toast                                                             */
+/* ------------------------------------------------------------------ */
+
+function showToast(message: string, type: "success" | "error"): void {
+  const toast = document.getElementById("card-toast");
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.className = `card-toast card-toast--${type} card-toast--visible`;
+
+  setTimeout(() => {
+    toast.classList.remove("card-toast--visible");
+  }, 4000);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Utilities                                                         */
+/* ------------------------------------------------------------------ */
 
 function esc(s: string): string {
   const div = document.createElement("div");
@@ -158,20 +311,7 @@ function esc(s: string): string {
 }
 
 function escAttr(s: string): string {
-  return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function downloadCard(): void {
-  const el = document.querySelector(".invitation-card") as HTMLElement;
-  if (!el) return;
-  html2canvas(el, { scale: 2, useCORS: true })
-    .then((canvas: HTMLCanvasElement) => {
-      const link = document.createElement("a");
-      link.download = "kartu-undangan.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    })
-    .catch((err: unknown) => {
-      console.error("Gagal mengunduh kartu:", err);
-    });
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
