@@ -18,6 +18,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5174",
   "http://127.0.0.1:5500",
   "http://localhost:4173",
+  "https://wedding-invitation-1-git-main-kanzzs-projects.vercel.app",
 ];
 
 interface CheckInPayload {

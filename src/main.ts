@@ -80,26 +80,38 @@ function showError(): void {
 
 async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
   try {
-    const { data } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from("event_config")
       .select("value")
       .eq("key", "event_status")
       .maybeSingle();
 
-    if (!data) return "online"; // tidak ada config = default online
+    if (error) {
+      console.error("[checkEventStatus] query error", { message: error.message, code: error.code, details: error.details });
+      return "online";
+    }
+
+    if (!data) {
+      console.warn("[checkEventStatus] row `event_status` tidak ditemukan — fallback online");
+      return "online";
+    }
 
     const val = (data as { value: string }).value;
+    console.log("[checkEventStatus] raw value dari DB", { val, type: typeof val });
+
     let status: string = val;
-    // Handle JSON string seperti '"online"' atau '"offline"'
     if (
       typeof val === "string" &&
       (val === '"online"' || val === '"offline"')
     ) {
       status = JSON.parse(val);
     }
-    return status === "offline" ? "offline" : "online";
-  } catch {
-    return "online"; // error saat cek = default online (fail open utk tamu)
+    const result = status === "offline" ? "offline" : "online";
+    console.log("[checkEventStatus] resolved =>", result);
+    return result;
+  } catch (err) {
+    console.error("[checkEventStatus] exception", err);
+    return "online";
   }
 }
 
@@ -126,7 +138,9 @@ async function initApp(): Promise<void> {
         ),
       ]);
       status = result;
-    } catch {
+      console.log("[initApp] status check result =>", status);
+    } catch (err) {
+      console.error("[initApp] status check exception", err);
       status = "error";
     }
 
@@ -171,8 +185,8 @@ async function initApp(): Promise<void> {
     initCountdown();
     initRsvp();
     initGuestbook();
-  } catch {
-    // Fallback: jika ada error tak terduga, tetap tampilkan halaman
+  } catch (err) {
+    console.error("[initApp] unhandled exception", err);
     hideLoading();
   }
 }
