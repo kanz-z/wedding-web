@@ -575,9 +575,8 @@ export async function setEventStatus(status: 'online' | 'offline'): Promise<void
       .upsert({ key: 'event_status', value: JSON.stringify(status), updated_at: new Date().toISOString() })
       .select('*')
       .maybeSingle();
-  } catch {
-    // Silent fail — localStorage tetap fallback
-    console.warn('Gagal sinkronisasi event_status ke database');
+  } catch (err) {
+    console.warn('[setEventStatus] gagal sync ke database', err);
   }
 }
 
