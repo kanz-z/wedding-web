@@ -11,7 +11,9 @@ import type { Reservation } from '@/types/supabase';
 // --- QR Scanner State ---
 let html5QrCode: Html5Qrcode | null = null;
 let currentCameraId: string | null = null;
+let availableCameras: { id: string; label: string }[] = [];
 let isScanning = false;
+let isProcessing = false;
 
 const elementId = 'qr-reader';
 
@@ -79,10 +81,11 @@ function resetScannerView(): void {
   if (qrDiv) hide(qrDiv);
 
   const btn = document.getElementById('btn-start-scan') as HTMLButtonElement | null;
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-camera-fill"></i> Mulai Scan';
-  }
+  if (btn) show(btn);
+
+  const stopBtn = document.getElementById('btn-stop-scan') as HTMLButtonElement | null;
+  if (stopBtn) hide(stopBtn);
+
   const switchBtn = document.getElementById('btn-switch-camera') as HTMLButtonElement | null;
   if (switchBtn) hide(switchBtn);
 
@@ -96,6 +99,8 @@ async function startScanner(): Promise<void> {
     showToast('Tidak ada kamera terdeteksi. Gunakan check-in manual.', true);
     return;
   }
+
+  availableCameras = cameras;
 
   const backId = findBackCamera(cameras);
   currentCameraId = backId ?? cameras[0].id;
@@ -115,27 +120,34 @@ async function startScanner(): Promise<void> {
 
   try {
     showScannerView();
+
+    // ⚠️ Set isScanning = true BEFORE start() — library's foreverScan
+    // can fire onScanSuccess BEFORE start() resolves.
+    isScanning = true;
+
+    const frame = document.querySelector('.scanner-frame') as HTMLElement | null;
+    const frameWidth = frame ? frame.clientWidth : 360;
+    const boxSize = Math.round(frameWidth * 0.7);
+
     await html5QrCode.start(
       { deviceId: { exact: currentCameraId } },
       {
         fps: 10,
-        qrbox: { width: 250, height: 250 },
+        qrbox: { width: boxSize, height: boxSize },
         aspectRatio: 1,
       },
       onScanSuccess,
       undefined,
     );
-    isScanning = true;
 
     const btn = document.getElementById('btn-start-scan') as HTMLButtonElement | null;
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Memindai…';
-    }
+    if (btn) hide(btn);
 
-    const frontId = findFrontCamera(cameras);
+    const stopBtn = document.getElementById('btn-stop-scan') as HTMLButtonElement | null;
+    if (stopBtn) show(stopBtn);
+
     const switchBtn = document.getElementById('btn-switch-camera') as HTMLButtonElement | null;
-    if (switchBtn && frontId) show(switchBtn);
+    if (switchBtn && cameras.length >= 2) show(switchBtn);
 
     setScannerStatus('Arahkan kamera ke QR code tamu');
   } catch (err) {
@@ -145,6 +157,7 @@ async function startScanner(): Promise<void> {
 }
 
 async function stopScanner(): Promise<void> {
+  isProcessing = false;
   if (html5QrCode && isScanning) {
     try {
       await html5QrCode.stop();
@@ -155,72 +168,127 @@ async function stopScanner(): Promise<void> {
   resetScannerView();
 }
 
+async function restartWithCamera(cameraId: string): Promise<void> {
+  if (!html5QrCode) return;
+  const frame = document.querySelector('.scanner-frame') as HTMLElement | null;
+  const frameWidth = frame ? frame.clientWidth : 360;
+  const boxSize = Math.round(frameWidth * 0.7);
+  await html5QrCode.start(
+    { deviceId: { exact: cameraId } },
+    { fps: 10, qrbox: { width: boxSize, height: boxSize }, aspectRatio: 1 },
+    onScanSuccess,
+    undefined,
+  );
+}
+
 async function switchCamera(): Promise<void> {
   const cameras = await getCameras();
   if (cameras.length < 2) return;
 
-  const backId = findBackCamera(cameras);
-  const frontId = findFrontCamera(cameras);
-  const newCameraId = currentCameraId === backId ? frontId : backId;
-  if (!newCameraId) return;
+  availableCameras = cameras;
 
-  currentCameraId = newCameraId;
+  const curIdx = cameras.findIndex((c) => c.id === currentCameraId);
+  const prevCameraId = currentCameraId;
+  const nextIdx = (curIdx + 1) % cameras.length;
+  currentCameraId = cameras[nextIdx].id;
 
-  if (html5QrCode && isScanning) {
+  if (!html5QrCode || !isScanning) return;
+  if (!prevCameraId) return;
+
+  try {
     await html5QrCode.stop();
-    await html5QrCode.start(
-      { deviceId: { exact: currentCameraId } },
-      { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
-      onScanSuccess,
-      undefined,
-    );
+    await restartWithCamera(currentCameraId);
+  } catch (_err) {
+    // Fallback to previous camera if new one fails (e.g., virtual device)
+    currentCameraId = prevCameraId;
+    try {
+      await html5QrCode.stop().catch(() => {});
+      await restartWithCamera(prevCameraId);
+      setScannerStatus('Kamera tidak tersedia — kembali ke kamera sebelumnya', true);
+      setTimeout(() => setScannerStatus('Arahkan kamera ke QR code tamu'), 2500);
+    } catch (_err2) {
+      isScanning = false;
+      resetScannerView();
+      showToast('Gagal mengganti kamera', true);
+    }
   }
 }
 
 // --- Handle scan result ---
 async function onScanSuccess(decodedText: string): Promise<void> {
-  if (!isScanning) return;
-
-  try { await html5QrCode?.pause(); } catch { /* ok */ }
+  if (isProcessing) return;
+  isProcessing = true;
 
   const qrToken = decodedText.trim();
 
-  const { data, error } = await supabase
-    .from('reservations')
-    .select('*')
-    .eq('qr_token', qrToken)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('qr_token', qrToken)
+      .maybeSingle();
 
-  if (error || !data) {
-    addScanResult('QR tidak dikenal', false, 'QR code tidak terdaftar di database');
-    setScannerStatus('QR tidak terdaftar — coba scan ulang', true);
-    setTimeout(() => {
-      setScannerStatus('Arahkan kamera ke QR code tamu');
-      html5QrCode?.resume();
-    }, 2000);
-    return;
+    if (error || !data) {
+      addScanResult('QR tidak dikenal', false, 'QR code tidak terdaftar di database');
+      showToast('QR code tidak terdaftar di database', true);
+      setScannerStatus('QR tidak terdaftar — coba scan ulang', true);
+      setTimeout(() => { setScannerStatus('Arahkan kamera ke QR code tamu'); isProcessing = false; }, 2000);
+      return;
+    }
+
+    const reservation = data as Reservation;
+
+    const { data: ciData } = await supabase
+      .from('check_in_transactions')
+      .select('delta')
+      .eq('reservation_id', reservation.id);
+
+    const checkedIn = (ciData || []).reduce((sum, t) => sum + (t.delta as number), 0);
+
+    if (checkedIn >= reservation.guest_count) {
+      addScanResult(reservation.name, true, `Sudah check-in ${checkedIn}/${reservation.guest_count}`);
+      showToast(`${reservation.name} sudah check-in semua`, true);
+      setScannerStatus('Tamu sudah check-in semua — coba scan lain', true);
+      setTimeout(() => { setScannerStatus('Arahkan kamera ke QR code tamu'); isProcessing = false; }, 2000);
+      return;
+    }
+
+    showPostScanModal(reservation, checkedIn);
+    // isProcessing stays true until modal close (handled by modal callbacks)
+  } catch (err: unknown) {
+    showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+    isProcessing = false;
   }
+}
 
-  const reservation = data as Reservation;
+function showScanSuccessFlash(guestName: string, delta: number): void {
+  const frame = document.querySelector('.scanner-frame') as HTMLElement | null;
+  if (!frame) return;
 
-  const { data: ciData } = await supabase
-    .from('check_in_transactions')
-    .select('delta')
-    .eq('reservation_id', reservation.id);
+  // remove existing flash
+  const old = frame.querySelector('.scan-success-flash');
+  if (old) old.remove();
 
-  const checkedIn = (ciData || []).reduce((sum, t) => sum + (t.delta as number), 0);
+  const flash = document.createElement('div');
+  flash.className = 'scan-success-flash';
+  flash.innerHTML = `
+    <div class="scan-success-flash__icon"><i class="bi bi-check-circle-fill"></i></div>
+    <div class="scan-success-flash__name">${escapeHtml(guestName)}</div>
+    <div class="scan-success-flash__detail">Check-in +${delta} berhasil</div>
+  `;
+  flash.style.cssText = `
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    background: rgba(0,0,0,0.82); z-index: 10; border-radius: var(--radius);
+    color: #fff; text-align: center; animation: scanFlashIn 0.25s ease;
+  `;
+  frame.appendChild(flash);
 
-  if (checkedIn >= reservation.guest_count) {
-    addScanResult(reservation.name, true, `Sudah check-in ${checkedIn}/${reservation.guest_count}`);
-    setScannerStatus('Tamu sudah check-in semua — coba scan lain', true);
-    setTimeout(() => {
-      setScannerStatus('Arahkan kamera ke QR code tamu');
-      html5QrCode?.resume();
-    }, 2000);
-    return;
-  }
-
-  showPostScanModal(reservation, checkedIn);
+  setTimeout(() => {
+    flash.style.opacity = '0';
+    flash.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => flash.remove(), 400);
+  }, 1800);
 }
 
 // --- Post-scan modal (5.2) ---
@@ -294,7 +362,7 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
 async function doPostscanCheckinAll(): Promise<void> {
   const overlay = document.getElementById('postscan-modal-overlay');
   const resId = overlay?.dataset.reservationId;
-  if (!resId) return;
+  if (!resId) { isProcessing = false; return; }
 
   const guestCount = parseInt(overlay?.dataset.guestCount ?? '0', 10);
   const checkedIn = parseInt(overlay?.dataset.checkedIn ?? '0', 10);
@@ -319,13 +387,14 @@ async function doPostscanCheckinAll(): Promise<void> {
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
-    showToast(`${guestName} berhasil check-in (+${delta})`);
+    showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
     window.dispatchEvent(new CustomEvent('checkin-updated'));
-    html5QrCode?.resume();
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+  } finally {
+    isProcessing = false;
   }
 }
 
@@ -336,7 +405,7 @@ async function doPostscanCheckinPartial(): Promise<void> {
 
   const input = document.getElementById('postscan-partial-input') as HTMLInputElement | null;
   const delta = parseInt(input?.value ?? '0', 10);
-  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); return; }
+  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); isProcessing = false; return; }
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -357,13 +426,14 @@ async function doPostscanCheckinPartial(): Promise<void> {
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
-    showToast(`${guestName} check-in (+${delta})`);
+    showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
     window.dispatchEvent(new CustomEvent('checkin-updated'));
-    html5QrCode?.resume();
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+  } finally {
+    isProcessing = false;
   }
 }
 
@@ -391,13 +461,13 @@ async function doPostscanOverride(): Promise<void> {
 async function doPostscanOverrideConfirm(): Promise<void> {
   const overlay = document.getElementById('override-modal-overlay');
   const resId = overlay?.dataset.reservationId;
-  if (!resId) return;
+  if (!resId) { isProcessing = false; return; }
 
   const delta = parseInt((document.getElementById('override-delta') as HTMLInputElement)?.value ?? '0', 10);
   const notes = (document.getElementById('override-notes') as HTMLTextAreaElement)?.value.trim();
 
-  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); return; }
-  if (!notes) { showToast('Alasan override wajib diisi', true); return; }
+  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); isProcessing = false; return; }
+  if (!notes) { showToast('Alasan override wajib diisi', true); isProcessing = false; return; }
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -419,13 +489,14 @@ async function doPostscanOverrideConfirm(): Promise<void> {
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Override +${delta} berhasil`);
-    showToast(`${guestName} override check-in (+${delta})`);
+    showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
     window.dispatchEvent(new CustomEvent('checkin-updated'));
-    html5QrCode?.resume();
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+  } finally {
+    isProcessing = false;
   }
 }
 
@@ -439,7 +510,7 @@ function doPostscanViewLog(): void {
   }, 100);
 
   hide(overlay);
-  html5QrCode?.resume();
+  isProcessing = false;
 }
 
 function doPostscanEdit(): void {
@@ -453,7 +524,7 @@ function doPostscanEdit(): void {
     window.dispatchEvent(new CustomEvent('open-edit-guest', { detail: { id: resId } }));
   }, 300);
 
-  html5QrCode?.resume();
+  isProcessing = false;
 }
 
 // --- Scan results panel (5.9) ---
@@ -544,9 +615,10 @@ export function initCheckinEvents(): void {
   );
 
   // Start/stop scan
-  document.getElementById('btn-start-scan')?.addEventListener('click', () => {
-    isScanning ? stopScanner() : startScanner();
-  });
+  document.getElementById('btn-start-scan')?.addEventListener('click', () => startScanner());
+
+  // Stop scan
+  document.getElementById('btn-stop-scan')?.addEventListener('click', () => stopScanner());
 
   // Switch camera
   document.getElementById('btn-switch-camera')?.addEventListener('click', () => switchCamera());
@@ -556,7 +628,7 @@ export function initCheckinEvents(): void {
     if ((e.target as HTMLElement).dataset.modalClose !== undefined ||
         (e.target as HTMLElement).id === 'postscan-modal-overlay') {
       hide(document.getElementById('postscan-modal-overlay'));
-      html5QrCode?.resume();
+      isProcessing = false;
     }
   });
 
@@ -568,7 +640,7 @@ export function initCheckinEvents(): void {
   document.getElementById('postscan-btn-edit')?.addEventListener('click', doPostscanEdit);
   document.getElementById('postscan-btn-close')?.addEventListener('click', () => {
     hide(document.getElementById('postscan-modal-overlay'));
-    html5QrCode?.resume();
+    isProcessing = false;
   });
 
   // Override modal
