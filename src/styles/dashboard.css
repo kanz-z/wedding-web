@@ -1204,29 +1204,10 @@
 }
 .scanner-frame {
   position: relative;
-  height: 60vh;
-  max-height: 420px;
+  min-height: 360px;
+  height: auto;
   border-radius: var(--radius);
-  overflow: hidden;
   background: #050505;
-}
-.scanner-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-}
-.scanner-viewfinder {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  aspect-ratio: 1;
-  max-width: 260px;
-  border: 2px solid var(--pink);
-  border-radius: var(--radius);
-  background: transparent;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
 }
 .scanner-placeholder {
   position: absolute;
@@ -1255,6 +1236,23 @@
   color: var(--ink-body);
   font-size: 0.875rem;
   margin: var(--space-md) 0;
+}
+.scan-success-flash__icon {
+  font-size: 3.5rem;
+  color: var(--success);
+  margin-bottom: 4px;
+}
+.scan-success-flash__name {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.scan-success-flash__detail {
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+}
+@keyframes scanFlashIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
 }
 .btn-scan-start {
   display: flex;
