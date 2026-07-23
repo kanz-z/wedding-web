@@ -1339,11 +1339,15 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="checkin-dialog-name"
-        style="max-width: 440px"
+        style="max-width: 500px"
       >
         <div class="modal-dash__header">
-          <h2 id="checkin-dialog-name">Check-in Tamu</h2>
-          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+          <h2 id="checkin-dialog-name">Nama Tamu</h2>
+          <button
+            class="modal-dash__close"
+            data-modal-close="true"
+            aria-label="Tutup"
+          >
             &times;
           </button>
         </div>
@@ -1356,6 +1360,21 @@
               margin-bottom: var(--space-md);
             "
           ></p>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: var(--space-sm);
+              margin-bottom: var(--space-md);
+              font-size: 1.25rem;
+              font-weight: 600;
+            "
+            id="checkin-dialog-counter"
+          ></div>
+          <div
+            id="checkin-dialog-body"
+            style="margin-bottom: var(--space-md)"
+          ></div>
           <button
             class="btn-dash btn-dash-accent"
             id="checkin-dialog-all"
@@ -1366,9 +1385,16 @@
               justify-content: center;
             "
           >
-            Masuk Semua
+            <span id="checkin-dialog-all-label">Masuk Semua</span>
           </button>
-          <div style="display: flex; gap: var(--space-sm); align-items: center">
+          <div
+            style="
+              display: flex;
+              gap: var(--space-sm);
+              align-items: center;
+              margin-bottom: var(--space-sm);
+            "
+          >
             <input
               type="number"
               class="form-control"
@@ -1385,15 +1411,30 @@
               Masuk Sebagian
             </button>
           </div>
+          <div>
+            <button
+              class="btn-dash btn-dash-outline"
+              id="checkin-dialog-override-btn"
+              type="button"
+              style="
+                width: 100%;
+                justify-content: center;
+                color: var(--warning);
+                border-color: var(--warning);
+              "
+            >
+              Override Kuota
+            </button>
+          </div>
         </div>
         <div class="modal-dash__footer">
           <button
             class="btn-dash btn-dash-outline"
-            data-modal-close
+            id="checkin-dialog-close"
             type="button"
             style="width: 100%; justify-content: center"
           >
-            Batal
+            Tutup
           </button>
         </div>
       </div>
@@ -1547,35 +1588,19 @@
               Masuk Sebagian
             </button>
           </div>
-          <div style="display: flex; gap: var(--space-sm); align-items: center">
+          <div>
             <button
               class="btn-dash btn-dash-outline"
               id="postscan-btn-override"
               type="button"
               style="
-                flex: 1;
+                width: 100%;
                 justify-content: center;
                 color: var(--warning);
                 border-color: var(--warning);
               "
             >
               Override Kuota
-            </button>
-            <button
-              class="btn-dash btn-dash-outline"
-              id="postscan-btn-log"
-              type="button"
-              style="flex: 1; justify-content: center"
-            >
-              Lihat Log
-            </button>
-            <button
-              class="btn-dash btn-dash-outline"
-              id="postscan-btn-edit"
-              type="button"
-              style="flex: 1; justify-content: center"
-            >
-              Edit
             </button>
           </div>
         </div>

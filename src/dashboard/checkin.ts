@@ -384,17 +384,17 @@ async function doPostscanCheckinAll(): Promise<void> {
     const result = await resp.json();
     if (!resp.ok) { showToast(result.error || 'Gagal check-in', true); return; }
 
-    hideModal('postscan-modal-overlay');
-
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
     window.dispatchEvent(new CustomEvent('checkin-updated'));
+
+    // Refresh post-scan modal — tetap di modal yang sama
+    await refreshPostScanModal(resId);
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
-  } finally {
     isProcessing = false;
   }
 }
@@ -404,9 +404,29 @@ async function doPostscanCheckinPartial(): Promise<void> {
   const resId = overlay?.dataset.reservationId;
   if (!resId) return;
 
+  const guestCount = parseInt(overlay?.dataset.guestCount ?? '0', 10);
+  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? '0', 10);
+  const remaining = guestCount - checkedIn;
+
   const input = document.getElementById('postscan-partial-input') as HTMLInputElement | null;
   const delta = parseInt(input?.value ?? '0', 10);
   if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); isProcessing = false; return; }
+
+  // Jika delta melebihi remaining, arahkan ke override modal
+  if (delta > remaining) {
+    const warnEl = document.getElementById('override-warning');
+    const notesEl = document.getElementById('override-notes') as HTMLTextAreaElement | null;
+    const inputEl = document.getElementById('override-delta') as HTMLInputElement | null;
+    const overrideOverlay = document.getElementById('override-modal-overlay');
+
+    if (warnEl) warnEl.textContent = `Check-in sebanyak ${delta} melebihi kuota tersisa (${remaining}/${guestCount}). Masukkan jumlah tambahan dan alasan override.`;
+    if (notesEl) notesEl.value = '';
+    if (inputEl) { inputEl.value = String(delta); inputEl.min = '1'; }
+    if (overrideOverlay) overrideOverlay.dataset.reservationId = resId;
+
+    showModal('override-modal-overlay');
+    return;
+  }
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -423,17 +443,17 @@ async function doPostscanCheckinPartial(): Promise<void> {
     const result = await resp.json();
     if (!resp.ok) { showToast(result.error || 'Gagal check-in', true); return; }
 
-    hideModal('postscan-modal-overlay');
-
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
     window.dispatchEvent(new CustomEvent('checkin-updated'));
+
+    // Refresh post-scan modal dengan data terbaru
+    await refreshPostScanModal(resId);
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
-  } finally {
     isProcessing = false;
   }
 }
@@ -460,8 +480,9 @@ async function doPostscanOverride(): Promise<void> {
 }
 
 async function doPostscanOverrideConfirm(): Promise<void> {
-  const overlay = document.getElementById('override-modal-overlay');
-  const resId = overlay?.dataset.reservationId;
+  const overrideOverlay = document.getElementById('override-modal-overlay');
+  const resId = overrideOverlay?.dataset.reservationId;
+  const source = overrideOverlay?.dataset.source;
   if (!resId) { isProcessing = false; return; }
 
   const delta = parseInt((document.getElementById('override-delta') as HTMLInputElement)?.value ?? '0', 10);
@@ -485,8 +506,8 @@ async function doPostscanOverrideConfirm(): Promise<void> {
     const result = await resp.json();
     if (!resp.ok) { showToast(result.error || 'Gagal override', true); return; }
 
-    hideModal('postscan-modal-overlay');
-    hideModal('postscan-modal-overlay');
+    // Tutup HANYA override modal
+    hideModal('override-modal-overlay');
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Override +${delta} berhasil`);
@@ -494,36 +515,80 @@ async function doPostscanOverrideConfirm(): Promise<void> {
 
     await fetchGuests();
     window.dispatchEvent(new CustomEvent('checkin-updated'));
+
+    // Jika override berasal dari checkin dialog, refresh dialog manual
+    if (source === 'checkin-dialog') {
+      window.dispatchEvent(new CustomEvent('open-checkin-dialog', { detail: { id: resId } }));
+      return;
+    }
+
+    // Default: refresh post-scan modal
+    await refreshPostScanModal(resId);
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
-  } finally {
     isProcessing = false;
   }
 }
 
-function doPostscanViewLog(): void {
-  window.location.hash = 'checkin';
-  setTimeout(() => {
-    const adminBtn = document.querySelector<HTMLButtonElement>('.mode-toggle button[data-mode="admin"]');
-    adminBtn?.click();
-  }, 100);
+// --- Refresh post-scan modal setelah check-in/override ---
+async function refreshPostScanModal(reservationId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('id', reservationId)
+    .maybeSingle();
 
-  hideModal('postscan-modal-overlay');
-  isProcessing = false;
-}
+  if (error || !data) {
+    hideModal('postscan-modal-overlay');
+    isProcessing = false;
+    return;
+  }
 
-function doPostscanEdit(): void {
+  const reservation = data as Reservation;
+
+  const { data: ciData } = await supabase
+    .from('check_in_transactions')
+    .select('delta')
+    .eq('reservation_id', reservation.id);
+
+  const checkedIn = (ciData || []).reduce((sum, t) => sum + (t.delta as number), 0);
+
+  // Update overlay dataset
   const overlay = document.getElementById('postscan-modal-overlay');
-  const resId = overlay?.dataset.reservationId;
-  if (!resId) return;
+  if (overlay) {
+    overlay.dataset.checkedIn = String(checkedIn);
+    overlay.dataset.guestCount = String(reservation.guest_count);
+  }
 
-  hideModal('postscan-modal-overlay');
-  window.location.hash = 'guests';
-  setTimeout(() => {
-    window.dispatchEvent(new CustomEvent('open-edit-guest', { detail: { id: resId } }));
-  }, 300);
+  // Update counter display
+  const countEl = document.getElementById('postscan-checked-in-count');
+  if (countEl) {
+    countEl.innerHTML = `<span class="mono-time">${checkedIn}</span><span style="color:var(--ink-muted)">/${reservation.guest_count}</span>`;
+  }
 
-  isProcessing = false;
+  // Update detail text
+  const detailEl = document.getElementById('postscan-guest-detail');
+  const remaining = reservation.guest_count - checkedIn;
+  const isComplete = checkedIn >= reservation.guest_count;
+  if (detailEl) {
+    detailEl.textContent = isComplete
+      ? `Sudah check-in: ${checkedIn}/${reservation.guest_count} — semua sudah hadir`
+      : `Sudah check-in: ${checkedIn}/${reservation.guest_count} — sisa ${remaining}`;
+  }
+
+  // Update button states
+  const allBtn = document.getElementById('postscan-btn-all') as HTMLButtonElement | null;
+  const partialBtn = document.getElementById('postscan-btn-partial') as HTMLButtonElement | null;
+  const partialInput = document.getElementById('postscan-partial-input') as HTMLInputElement | null;
+  const allLabel = document.getElementById('postscan-all-label');
+
+  if (allBtn) allBtn.disabled = isComplete;
+  if (allLabel) allLabel.textContent = isComplete ? 'Semua sudah check-in' : `Masuk Semua (+${Math.max(1, remaining)})`;
+  if (partialBtn) partialBtn.disabled = isComplete || remaining <= 0;
+  if (partialInput) {
+    partialInput.value = String(Math.max(1, remaining));
+    partialInput.max = String(Math.max(1, remaining));
+  }
 }
 
 // --- Scan results panel (5.9) ---
@@ -635,8 +700,6 @@ export function initCheckinEvents(): void {
   document.getElementById('postscan-btn-all')?.addEventListener('click', doPostscanCheckinAll);
   document.getElementById('postscan-btn-partial')?.addEventListener('click', doPostscanCheckinPartial);
   document.getElementById('postscan-btn-override')?.addEventListener('click', doPostscanOverride);
-  document.getElementById('postscan-btn-log')?.addEventListener('click', doPostscanViewLog);
-  document.getElementById('postscan-btn-edit')?.addEventListener('click', doPostscanEdit);
   document.getElementById('postscan-btn-close')?.addEventListener('click', () => {
     hideModal('postscan-modal-overlay');
     isProcessing = false;
