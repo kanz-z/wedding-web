@@ -3,6 +3,7 @@
 
 import { Html5Qrcode } from 'html5-qrcode';
 import { escapeHtml, formatTime, showToast, show, hide } from '@/shared/ui';
+import { showModal, hideModal } from './ui';
 import { guestList, checkinStatus, fetchGuests } from './state';
 import { supabase } from './supabase-client';
 import type { GuestWithMeta } from './state';
@@ -355,7 +356,7 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
     overlay.dataset.checkedIn = String(checkedIn);
   }
 
-  show(overlay);
+  showModal('postscan-modal-overlay');
 }
 
 // --- Post-scan actions ---
@@ -383,7 +384,7 @@ async function doPostscanCheckinAll(): Promise<void> {
     const result = await resp.json();
     if (!resp.ok) { showToast(result.error || 'Gagal check-in', true); return; }
 
-    hide(overlay);
+    hideModal('postscan-modal-overlay');
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
@@ -422,7 +423,7 @@ async function doPostscanCheckinPartial(): Promise<void> {
     const result = await resp.json();
     if (!resp.ok) { showToast(result.error || 'Gagal check-in', true); return; }
 
-    hide(overlay);
+    hideModal('postscan-modal-overlay');
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
@@ -455,7 +456,7 @@ async function doPostscanOverride(): Promise<void> {
   if (inputEl) { inputEl.value = '1'; inputEl.min = '1'; }
   if (overrideOverlay) overrideOverlay.dataset.reservationId = resId;
 
-  show(overrideOverlay);
+  showModal('override-modal-overlay');
 }
 
 async function doPostscanOverrideConfirm(): Promise<void> {
@@ -484,8 +485,8 @@ async function doPostscanOverrideConfirm(): Promise<void> {
     const result = await resp.json();
     if (!resp.ok) { showToast(result.error || 'Gagal override', true); return; }
 
-    hide(document.getElementById('postscan-modal-overlay'));
-    hide(overlay);
+    hideModal('postscan-modal-overlay');
+    hideModal('postscan-modal-overlay');
 
     const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
     addScanResult(guestName, true, `Override +${delta} berhasil`);
@@ -501,15 +502,13 @@ async function doPostscanOverrideConfirm(): Promise<void> {
 }
 
 function doPostscanViewLog(): void {
-  const overlay = document.getElementById('postscan-modal-overlay');
-
   window.location.hash = 'checkin';
   setTimeout(() => {
     const adminBtn = document.querySelector<HTMLButtonElement>('.mode-toggle button[data-mode="admin"]');
     adminBtn?.click();
   }, 100);
 
-  hide(overlay);
+  hideModal('postscan-modal-overlay');
   isProcessing = false;
 }
 
@@ -518,7 +517,7 @@ function doPostscanEdit(): void {
   const resId = overlay?.dataset.reservationId;
   if (!resId) return;
 
-  hide(overlay);
+  hideModal('postscan-modal-overlay');
   window.location.hash = 'guests';
   setTimeout(() => {
     window.dispatchEvent(new CustomEvent('open-edit-guest', { detail: { id: resId } }));
@@ -627,7 +626,7 @@ export function initCheckinEvents(): void {
   document.getElementById('postscan-modal-overlay')?.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).dataset.modalClose !== undefined ||
         (e.target as HTMLElement).id === 'postscan-modal-overlay') {
-      hide(document.getElementById('postscan-modal-overlay'));
+      hideModal('postscan-modal-overlay');
       isProcessing = false;
     }
   });
@@ -639,7 +638,7 @@ export function initCheckinEvents(): void {
   document.getElementById('postscan-btn-log')?.addEventListener('click', doPostscanViewLog);
   document.getElementById('postscan-btn-edit')?.addEventListener('click', doPostscanEdit);
   document.getElementById('postscan-btn-close')?.addEventListener('click', () => {
-    hide(document.getElementById('postscan-modal-overlay'));
+    hideModal('postscan-modal-overlay');
     isProcessing = false;
   });
 
@@ -647,12 +646,12 @@ export function initCheckinEvents(): void {
   document.getElementById('override-modal-overlay')?.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).dataset.modalClose !== undefined ||
         (e.target as HTMLElement).id === 'override-modal-overlay') {
-      hide(document.getElementById('override-modal-overlay'));
+      hideModal('override-modal-overlay');
     }
   });
   document.getElementById('override-confirm-btn')?.addEventListener('click', doPostscanOverrideConfirm);
   document.getElementById('override-cancel-btn')?.addEventListener('click', () => {
-    hide(document.getElementById('override-modal-overlay'));
+    hideModal('override-modal-overlay');
   });
 
   // Manual check-in (5.7)
