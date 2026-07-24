@@ -339,20 +339,44 @@ function openCheckinDialog(id: string): void {
   activeGuestId = id;
 
   (document.getElementById('checkin-dialog-name') as HTMLElement).textContent = g.name;
-  (document.getElementById('checkin-dialog-detail') as HTMLElement).textContent =
-    `${g.checkedIn}/${g.guest_count} sudah check-in · RSVP: ${g.rsvp === 'hadir' ? 'Hadir' : g.rsvp === 'tidak' ? 'Tidak Hadir' : 'Belum'}`;
 
   const rem = g.guest_count - g.checkedIn;
+  const isComplete = rem <= 0;
+
+  (document.getElementById('checkin-dialog-detail') as HTMLElement).textContent = isComplete
+    ? `Sudah check-in: ${g.checkedIn}/${g.guest_count} — semua sudah hadir`
+    : `Sudah check-in: ${g.checkedIn}/${g.guest_count} — sisa ${rem}`;
+
+  // Counter display
+  const counterEl = document.getElementById('checkin-dialog-counter');
+  if (counterEl) {
+    counterEl.innerHTML = `<span class="mono-time">${g.checkedIn}</span><span style="color:var(--ink-muted)">/${g.guest_count}</span>`;
+  }
+
+  // Detail grid
+  const bodyEl = document.getElementById('checkin-dialog-body');
+  if (bodyEl) {
+    let html = '<dl class="detail-grid">';
+    html += `<dt>Kelompok</dt><dd>${escapeHtml(g.kelompok || '–')}</dd>`;
+    html += `<dt>Kategori</dt><dd>${g.kategori === 'keluarga' ? 'Keluarga' : 'Bukan Keluarga'}</dd>`;
+    html += `<dt>No. WhatsApp</dt><dd>${escapeHtml(g.nomor_wa || '–')}</dd>`;
+    html += `<dt>RSVP</dt><dd>${g.rsvp === 'hadir' ? 'Hadir' : g.rsvp === 'tidak' ? 'Tidak Hadir' : 'Belum Respon'}</dd>`;
+    if (g.notes) html += `<dt>Catatan</dt><dd>${escapeHtml(g.notes)}</dd>`;
+    html += '</dl>';
+    bodyEl.innerHTML = html;
+  }
+
   const allBtn = document.getElementById('checkin-dialog-all') as HTMLButtonElement;
-  allBtn.textContent = `Masuk Semua (+${Math.max(1, rem)})`;
-  allBtn.disabled = rem <= 0;
+  allBtn.disabled = isComplete;
+
+  const allLabel = document.getElementById('checkin-dialog-all-label');
+  if (allLabel) allLabel.textContent = isComplete ? 'Semua sudah check-in' : `Masuk Semua (+${Math.max(1, rem)})`;
 
   (document.getElementById('checkin-dialog-partial-input') as HTMLInputElement).value = String(Math.max(1, rem));
   (document.getElementById('checkin-dialog-partial-input') as HTMLInputElement).max = String(Math.max(1, rem));
 
-  // GAP-013: reset override checkbox
-  const overrideCb = document.getElementById('checkin-dialog-override') as HTMLInputElement | null;
-  if (overrideCb) overrideCb.checked = false;
+  const overrideBtn = document.getElementById('checkin-dialog-override-btn') as HTMLButtonElement | null;
+  if (overrideBtn) overrideBtn.disabled = isComplete;
 
   showModal('checkin-dialog-overlay');
 }
@@ -364,17 +388,13 @@ async function doCheckinAll(): Promise<void> {
   const rem = g.guest_count - g.checkedIn;
   const delta = rem > 0 ? rem : g.guest_count;
 
-  // GAP-013: override support via manual check-in
-  const overrideCb = document.getElementById('checkin-dialog-override') as HTMLInputElement | null;
-  const isOverride = overrideCb?.checked ?? false;
-
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual', isOverride);
+    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual', false);
     hideModal('checkin-dialog-overlay');
     renderGuestTable();
     flashRow(activeGuestId);
-    showToast(g.name + ' berhasil check-in (+' + delta + ')' + (isOverride ? ' [Override]' : ''));
+    showToast(g.name + ' berhasil check-in (+' + delta + ')');
     window.dispatchEvent(new CustomEvent('checkin-updated'));
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
@@ -386,21 +406,86 @@ async function doCheckinPartial(): Promise<void> {
   const g = guestList.find(x => x.id === activeGuestId);
   if (!g) return;
 
+  const rem = g.guest_count - g.checkedIn;
   const delta = parseInt((document.getElementById('checkin-dialog-partial-input') as HTMLInputElement).value, 10);
   if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); return; }
 
-  // GAP-013: override support via manual check-in
-  const overrideCb = document.getElementById('checkin-dialog-override') as HTMLInputElement | null;
-  const isOverride = overrideCb?.checked ?? false;
+  // Jika delta melebihi remaining, arahkan ke override modal
+  if (delta > rem) {
+    const warnEl = document.getElementById('override-warning');
+    const notesEl = document.getElementById('override-notes') as HTMLTextAreaElement | null;
+    const inputEl = document.getElementById('override-delta') as HTMLInputElement | null;
+    const overrideOverlay = document.getElementById('override-modal-overlay');
+
+    if (warnEl) warnEl.textContent = `Check-in sebanyak ${delta} melebihi kuota tersisa (${rem}/${g.guest_count}). Masukkan jumlah tambahan dan alasan override.`;
+    if (notesEl) notesEl.value = '';
+    if (inputEl) { inputEl.value = String(delta); inputEl.min = '1'; }
+    if (overrideOverlay) { overrideOverlay.dataset.reservationId = activeGuestId; overrideOverlay.dataset.source = 'checkin-dialog'; }
+
+    showModal('override-modal-overlay');
+    return;
+  }
 
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual', isOverride);
+    await addCheckin(activeGuestId, user?.id ?? '', delta, 'manual', false);
     hideModal('checkin-dialog-overlay');
     renderGuestTable();
     flashRow(activeGuestId);
     showToast(g.name + ' check-in (+' + delta + ')');
     window.dispatchEvent(new CustomEvent('checkin-updated'));
+  } catch (err: unknown) {
+    showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+  }
+}
+
+function openManualOverride(): void {
+  if (!activeGuestId) return;
+  const g = guestList.find(x => x.id === activeGuestId);
+  if (!g) return;
+
+  const warnEl = document.getElementById('override-warning');
+  const notesEl = document.getElementById('override-notes') as HTMLTextAreaElement | null;
+  const inputEl = document.getElementById('override-delta') as HTMLInputElement | null;
+  const overrideOverlay = document.getElementById('override-modal-overlay');
+
+  if (warnEl) warnEl.textContent = `Check-in melebihi kuota (${g.checkedIn}/${g.guest_count}). Masukkan jumlah tambahan dan alasan override.`;
+  if (notesEl) notesEl.value = '';
+  if (inputEl) { inputEl.value = '1'; inputEl.min = '1'; }
+  if (overrideOverlay) { overrideOverlay.dataset.reservationId = activeGuestId; overrideOverlay.dataset.source = 'checkin-dialog'; }
+
+  showModal('override-modal-overlay');
+}
+
+async function doManualOverrideConfirm(): Promise<void> {
+  const overrideOverlay = document.getElementById('override-modal-overlay');
+  const resId = overrideOverlay?.dataset.reservationId;
+  if (!resId) return;
+
+  const delta = parseInt((document.getElementById('override-delta') as HTMLInputElement)?.value ?? '0', 10);
+  const notes = (document.getElementById('override-notes') as HTMLTextAreaElement)?.value.trim();
+
+  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); return; }
+  if (!notes) { showToast('Alasan override wajib diisi', true); return; }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    await addCheckin(resId, user?.id ?? '', delta, 'manual', true);
+    hideModal('override-modal-overlay');
+
+    const g = guestList.find(x => x.id === resId);
+    if (g) {
+      showToast(g.name + ' override (+' + delta + ') berhasil');
+    }
+
+    renderGuestTable();
+    window.dispatchEvent(new CustomEvent('checkin-updated'));
+
+    // Jika override dari checkin dialog, refresh dialog
+    if (overrideOverlay?.dataset.source === 'checkin-dialog') {
+      activeGuestId = resId;
+      openCheckinDialog(resId);
+    }
   } catch (err: unknown) {
     showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
   }
@@ -612,6 +697,10 @@ export function initGuestEvents(): void {
   // Check-in dialog buttons (4.16)
   document.getElementById('checkin-dialog-all')?.addEventListener('click', () => doCheckinAll());
   document.getElementById('checkin-dialog-partial-btn')?.addEventListener('click', () => doCheckinPartial());
+  document.getElementById('checkin-dialog-override-btn')?.addEventListener('click', () => openManualOverride());
+  document.getElementById('checkin-dialog-close')?.addEventListener('click', () => {
+    hideModal('checkin-dialog-overlay');
+  });
 
   // Table event delegation
   document.getElementById('guest-tbody')?.addEventListener('click', function (e) {

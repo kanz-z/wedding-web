@@ -1,6 +1,6 @@
 // src/dashboard/reservations.ts — Fase 6C: Reservasi grid + approval + copy link
 
-import { show, hide } from '@/shared/ui';
+import { show, hide, debounce } from '@/shared/ui';
 import { showToast, escapeHtml } from '@/shared/ui';
 import {
   guestList,
@@ -22,14 +22,18 @@ export function initReservations(): void {
 
   document.getElementById('res-error-retry')?.addEventListener('click', loadReservations);
 
-  // Search
+  // Search (debounce 250ms — konsisten dengan search tamu)
   const resSearch = document.getElementById('res-search') as HTMLInputElement | null;
-  resSearch?.addEventListener('input', function () {
-    const q = this.value.trim().toLowerCase();
-    document.getElementById('res-search-box')?.classList.toggle('has-value', !!q);
+  const debouncedResSearch = debounce((q: string) => {
     document.querySelectorAll<HTMLElement>('#reservation-grid .reservation-card').forEach((card) => {
       card.style.display = (card.dataset.resName ?? '').includes(q) ? '' : 'none';
     });
+  }, 250);
+
+  resSearch?.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    document.getElementById('res-search-box')?.classList.toggle('has-value', !!q);
+    debouncedResSearch(q);
   });
 
   document.getElementById('res-search-clear')?.addEventListener('click', () => {
