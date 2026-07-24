@@ -9,7 +9,7 @@ import {
   checkinStatus, getGuestSummary, getAnomalyCount, fetchGuests,
   insertGuest, updateGuest, addCheckin, undoCheckin, fetchCheckinLog, setupRealtime,
 } from './state';
-import { showModal, hideModal } from './ui';
+import { showModal, hideModal, renderNotifications } from './ui';
 import { supabase } from './supabase-client';
 import type { GuestWithMeta, CheckinLogEntry } from './state';
 
@@ -621,6 +621,7 @@ export async function reloadGuests(): Promise<void> {
     hide(skel);
     populateKelompokFilter();
     renderGuestTable();
+    renderNotifications();
   } catch {
     hide(skel);
     show(document.getElementById('guest-error'));

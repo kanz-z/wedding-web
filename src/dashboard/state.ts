@@ -604,18 +604,6 @@ export async function fetchAdmins(): Promise<AdminUser[]> {
   return adminUsers;
 }
 
-export async function insertAdmin(email: string, role: AdminUser['role']): Promise<void> {
-  const { error } = await supabase.from('admin_users').insert({ email, role });
-  if (error) throw error;
-  await fetchAdmins();
-}
-
-export async function deleteAdmin(id: string): Promise<void> {
-  const { error } = await supabase.from('admin_users').delete().eq('id', id);
-  if (error) throw error;
-  adminUsers = adminUsers.filter(a => a.id !== id);
-}
-
 export async function fetchCurrentAdmin(): Promise<void> {
   const { data } = await supabase.auth.getUser();
   if (data.user?.email) {

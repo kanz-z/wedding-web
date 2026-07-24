@@ -1038,9 +1038,6 @@
           </button>
           <div class="page-head">
             <h1>Admin</h1>
-            <button class="btn-dash btn-dash-accent" type="button">
-              <i class="bi bi-person-plus"></i> Tambah Admin
-            </button>
           </div>
           <div class="table-wrap">
             <div id="admin-skeleton" class="d-none-important">
@@ -1063,7 +1060,6 @@
                   <th>Email</th>
                   <th>Peran</th>
                   <th>Dibuat</th>
-                  <th class="text-end">Aksi</th>
                 </tr>
               </thead>
               <tbody id="admin-tbody"></tbody>
@@ -1424,59 +1420,6 @@
             style="width: 100%; justify-content: center"
           >
             Tutup
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ======================================================= MODAL TAMBAH ADMIN (6.11) ======================================================= -->
-    <div class="modal-overlay" id="admin-modal-overlay">
-      <div
-        class="modal-dash"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="admin-modal-title"
-        style="max-width: 400px"
-      >
-        <div class="modal-dash__header">
-          <h2 id="admin-modal-title">Tambah Admin</h2>
-          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
-            &times;
-          </button>
-        </div>
-        <div class="modal-dash__body">
-          <div class="dash-field">
-            <label for="admin-email">Email</label>
-            <input
-              type="email"
-              class="form-control"
-              id="admin-email"
-              placeholder="admin@rezaashila.id"
-            />
-          </div>
-          <div class="dash-field">
-            <label for="admin-role">Peran</label>
-            <select class="form-control" id="admin-role">
-              <option value="admin">Admin</option>
-              <option value="operator">Operator</option>
-              <option value="superadmin">Superadmin</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-dash__footer">
-          <button
-            class="btn-dash btn-dash-outline"
-            data-modal-close
-            type="button"
-          >
-            Batal
-          </button>
-          <button
-            class="btn-dash btn-dash-accent"
-            id="admin-save-btn"
-            type="button"
-          >
-            Simpan
           </button>
         </div>
       </div>

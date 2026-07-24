@@ -42,6 +42,12 @@
   --space-3xl: 64px;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* ============================= RESET DASAR ============================= */
 .dash * {
   box-sizing: border-box;
@@ -490,6 +496,13 @@
 }
 
 /* ============================= SUMMARY CARDS ============================= */
+#checkin-mode-admin .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -498,8 +511,8 @@
 }
 @media (max-width: 767px) {
   .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-sm);
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-sm) !important;
   }
 }
 .summary-card {
@@ -558,7 +571,7 @@
     grid-template-columns: 1fr;
   }
   .summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 .widget-card {

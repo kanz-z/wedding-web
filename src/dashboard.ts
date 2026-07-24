@@ -6,7 +6,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./styles/dashboard.css";
 
 // Dashboard modules
-import { initNotifications, initModals, initKeyboard } from "./dashboard/ui";
+import { initNotifications, initModals, initKeyboard, renderNotifications } from "./dashboard/ui";
 import { initGuestEvents, initGuestTable, reloadGuests, renderSummaryCards } from "./dashboard/guests";
 import { initAuth, initRouting, checkSession } from "./dashboard/auth";
 import { initCheckinEvents, renderCheckinLog } from "./dashboard/checkin";
@@ -29,7 +29,10 @@ function initDashboard(): void {
   initAdmin();
 
   // Fetch data tamu eagerly agar summary card di hub terisi sejak awal
-  fetchGuests().then(() => renderSummaryCards()).catch(() => {
+  fetchGuests().then(() => {
+    renderSummaryCards();
+    renderNotifications();
+  }).catch(() => {
     // silent — tamu tab akan retry saat dikunjungi
   });
 

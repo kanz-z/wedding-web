@@ -3,7 +3,7 @@
 
 import { Html5Qrcode } from "html5-qrcode";
 import { escapeHtml, formatTime, showToast, show, hide, debounce } from "@/shared/ui";
-import { showModal, hideModal } from "./ui";
+import { showModal, hideModal, renderNotifications } from "./ui";
 import { guestList, checkinStatus, fetchGuests } from "./state";
 import { supabase } from "./supabase-client";
 import type { GuestWithMeta } from "./state";
@@ -456,6 +456,7 @@ async function doPostscanCheckinAll(): Promise<void> {
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
+    renderNotifications();
     window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Refresh post-scan modal — tetap di modal yang sama
@@ -539,6 +540,7 @@ async function doPostscanCheckinPartial(): Promise<void> {
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
+    renderNotifications();
     window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Refresh post-scan modal dengan data terbaru
@@ -646,6 +648,7 @@ async function doPostscanOverrideConfirm(): Promise<void> {
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
+    renderNotifications();
     window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Jika override berasal dari checkin dialog, refresh dialog manual

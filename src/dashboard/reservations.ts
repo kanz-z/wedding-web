@@ -11,6 +11,7 @@ import {
   eventStatus,
   setEventStatus,
 } from './state';
+import { renderNotifications } from './ui';
 import { config } from '@/config';
 
 const BASE_URL = config.SITE_URL || window.location.origin;
@@ -121,6 +122,7 @@ function renderReservations(): void {
     btn.addEventListener('click', async () => {
       try {
         await approveReservation(btn.dataset.id!);
+        renderNotifications();
         showToast('Reservasi disetujui');
         await loadReservations();
       } catch {
@@ -133,6 +135,7 @@ function renderReservations(): void {
     btn.addEventListener('click', async () => {
       try {
         await rejectReservation(btn.dataset.id!);
+        renderNotifications();
         showToast('Reservasi ditolak');
         await loadReservations();
       } catch {
@@ -169,6 +172,7 @@ function renderReservations(): void {
 
       try {
         await updateReservationStatus(id, 'pending');
+        renderNotifications();
         showToast('Status dikembalikan ke pending');
         await loadReservations();
       } catch {

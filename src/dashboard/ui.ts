@@ -1,7 +1,7 @@
 // src/dashboard/ui.ts — shared UI: modals, notifications, keyboard
 
-import { hide, show, prefersReducedMotion } from '@/shared/ui';
-import { guestList, guestbookEntries, getAnomalyCount } from './state';
+import { hide, show, prefersReducedMotion } from "@/shared/ui";
+import { guestList, guestbookEntries, getAnomalyCount } from "./state";
 
 /** Entry notifikasi sederhana */
 export interface NotificationItem {
@@ -19,8 +19,8 @@ export interface NotificationItem {
  * - Guestbook baru
  */
 export function renderNotifications(): void {
-  const list = document.getElementById('notif-list');
-  const empty = document.getElementById('notif-empty');
+  const list = document.getElementById("notif-list");
+  const empty = document.getElementById("notif-empty");
   if (!list || !empty) return;
 
   const items: NotificationItem[] = [];
@@ -29,9 +29,9 @@ export function renderNotifications(): void {
   for (const g of guestList) {
     if (g.flag) {
       items.push({
-        id: 'anom-' + g.id,
-        icon: 'bi-flag-fill',
-        message: '<strong>' + g.name + '</strong> — ' + g.flag,
+        id: "anom-" + g.id,
+        icon: "bi-flag-fill",
+        message: "<strong>" + g.name + "</strong>: " + g.flag,
         time: g.updated_at ?? g.created_at,
         flagged: true,
       });
@@ -40,11 +40,14 @@ export function renderNotifications(): void {
 
   // RSVP pending
   for (const g of guestList) {
-    if (g.approval_status === 'pending') {
+    if (g.approval_status === "pending") {
       items.push({
-        id: 'rsvp-' + g.id,
-        icon: 'bi-envelope-heart-fill',
-        message: '<strong>' + g.name + '</strong> mengisi RSVP — menunggu persetujuan.',
+        id: "rsvp-" + g.id,
+        icon: "bi-envelope-heart-fill",
+        message:
+          "<strong>" +
+          g.name +
+          "</strong> mengisi RSVP — menunggu persetujuan.",
         time: g.updated_at ?? g.created_at,
         flagged: false,
       });
@@ -55,9 +58,12 @@ export function renderNotifications(): void {
   const recentGb = guestbookEntries.slice(0, 5);
   for (const entry of recentGb) {
     items.push({
-      id: 'gb-' + entry.id,
-      icon: 'bi-chat-heart-fill',
-      message: '<strong>' + entry.name + '</strong> mengirim ucapan baru di guestbook.',
+      id: "gb-" + entry.id,
+      icon: "bi-chat-heart-fill",
+      message:
+        "<strong>" +
+        entry.name +
+        "</strong> mengirim ucapan baru di guestbook.",
       time: entry.created_at,
       flagged: false,
     });
@@ -66,54 +72,62 @@ export function renderNotifications(): void {
   // Urutkan: flagged dulu, lalu terbaru
   items.sort((a, b) => {
     if (a.flagged !== b.flagged) return a.flagged ? -1 : 1;
-    return (b.time || '').localeCompare(a.time || '');
+    return (b.time || "").localeCompare(a.time || "");
   });
 
   // Render
   if (items.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = '';
+    list.innerHTML = "";
+    empty.style.display = "";
     return;
   }
 
-  empty.style.display = 'none';
+  empty.style.display = "none";
   list.innerHTML = items
     .map(function (item) {
-      const iconClass = item.flagged ? 'notif-item is-flagged' : 'notif-item';
+      const iconClass = item.flagged ? "notif-item is-flagged" : "notif-item";
       const timeStr = formatNotifTime(item.time);
       return (
-        '<div class="' + iconClass + '">' +
-        '<div class="notif-item__icon"><i class="bi ' + item.icon + '"></i></div>' +
-        '<div class="notif-item__body"><p>' + item.message + '</p>' +
-        '<span class="notif-item__time">' + timeStr + '</span></div>' +
-        '</div>'
+        '<div class="' +
+        iconClass +
+        '">' +
+        '<div class="notif-item__icon"><i class="bi ' +
+        item.icon +
+        '"></i></div>' +
+        '<div class="notif-item__body"><p>' +
+        item.message +
+        "</p>" +
+        '<span class="notif-item__time">' +
+        timeStr +
+        "</span></div>" +
+        "</div>"
       );
     })
-    .join('');
+    .join("");
 
   // Update dot
-  const dot = document.getElementById('notif-dot');
+  const dot = document.getElementById("notif-dot");
   if (dot) {
     const anom = getAnomalyCount();
     if (anom > 0) {
-      dot.classList.remove('d-none-important');
+      dot.classList.remove("d-none-important");
     } else {
-      dot.classList.add('d-none-important');
+      dot.classList.add("d-none-important");
     }
   }
 }
 
 function formatNotifTime(iso: string): string {
-  if (!iso) return '';
+  if (!iso) return "";
   const now = Date.now();
   const d = new Date(iso).getTime();
-  if (isNaN(d)) return '';
+  if (isNaN(d)) return "";
   const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'Baru saja';
-  if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
-  if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
-  if (diff < 604800) return Math.floor(diff / 86400) + ' hari lalu';
-  return new Date(iso).toLocaleDateString('id-ID', { dateStyle: 'medium' });
+  if (diff < 60) return "Baru saja";
+  if (diff < 3600) return Math.floor(diff / 60) + " menit lalu";
+  if (diff < 86400) return Math.floor(diff / 3600) + " jam lalu";
+  if (diff < 604800) return Math.floor(diff / 86400) + " hari lalu";
+  return new Date(iso).toLocaleDateString("id-ID", { dateStyle: "medium" });
 }
 
 // --- Notification ---
@@ -135,30 +149,46 @@ export function initNotifications(): void {
     e.stopPropagation();
     const isOpen = notifPanel?.classList.toggle("show");
     notifBtn?.setAttribute("aria-expanded", String(!!isOpen));
-    notifOverlay?.classList.toggle("show", !!isOpen && notifPanel?.classList.contains("show"));
+    notifOverlay?.classList.toggle(
+      "show",
+      !!isOpen && notifPanel?.classList.contains("show"),
+    );
     if (isOpen) {
       document.getElementById("notif-dot")?.classList.add("d-none-important");
     }
   });
 
-  document.getElementById("notif-panel-close")?.addEventListener("click", closeNotifPanel);
+  document
+    .getElementById("notif-panel-close")
+    ?.addEventListener("click", closeNotifPanel);
 
   // Tap overlay → tutup drawer mobile
   notifOverlay?.addEventListener("click", closeNotifPanel);
 
   // Tap di luar panel → tutup
   document.addEventListener("click", (e) => {
-    if (notifPanel && !notifPanel.contains(e.target as Node) && e.target !== notifBtn) {
+    if (
+      notifPanel &&
+      !notifPanel.contains(e.target as Node) &&
+      e.target !== notifBtn
+    ) {
       closeNotifPanel();
     }
   });
 
-  document.getElementById("event-status-switch")?.addEventListener("change", function (this: HTMLInputElement) {
-    const label = document.getElementById("event-status-label");
-    if (!label) return;
-    if (this.checked) { label.textContent = "Online"; label.className = "status-toggle__label is-online"; }
-    else { label.textContent = "Offline"; label.className = "status-toggle__label is-offline"; }
-  });
+  document
+    .getElementById("event-status-switch")
+    ?.addEventListener("change", function (this: HTMLInputElement) {
+      const label = document.getElementById("event-status-label");
+      if (!label) return;
+      if (this.checked) {
+        label.textContent = "Online";
+        label.className = "status-toggle__label is-online";
+      } else {
+        label.textContent = "Offline";
+        label.className = "status-toggle__label is-offline";
+      }
+    });
 
   // Render notifikasi awal
   renderNotifications();
@@ -175,7 +205,9 @@ export function showModal(id: string): void {
   overlay.style.display = "flex";
   void overlay.offsetWidth;
   overlay.classList.add("show");
-  const focusable = overlay.querySelector<HTMLElement>("button, [href], input, select, textarea");
+  const focusable = overlay.querySelector<HTMLElement>(
+    "button, [href], input, select, textarea",
+  );
   focusable?.focus();
 }
 
@@ -184,7 +216,13 @@ export function hideModal(id: string): void {
   if (!overlay) return;
   overlay.classList.add("is-closing");
   overlay.classList.remove("show");
-  setTimeout(() => { overlay.style.display = "none"; overlay.classList.remove("is-closing"); }, prefersReducedMotion() ? 0 : 150);
+  setTimeout(
+    () => {
+      overlay.style.display = "none";
+      overlay.classList.remove("is-closing");
+    },
+    prefersReducedMotion() ? 0 : 150,
+  );
   if (lastFocusedTrigger instanceof HTMLElement) lastFocusedTrigger.focus();
 }
 
@@ -196,14 +234,18 @@ export function initModals(): void {
     });
   });
   document.querySelectorAll(".modal-overlay").forEach((overlay) => {
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) hideModal(overlay.id); });
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) hideModal(overlay.id);
+    });
   });
 }
 
 export function initKeyboard(): void {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      document.querySelectorAll(".modal-overlay.show").forEach((o) => hideModal(o.id));
+      document
+        .querySelectorAll(".modal-overlay.show")
+        .forEach((o) => hideModal(o.id));
       document.getElementById("group-picker")?.classList.remove("show");
       closeNotifPanel();
     }

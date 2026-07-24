@@ -10,6 +10,7 @@ import {
   privateMessages,
 } from './state';
 import { supabase } from './supabase-client';
+import { renderNotifications } from './ui';
 
 // --- Realtime subscription guestbook ---
 
@@ -55,6 +56,7 @@ async function loadPublicMessages(): Promise<void> {
 
   try {
     await fetchGuestbook();
+    renderNotifications();
     hide(document.getElementById('public-skeleton'));
 
     if (guestbookEntries.length === 0) {
