@@ -2,7 +2,7 @@
 // Fase 5: integrasi html5-qrcode sungguhan + halaman reservasi post-scan
 
 import { Html5Qrcode } from "html5-qrcode";
-import { escapeHtml, formatTime, showToast, show, hide } from "@/shared/ui";
+import { escapeHtml, formatTime, showToast, show, hide, debounce } from "@/shared/ui";
 import { showModal, hideModal } from "./ui";
 import { guestList, checkinStatus, fetchGuests } from "./state";
 import { supabase } from "./supabase-client";
@@ -915,8 +915,8 @@ export function initCheckinEvents(): void {
   const mi = document.getElementById(
     "manual-checkin-search",
   ) as HTMLInputElement | null;
-  mi?.addEventListener("input", function () {
-    const q = this.value.trim().toLowerCase();
+
+  const debouncedManualSearch = debounce((q: string) => {
     const r = document.getElementById("manual-checkin-results");
     if (!r) return;
     if (!q) {
@@ -941,6 +941,11 @@ export function initCheckinEvents(): void {
           )
           .join("")
       : '<p style="color:var(--ink-muted);font-size:.8125rem;">Tidak ditemukan tamu yang cocok.</p>';
+  }, 250);
+
+  mi?.addEventListener("input", function () {
+    const q = this.value.trim().toLowerCase();
+    debouncedManualSearch(q);
   });
 
   document

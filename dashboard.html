@@ -121,7 +121,11 @@
             <div id="notif-list">
               <!-- notifikasi diisi dinamis dari JS -->
             </div>
-            <div id="notif-empty" class="text-center py-4" style="color: var(--ink-muted); font-size: 0.85rem;">
+            <div
+              id="notif-empty"
+              class="text-center py-4"
+              style="color: var(--ink-muted); font-size: 0.85rem"
+            >
               Tidak ada notifikasi
             </div>
           </div>
@@ -155,14 +159,7 @@
             </div>
           </div>
 
-          <div
-            class="summary-grid"
-            style="
-              grid-template-columns: repeat(6, 1fr);
-              margin-bottom: var(--space-lg);
-            "
-            id="guest-summary-row"
-          >
+          <div class="summary-grid" id="guest-summary-row">
             <div class="summary-card guest-summary-card">
               <div class="summary-card__icon">
                 <i class="bi bi-people-fill"></i>
@@ -300,14 +297,7 @@
           </div>
 
           <!-- Summary cards (4.3) -->
-          <div
-            class="summary-grid"
-            style="
-              grid-template-columns: repeat(6, 1fr);
-              margin-bottom: var(--space-lg);
-            "
-            id="guest-summary-row"
-          >
+          <div class="summary-grid" id="guest-summary-row">
             <div class="summary-card guest-summary-card">
               <div class="summary-card__icon">
                 <i class="bi bi-people-fill"></i>
@@ -703,7 +693,12 @@
                   class="btn-scan-manual d-none-important"
                   id="btn-stop-scan"
                   type="button"
-                  style="margin-top: 0; min-height: 48px; border-color: var(--danger); color: var(--danger)"
+                  style="
+                    margin-top: 0;
+                    min-height: 48px;
+                    border-color: var(--danger);
+                    color: var(--danger);
+                  "
                 >
                   <i class="bi bi-stop-fill"></i> Stop Scan
                 </button>
@@ -747,13 +742,7 @@
           </div>
 
           <div id="checkin-mode-admin" class="d-none-important">
-            <div
-              class="summary-grid"
-              style="
-                grid-template-columns: repeat(3, 1fr);
-                margin-bottom: var(--space-lg);
-              "
-            >
+            <div class="summary-grid">
               <div
                 class="summary-card guest-summary-card summary-card--success"
               >

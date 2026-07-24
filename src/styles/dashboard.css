@@ -492,7 +492,7 @@
 /* ============================= SUMMARY CARDS ============================= */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
 }
@@ -553,8 +553,11 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-@media (max-width: 575px) {
+@media (max-width: 376px) {
   .widget-grid {
+    grid-template-columns: 1fr;
+  }
+  .summary-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1251,8 +1254,14 @@
   color: var(--ink-muted);
 }
 @keyframes scanFlashIn {
-  from { opacity: 0; transform: scale(0.94); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 .btn-scan-start {
   display: flex;
