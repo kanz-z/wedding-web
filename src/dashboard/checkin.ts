@@ -1,13 +1,13 @@
 // src/dashboard/checkin.ts — Check-in page: QR scanner, manual, log, mode toggle
 // Fase 5: integrasi html5-qrcode sungguhan + halaman reservasi post-scan
 
-import { Html5Qrcode } from 'html5-qrcode';
-import { escapeHtml, formatTime, showToast, show, hide } from '@/shared/ui';
-import { showModal, hideModal } from './ui';
-import { guestList, checkinStatus, fetchGuests } from './state';
-import { supabase } from './supabase-client';
-import type { GuestWithMeta } from './state';
-import type { Reservation } from '@/types/supabase';
+import { Html5Qrcode } from "html5-qrcode";
+import { escapeHtml, formatTime, showToast, show, hide } from "@/shared/ui";
+import { showModal, hideModal } from "./ui";
+import { guestList, checkinStatus, fetchGuests } from "./state";
+import { supabase } from "./supabase-client";
+import type { GuestWithMeta } from "./state";
+import type { Reservation } from "@/types/supabase";
 
 // --- QR Scanner State ---
 let html5QrCode: Html5Qrcode | null = null;
@@ -16,78 +16,88 @@ let availableCameras: { id: string; label: string }[] = [];
 let isScanning = false;
 let isProcessing = false;
 
-const elementId = 'qr-reader';
+const elementId = "qr-reader";
 
 // --- Camera management ---
 async function getCameras(): Promise<{ id: string; label: string }[]> {
   try {
     const devices = await Html5Qrcode.getCameras();
-    return devices.map((d) => ({ id: d.id, label: d.label || 'Kamera' }));
+    return devices.map((d) => ({ id: d.id, label: d.label || "Kamera" }));
   } catch {
     return [];
   }
 }
 
-function findBackCamera(cameras: { id: string; label: string }[]): string | null {
+function findBackCamera(
+  cameras: { id: string; label: string }[],
+): string | null {
   const back = cameras.find(
     (c) =>
-      c.label.toLowerCase().includes('back') ||
-      c.label.toLowerCase().includes('belakang') ||
-      c.label.toLowerCase().includes('environment'),
+      c.label.toLowerCase().includes("back") ||
+      c.label.toLowerCase().includes("belakang") ||
+      c.label.toLowerCase().includes("environment"),
   );
   return back?.id ?? cameras[0]?.id ?? null;
 }
 
-function findFrontCamera(cameras: { id: string; label: string }[]): string | null {
+function findFrontCamera(
+  cameras: { id: string; label: string }[],
+): string | null {
   const front = cameras.find(
     (c) =>
-      c.label.toLowerCase().includes('front') ||
-      c.label.toLowerCase().includes('depan') ||
-      c.label.toLowerCase().includes('user'),
+      c.label.toLowerCase().includes("front") ||
+      c.label.toLowerCase().includes("depan") ||
+      c.label.toLowerCase().includes("user"),
   );
   return front?.id ?? null;
 }
 
 // --- Scanner UI helpers ---
 function setScannerStatus(text: string, isError?: boolean): void {
-  const el = document.getElementById('scanner-status');
+  const el = document.getElementById("scanner-status");
   if (!el) return;
   el.textContent = text;
-  el.className = 'scanner-instruction' + (isError ? ' is-error' : '');
+  el.className = "scanner-instruction" + (isError ? " is-error" : "");
 }
 
 function showScannerView(): void {
-  const frame = document.querySelector('.scanner-frame');
-  const placeholder = frame?.querySelector<HTMLElement>('.scanner-placeholder');
+  const frame = document.querySelector(".scanner-frame");
+  const placeholder = frame?.querySelector<HTMLElement>(".scanner-placeholder");
   const qrDiv = document.getElementById(elementId);
 
   if (placeholder) hide(placeholder);
   if (qrDiv) show(qrDiv);
 
   if (!qrDiv && frame) {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.id = elementId;
-    div.style.width = '100%';
-    div.style.aspectRatio = '1 / 1';
+    div.style.width = "100%";
+    div.style.aspectRatio = "1 / 1";
     frame.appendChild(div);
   }
 }
 
 function resetScannerView(): void {
-  const frame = document.querySelector('.scanner-frame');
-  const placeholder = frame?.querySelector<HTMLElement>('.scanner-placeholder');
+  const frame = document.querySelector(".scanner-frame");
+  const placeholder = frame?.querySelector<HTMLElement>(".scanner-placeholder");
   const qrDiv = document.getElementById(elementId);
 
   if (placeholder) show(placeholder);
   if (qrDiv) hide(qrDiv);
 
-  const btn = document.getElementById('btn-start-scan') as HTMLButtonElement | null;
+  const btn = document.getElementById(
+    "btn-start-scan",
+  ) as HTMLButtonElement | null;
   if (btn) show(btn);
 
-  const stopBtn = document.getElementById('btn-stop-scan') as HTMLButtonElement | null;
+  const stopBtn = document.getElementById(
+    "btn-stop-scan",
+  ) as HTMLButtonElement | null;
   if (stopBtn) hide(stopBtn);
 
-  const switchBtn = document.getElementById('btn-switch-camera') as HTMLButtonElement | null;
+  const switchBtn = document.getElementById(
+    "btn-switch-camera",
+  ) as HTMLButtonElement | null;
   if (switchBtn) hide(switchBtn);
 
   isScanning = false;
@@ -97,7 +107,7 @@ function resetScannerView(): void {
 async function startScanner(): Promise<void> {
   const cameras = await getCameras();
   if (cameras.length === 0) {
-    showToast('Tidak ada kamera terdeteksi. Gunakan check-in manual.', true);
+    showToast("Tidak ada kamera terdeteksi. Gunakan check-in manual.", true);
     return;
   }
 
@@ -109,11 +119,11 @@ async function startScanner(): Promise<void> {
   if (!html5QrCode) {
     let qrDiv = document.getElementById(elementId);
     if (!qrDiv) {
-      qrDiv = document.createElement('div');
+      qrDiv = document.createElement("div");
       qrDiv.id = elementId;
-      qrDiv.style.width = '100%';
-      qrDiv.style.aspectRatio = '1 / 1';
-      const frame = document.querySelector('.scanner-frame');
+      qrDiv.style.width = "100%";
+      qrDiv.style.aspectRatio = "1 / 1";
+      const frame = document.querySelector(".scanner-frame");
       frame?.appendChild(qrDiv);
     }
     html5QrCode = new Html5Qrcode(elementId);
@@ -126,7 +136,9 @@ async function startScanner(): Promise<void> {
     // can fire onScanSuccess BEFORE start() resolves.
     isScanning = true;
 
-    const frame = document.querySelector('.scanner-frame') as HTMLElement | null;
+    const frame = document.querySelector(
+      ".scanner-frame",
+    ) as HTMLElement | null;
     const frameWidth = frame ? frame.clientWidth : 360;
     const boxSize = Math.round(frameWidth * 0.7);
 
@@ -141,18 +153,24 @@ async function startScanner(): Promise<void> {
       undefined,
     );
 
-    const btn = document.getElementById('btn-start-scan') as HTMLButtonElement | null;
+    const btn = document.getElementById(
+      "btn-start-scan",
+    ) as HTMLButtonElement | null;
     if (btn) hide(btn);
 
-    const stopBtn = document.getElementById('btn-stop-scan') as HTMLButtonElement | null;
+    const stopBtn = document.getElementById(
+      "btn-stop-scan",
+    ) as HTMLButtonElement | null;
     if (stopBtn) show(stopBtn);
 
-    const switchBtn = document.getElementById('btn-switch-camera') as HTMLButtonElement | null;
+    const switchBtn = document.getElementById(
+      "btn-switch-camera",
+    ) as HTMLButtonElement | null;
     if (switchBtn && cameras.length >= 2) show(switchBtn);
 
-    setScannerStatus('Arahkan kamera ke QR code tamu');
+    setScannerStatus("Arahkan kamera ke QR code tamu");
   } catch (err) {
-    showToast('Gagal mengakses kamera. Periksa izin kamera.', true);
+    showToast("Gagal mengakses kamera. Periksa izin kamera.", true);
     resetScannerView();
   }
 }
@@ -162,8 +180,11 @@ async function stopScanner(): Promise<void> {
   if (html5QrCode && isScanning) {
     try {
       await html5QrCode.stop();
-    } catch {
-      // already stopped
+    } catch (err) {
+      showToast(
+        `Error: ${err}. Gagal menghentikan kamera. Hubungi admin.`,
+        true,
+      );
     }
   }
   resetScannerView();
@@ -171,7 +192,7 @@ async function stopScanner(): Promise<void> {
 
 async function restartWithCamera(cameraId: string): Promise<void> {
   if (!html5QrCode) return;
-  const frame = document.querySelector('.scanner-frame') as HTMLElement | null;
+  const frame = document.querySelector(".scanner-frame") as HTMLElement | null;
   const frameWidth = frame ? frame.clientWidth : 360;
   const boxSize = Math.round(frameWidth * 0.7);
   await html5QrCode.start(
@@ -205,12 +226,18 @@ async function switchCamera(): Promise<void> {
     try {
       await html5QrCode.stop().catch(() => {});
       await restartWithCamera(prevCameraId);
-      setScannerStatus('Kamera tidak tersedia — kembali ke kamera sebelumnya', true);
-      setTimeout(() => setScannerStatus('Arahkan kamera ke QR code tamu'), 2500);
+      setScannerStatus(
+        "Kamera tidak tersedia — kembali ke kamera sebelumnya",
+        true,
+      );
+      setTimeout(
+        () => setScannerStatus("Arahkan kamera ke QR code tamu"),
+        2500,
+      );
     } catch (_err2) {
       isScanning = false;
       resetScannerView();
-      showToast('Gagal mengganti kamera', true);
+      showToast("Gagal mengganti kamera", true);
     }
   }
 }
@@ -224,54 +251,74 @@ async function onScanSuccess(decodedText: string): Promise<void> {
 
   try {
     const { data, error } = await supabase
-      .from('reservations')
-      .select('*')
-      .eq('qr_token', qrToken)
+      .from("reservations")
+      .select("*")
+      .eq("qr_token", qrToken)
       .maybeSingle();
 
     if (error || !data) {
-      addScanResult('QR tidak dikenal', false, 'QR code tidak terdaftar di database');
-      showToast('QR code tidak terdaftar di database', true);
-      setScannerStatus('QR tidak terdaftar — coba scan ulang', true);
-      setTimeout(() => { setScannerStatus('Arahkan kamera ke QR code tamu'); isProcessing = false; }, 2000);
+      addScanResult(
+        "QR tidak dikenal",
+        false,
+        "QR code tidak terdaftar di database",
+      );
+      showToast("QR code tidak terdaftar di database", true);
+      setScannerStatus("QR tidak terdaftar — coba scan ulang", true);
+      setTimeout(() => {
+        setScannerStatus("Arahkan kamera ke QR code tamu");
+        isProcessing = false;
+      }, 2000);
       return;
     }
 
     const reservation = data as Reservation;
 
     const { data: ciData } = await supabase
-      .from('check_in_transactions')
-      .select('delta')
-      .eq('reservation_id', reservation.id);
+      .from("check_in_transactions")
+      .select("delta")
+      .eq("reservation_id", reservation.id);
 
-    const checkedIn = (ciData || []).reduce((sum, t) => sum + (t.delta as number), 0);
+    const checkedIn = (ciData || []).reduce(
+      (sum, t) => sum + (t.delta as number),
+      0,
+    );
 
     if (checkedIn >= reservation.guest_count) {
-      addScanResult(reservation.name, true, `Sudah check-in ${checkedIn}/${reservation.guest_count}`);
+      addScanResult(
+        reservation.name,
+        true,
+        `Sudah check-in ${checkedIn}/${reservation.guest_count}`,
+      );
       showToast(`${reservation.name} sudah check-in semua`, true);
-      setScannerStatus('Tamu sudah check-in semua — coba scan lain', true);
-      setTimeout(() => { setScannerStatus('Arahkan kamera ke QR code tamu'); isProcessing = false; }, 2000);
+      setScannerStatus("Tamu sudah check-in semua — coba scan lain", true);
+      setTimeout(() => {
+        setScannerStatus("Arahkan kamera ke QR code tamu");
+        isProcessing = false;
+      }, 2000);
       return;
     }
 
     showPostScanModal(reservation, checkedIn);
     // isProcessing stays true until modal close (handled by modal callbacks)
   } catch (err: unknown) {
-    showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+    showToast(
+      "Gagal: " + (err instanceof Error ? err.message : String(err)),
+      true,
+    );
     isProcessing = false;
   }
 }
 
 function showScanSuccessFlash(guestName: string, delta: number): void {
-  const frame = document.querySelector('.scanner-frame') as HTMLElement | null;
+  const frame = document.querySelector(".scanner-frame") as HTMLElement | null;
   if (!frame) return;
 
   // remove existing flash
-  const old = frame.querySelector('.scan-success-flash');
+  const old = frame.querySelector(".scan-success-flash");
   if (old) old.remove();
 
-  const flash = document.createElement('div');
-  flash.className = 'scan-success-flash';
+  const flash = document.createElement("div");
+  flash.className = "scan-success-flash";
   flash.innerHTML = `
     <div class="scan-success-flash__icon"><i class="bi bi-check-circle-fill"></i></div>
     <div class="scan-success-flash__name">${escapeHtml(guestName)}</div>
@@ -286,18 +333,18 @@ function showScanSuccessFlash(guestName: string, delta: number): void {
   frame.appendChild(flash);
 
   setTimeout(() => {
-    flash.style.opacity = '0';
-    flash.style.transition = 'opacity 0.4s ease';
+    flash.style.opacity = "0";
+    flash.style.transition = "opacity 0.4s ease";
     setTimeout(() => flash.remove(), 400);
   }, 1800);
 }
 
 // --- Post-scan modal (5.2) ---
 function showPostScanModal(reservation: Reservation, checkedIn: number): void {
-  const nameEl = document.getElementById('postscan-guest-name');
-  const detailEl = document.getElementById('postscan-guest-detail');
-  const bodyEl = document.getElementById('postscan-guest-body');
-  const countEl = document.getElementById('postscan-checked-in-count');
+  const nameEl = document.getElementById("postscan-guest-name");
+  const detailEl = document.getElementById("postscan-guest-detail");
+  const bodyEl = document.getElementById("postscan-guest-body");
+  const countEl = document.getElementById("postscan-checked-in-count");
 
   if (nameEl) nameEl.textContent = reservation.name;
 
@@ -306,7 +353,7 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
 
   // GAP-012: Auto check-in untuk kuota 1 — langsung check-in tanpa modal
   if (reservation.guest_count === 1 && checkedIn === 0 && !isComplete) {
-    const overlay = document.getElementById('postscan-modal-overlay');
+    const overlay = document.getElementById("postscan-modal-overlay");
     if (overlay) {
       overlay.dataset.reservationId = reservation.id;
       overlay.dataset.guestCount = String(reservation.guest_count);
@@ -327,46 +374,59 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
   }
 
   let html = '<dl class="detail-grid">';
-  html += `<dt>Kelompok</dt><dd>${escapeHtml(reservation.kelompok || '–')}</dd>`;
-  html += `<dt>Kategori</dt><dd>${reservation.kategori === 'keluarga' ? 'Keluarga' : 'Bukan Keluarga'}</dd>`;
-  html += `<dt>No. WhatsApp</dt><dd>${escapeHtml(reservation.nomor_wa || '–')}</dd>`;
-  html += `<dt>RSVP</dt><dd>${reservation.approval_status === 'approved' ? 'Hadir' : reservation.approval_status === 'rejected' ? 'Tidak Hadir' : 'Belum Respon'}</dd>`;
-  if (reservation.notes) html += `<dt>Catatan</dt><dd>${escapeHtml(reservation.notes)}</dd>`;
-  html += '</dl>';
+  html += `<dt>Kelompok</dt><dd>${escapeHtml(reservation.kelompok || "–")}</dd>`;
+  html += `<dt>Kategori</dt><dd>${reservation.kategori === "keluarga" ? "Keluarga" : "Bukan Keluarga"}</dd>`;
+  html += `<dt>No. WhatsApp</dt><dd>${escapeHtml(reservation.nomor_wa || "–")}</dd>`;
+  html += `<dt>RSVP</dt><dd>${reservation.approval_status === "approved" ? "Hadir" : reservation.approval_status === "rejected" ? "Tidak Hadir" : "Belum Respon"}</dd>`;
+  if (reservation.notes)
+    html += `<dt>Catatan</dt><dd>${escapeHtml(reservation.notes)}</dd>`;
+  html += "</dl>";
 
   if (bodyEl) bodyEl.innerHTML = html;
 
-  const allBtn = document.getElementById('postscan-btn-all') as HTMLButtonElement | null;
-  const partialBtn = document.getElementById('postscan-btn-partial') as HTMLButtonElement | null;
-  const partialInput = document.getElementById('postscan-partial-input') as HTMLInputElement | null;
-  const allLabel = document.getElementById('postscan-all-label');
+  const allBtn = document.getElementById(
+    "postscan-btn-all",
+  ) as HTMLButtonElement | null;
+  const partialBtn = document.getElementById(
+    "postscan-btn-partial",
+  ) as HTMLButtonElement | null;
+  const partialInput = document.getElementById(
+    "postscan-partial-input",
+  ) as HTMLInputElement | null;
+  const allLabel = document.getElementById("postscan-all-label");
 
   if (allBtn) allBtn.disabled = isComplete;
-  if (allLabel) allLabel.textContent = isComplete ? 'Semua sudah check-in' : `Masuk Semua (+${Math.max(1, remaining)})`;
+  if (allLabel)
+    allLabel.textContent = isComplete
+      ? "Semua sudah check-in"
+      : `Masuk Semua (+${Math.max(1, remaining)})`;
   if (partialBtn) partialBtn.disabled = isComplete || remaining <= 0;
   if (partialInput) {
     partialInput.value = String(Math.max(1, remaining));
     partialInput.max = String(Math.max(1, remaining));
   }
 
-  const overlay = document.getElementById('postscan-modal-overlay');
+  const overlay = document.getElementById("postscan-modal-overlay");
   if (overlay) {
     overlay.dataset.reservationId = reservation.id;
     overlay.dataset.guestCount = String(reservation.guest_count);
     overlay.dataset.checkedIn = String(checkedIn);
   }
 
-  showModal('postscan-modal-overlay');
+  showModal("postscan-modal-overlay");
 }
 
 // --- Post-scan actions ---
 async function doPostscanCheckinAll(): Promise<void> {
-  const overlay = document.getElementById('postscan-modal-overlay');
+  const overlay = document.getElementById("postscan-modal-overlay");
   const resId = overlay?.dataset.reservationId;
-  if (!resId) { isProcessing = false; return; }
+  if (!resId) {
+    isProcessing = false;
+    return;
+  }
 
-  const guestCount = parseInt(overlay?.dataset.guestCount ?? '0', 10);
-  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? '0', 10);
+  const guestCount = parseInt(overlay?.dataset.guestCount ?? "0", 10);
+  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? "0", 10);
   const delta = guestCount - checkedIn;
 
   try {
@@ -375,56 +435,80 @@ async function doPostscanCheckinAll(): Promise<void> {
     const resp = await fetch(
       `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reservation_id: resId, delta, method: 'qr' }),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reservation_id: resId, delta, method: "qr" }),
       },
     );
 
     const result = await resp.json();
-    if (!resp.ok) { showToast(result.error || 'Gagal check-in', true); return; }
+    if (!resp.ok) {
+      showToast(result.error || "Gagal check-in", true);
+      return;
+    }
 
-    const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
+    const guestName =
+      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
-    window.dispatchEvent(new CustomEvent('checkin-updated'));
+    window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Refresh post-scan modal — tetap di modal yang sama
     await refreshPostScanModal(resId);
   } catch (err: unknown) {
-    showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+    showToast(
+      "Gagal: " + (err instanceof Error ? err.message : String(err)),
+      true,
+    );
     isProcessing = false;
   }
 }
 
 async function doPostscanCheckinPartial(): Promise<void> {
-  const overlay = document.getElementById('postscan-modal-overlay');
+  const overlay = document.getElementById("postscan-modal-overlay");
   const resId = overlay?.dataset.reservationId;
   if (!resId) return;
 
-  const guestCount = parseInt(overlay?.dataset.guestCount ?? '0', 10);
-  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? '0', 10);
+  const guestCount = parseInt(overlay?.dataset.guestCount ?? "0", 10);
+  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? "0", 10);
   const remaining = guestCount - checkedIn;
 
-  const input = document.getElementById('postscan-partial-input') as HTMLInputElement | null;
-  const delta = parseInt(input?.value ?? '0', 10);
-  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); isProcessing = false; return; }
+  const input = document.getElementById(
+    "postscan-partial-input",
+  ) as HTMLInputElement | null;
+  const delta = parseInt(input?.value ?? "0", 10);
+  if (!delta || delta < 1) {
+    showToast("Jumlah tidak valid", true);
+    isProcessing = false;
+    return;
+  }
 
   // Jika delta melebihi remaining, arahkan ke override modal
   if (delta > remaining) {
-    const warnEl = document.getElementById('override-warning');
-    const notesEl = document.getElementById('override-notes') as HTMLTextAreaElement | null;
-    const inputEl = document.getElementById('override-delta') as HTMLInputElement | null;
-    const overrideOverlay = document.getElementById('override-modal-overlay');
+    const warnEl = document.getElementById("override-warning");
+    const notesEl = document.getElementById(
+      "override-notes",
+    ) as HTMLTextAreaElement | null;
+    const inputEl = document.getElementById(
+      "override-delta",
+    ) as HTMLInputElement | null;
+    const overrideOverlay = document.getElementById("override-modal-overlay");
 
-    if (warnEl) warnEl.textContent = `Check-in sebanyak ${delta} melebihi kuota tersisa (${remaining}/${guestCount}). Masukkan jumlah tambahan dan alasan override.`;
-    if (notesEl) notesEl.value = '';
-    if (inputEl) { inputEl.value = String(delta); inputEl.min = '1'; }
+    if (warnEl)
+      warnEl.textContent = `Check-in sebanyak ${delta} melebihi kuota tersisa (${remaining}/${guestCount}). Masukkan jumlah tambahan dan alasan override.`;
+    if (notesEl) notesEl.value = "";
+    if (inputEl) {
+      inputEl.value = String(delta);
+      inputEl.min = "1";
+    }
     if (overrideOverlay) overrideOverlay.dataset.reservationId = resId;
 
-    showModal('override-modal-overlay');
+    showModal("override-modal-overlay");
     return;
   }
 
@@ -434,62 +518,97 @@ async function doPostscanCheckinPartial(): Promise<void> {
     const resp = await fetch(
       `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reservation_id: resId, delta, method: 'qr' }),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reservation_id: resId, delta, method: "qr" }),
       },
     );
 
     const result = await resp.json();
-    if (!resp.ok) { showToast(result.error || 'Gagal check-in', true); return; }
+    if (!resp.ok) {
+      showToast(result.error || "Gagal check-in", true);
+      return;
+    }
 
-    const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
+    const guestName =
+      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
     addScanResult(guestName, true, `Check-in +${delta} berhasil`);
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
-    window.dispatchEvent(new CustomEvent('checkin-updated'));
+    window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Refresh post-scan modal dengan data terbaru
     await refreshPostScanModal(resId);
   } catch (err: unknown) {
-    showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+    showToast(
+      "Gagal: " + (err instanceof Error ? err.message : String(err)),
+      true,
+    );
     isProcessing = false;
   }
 }
 
 async function doPostscanOverride(): Promise<void> {
-  const overlay = document.getElementById('postscan-modal-overlay');
+  const overlay = document.getElementById("postscan-modal-overlay");
   const resId = overlay?.dataset.reservationId;
   if (!resId) return;
 
-  const guestCount = parseInt(overlay?.dataset.guestCount ?? '0', 10);
-  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? '0', 10);
+  const guestCount = parseInt(overlay?.dataset.guestCount ?? "0", 10);
+  const checkedIn = parseInt(overlay?.dataset.checkedIn ?? "0", 10);
 
-  const overrideOverlay = document.getElementById('override-modal-overlay');
-  const warnEl = document.getElementById('override-warning');
-  const notesEl = document.getElementById('override-notes') as HTMLTextAreaElement | null;
-  const inputEl = document.getElementById('override-delta') as HTMLInputElement | null;
+  const overrideOverlay = document.getElementById("override-modal-overlay");
+  const warnEl = document.getElementById("override-warning");
+  const notesEl = document.getElementById(
+    "override-notes",
+  ) as HTMLTextAreaElement | null;
+  const inputEl = document.getElementById(
+    "override-delta",
+  ) as HTMLInputElement | null;
 
-  if (warnEl) warnEl.textContent = `Check-in melebihi kuota (${checkedIn}/${guestCount}). Masukkan jumlah tambahan dan alasan override.`;
-  if (notesEl) notesEl.value = '';
-  if (inputEl) { inputEl.value = '1'; inputEl.min = '1'; }
+  if (warnEl)
+    warnEl.textContent = `Check-in melebihi kuota (${checkedIn}/${guestCount}). Masukkan jumlah tambahan dan alasan override.`;
+  if (notesEl) notesEl.value = "";
+  if (inputEl) {
+    inputEl.value = "1";
+    inputEl.min = "1";
+  }
   if (overrideOverlay) overrideOverlay.dataset.reservationId = resId;
 
-  showModal('override-modal-overlay');
+  showModal("override-modal-overlay");
 }
 
 async function doPostscanOverrideConfirm(): Promise<void> {
-  const overrideOverlay = document.getElementById('override-modal-overlay');
+  const overrideOverlay = document.getElementById("override-modal-overlay");
   const resId = overrideOverlay?.dataset.reservationId;
   const source = overrideOverlay?.dataset.source;
-  if (!resId) { isProcessing = false; return; }
+  if (!resId) {
+    isProcessing = false;
+    return;
+  }
 
-  const delta = parseInt((document.getElementById('override-delta') as HTMLInputElement)?.value ?? '0', 10);
-  const notes = (document.getElementById('override-notes') as HTMLTextAreaElement)?.value.trim();
+  const delta = parseInt(
+    (document.getElementById("override-delta") as HTMLInputElement)?.value ??
+      "0",
+    10,
+  );
+  const notes = (
+    document.getElementById("override-notes") as HTMLTextAreaElement
+  )?.value.trim();
 
-  if (!delta || delta < 1) { showToast('Jumlah tidak valid', true); isProcessing = false; return; }
-  if (!notes) { showToast('Alasan override wajib diisi', true); isProcessing = false; return; }
+  if (!delta || delta < 1) {
+    showToast("Jumlah tidak valid", true);
+    isProcessing = false;
+    return;
+  }
+  if (!notes) {
+    showToast("Alasan override wajib diisi", true);
+    isProcessing = false;
+    return;
+  }
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -497,35 +616,53 @@ async function doPostscanOverrideConfirm(): Promise<void> {
     const resp = await fetch(
       `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reservation_id: resId, delta, method: 'qr', is_override: true, notes }),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reservation_id: resId,
+          delta,
+          method: "qr",
+          is_override: true,
+          notes,
+        }),
       },
     );
 
     const result = await resp.json();
-    if (!resp.ok) { showToast(result.error || 'Gagal override', true); return; }
+    if (!resp.ok) {
+      showToast(result.error || "Gagal override", true);
+      return;
+    }
 
     // Tutup HANYA override modal
-    hideModal('override-modal-overlay');
+    hideModal("override-modal-overlay");
 
-    const guestName = (result as Record<string, unknown>).guest_name as string || 'Tamu';
+    const guestName =
+      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
     addScanResult(guestName, true, `Override +${delta} berhasil`);
     showScanSuccessFlash(guestName, delta);
 
     await fetchGuests();
-    window.dispatchEvent(new CustomEvent('checkin-updated'));
+    window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Jika override berasal dari checkin dialog, refresh dialog manual
-    if (source === 'checkin-dialog') {
-      window.dispatchEvent(new CustomEvent('open-checkin-dialog', { detail: { id: resId } }));
+    if (source === "checkin-dialog") {
+      window.dispatchEvent(
+        new CustomEvent("open-checkin-dialog", { detail: { id: resId } }),
+      );
       return;
     }
 
     // Default: refresh post-scan modal
     await refreshPostScanModal(resId);
   } catch (err: unknown) {
-    showToast('Gagal: ' + (err instanceof Error ? err.message : String(err)), true);
+    showToast(
+      "Gagal: " + (err instanceof Error ? err.message : String(err)),
+      true,
+    );
     isProcessing = false;
   }
 }
@@ -533,13 +670,13 @@ async function doPostscanOverrideConfirm(): Promise<void> {
 // --- Refresh post-scan modal setelah check-in/override ---
 async function refreshPostScanModal(reservationId: string): Promise<void> {
   const { data, error } = await supabase
-    .from('reservations')
-    .select('*')
-    .eq('id', reservationId)
+    .from("reservations")
+    .select("*")
+    .eq("id", reservationId)
     .maybeSingle();
 
   if (error || !data) {
-    hideModal('postscan-modal-overlay');
+    hideModal("postscan-modal-overlay");
     isProcessing = false;
     return;
   }
@@ -547,27 +684,30 @@ async function refreshPostScanModal(reservationId: string): Promise<void> {
   const reservation = data as Reservation;
 
   const { data: ciData } = await supabase
-    .from('check_in_transactions')
-    .select('delta')
-    .eq('reservation_id', reservation.id);
+    .from("check_in_transactions")
+    .select("delta")
+    .eq("reservation_id", reservation.id);
 
-  const checkedIn = (ciData || []).reduce((sum, t) => sum + (t.delta as number), 0);
+  const checkedIn = (ciData || []).reduce(
+    (sum, t) => sum + (t.delta as number),
+    0,
+  );
 
   // Update overlay dataset
-  const overlay = document.getElementById('postscan-modal-overlay');
+  const overlay = document.getElementById("postscan-modal-overlay");
   if (overlay) {
     overlay.dataset.checkedIn = String(checkedIn);
     overlay.dataset.guestCount = String(reservation.guest_count);
   }
 
   // Update counter display
-  const countEl = document.getElementById('postscan-checked-in-count');
+  const countEl = document.getElementById("postscan-checked-in-count");
   if (countEl) {
     countEl.innerHTML = `<span class="mono-time">${checkedIn}</span><span style="color:var(--ink-muted)">/${reservation.guest_count}</span>`;
   }
 
   // Update detail text
-  const detailEl = document.getElementById('postscan-guest-detail');
+  const detailEl = document.getElementById("postscan-guest-detail");
   const remaining = reservation.guest_count - checkedIn;
   const isComplete = checkedIn >= reservation.guest_count;
   if (detailEl) {
@@ -577,13 +717,22 @@ async function refreshPostScanModal(reservationId: string): Promise<void> {
   }
 
   // Update button states
-  const allBtn = document.getElementById('postscan-btn-all') as HTMLButtonElement | null;
-  const partialBtn = document.getElementById('postscan-btn-partial') as HTMLButtonElement | null;
-  const partialInput = document.getElementById('postscan-partial-input') as HTMLInputElement | null;
-  const allLabel = document.getElementById('postscan-all-label');
+  const allBtn = document.getElementById(
+    "postscan-btn-all",
+  ) as HTMLButtonElement | null;
+  const partialBtn = document.getElementById(
+    "postscan-btn-partial",
+  ) as HTMLButtonElement | null;
+  const partialInput = document.getElementById(
+    "postscan-partial-input",
+  ) as HTMLInputElement | null;
+  const allLabel = document.getElementById("postscan-all-label");
 
   if (allBtn) allBtn.disabled = isComplete;
-  if (allLabel) allLabel.textContent = isComplete ? 'Semua sudah check-in' : `Masuk Semua (+${Math.max(1, remaining)})`;
+  if (allLabel)
+    allLabel.textContent = isComplete
+      ? "Semua sudah check-in"
+      : `Masuk Semua (+${Math.max(1, remaining)})`;
   if (partialBtn) partialBtn.disabled = isComplete || remaining <= 0;
   if (partialInput) {
     partialInput.value = String(Math.max(1, remaining));
@@ -601,11 +750,15 @@ interface ScanEntry {
 
 let scanHistory: ScanEntry[] = [];
 
-export function addScanResult(name: string, valid: boolean, message?: string): void {
+export function addScanResult(
+  name: string,
+  valid: boolean,
+  message?: string,
+): void {
   const entry: ScanEntry = {
     name,
     valid,
-    message: message || (valid ? 'Check-in berhasil' : 'QR tidak valid'),
+    message: message || (valid ? "Check-in berhasil" : "QR tidak valid"),
     time: new Date().toISOString(),
   };
   scanHistory.unshift(entry);
@@ -614,34 +767,39 @@ export function addScanResult(name: string, valid: boolean, message?: string): v
 }
 
 function renderScanResults(): void {
-  const list = document.getElementById('scan-results-list');
+  const list = document.getElementById("scan-results-list");
   if (!list) return;
 
   if (scanHistory.length === 0) {
-    list.innerHTML = '<p style="color:var(--ink-muted);font-size:0.8125rem">Belum ada aktivitas scan pada sesi ini.</p>';
+    list.innerHTML =
+      '<p style="color:var(--ink-muted);font-size:0.8125rem">Belum ada aktivitas scan pada sesi ini.</p>';
     return;
   }
 
   list.innerHTML = scanHistory
     .map(
       (entry) =>
-        `<div class="scan-result-item${entry.valid ? '' : ' is-invalid'}">
-          <div class="scan-result-item__icon"><i class="bi bi-${entry.valid ? 'check-lg' : 'x-lg'}"></i></div>
+        `<div class="scan-result-item${entry.valid ? "" : " is-invalid"}">
+          <div class="scan-result-item__icon"><i class="bi bi-${entry.valid ? "check-lg" : "x-lg"}"></i></div>
           <div>
             <div class="scan-result-item__name">${escapeHtml(entry.name)}</div>
             <div class="scan-result-item__meta">${escapeHtml(entry.message)} · ${formatTime(entry.time)}</div>
           </div>
         </div>`,
     )
-    .join('');
+    .join("");
 }
 
 // --- Check-in log (admin mode) ---
 export function renderCheckinLog(): void {
   const checked = guestList
-    .filter(g => g.checkedInAt)
-    .sort((a, b) => new Date(b.checkedInAt ?? 0).getTime() - new Date(a.checkedInAt ?? 0).getTime());
-  const el = document.getElementById('checkin-log-list');
+    .filter((g) => g.checkedInAt)
+    .sort(
+      (a, b) =>
+        new Date(b.checkedInAt ?? 0).getTime() -
+        new Date(a.checkedInAt ?? 0).getTime(),
+    );
+  const el = document.getElementById("checkin-log-list");
   if (!el) return;
   el.innerHTML = checked.length
     ? checked
@@ -655,23 +813,25 @@ export function renderCheckinLog(): void {
               </div>
             </div>`,
         )
-        .join('')
+        .join("")
     : '<p style="color:var(--ink-muted);font-size:.8125rem;">Belum ada riwayat check-in.</p>';
 }
 
 // --- Init check-in events ---
 export function initCheckinEvents(): void {
   // Mode toggle (5.8)
-  document.querySelectorAll('.mode-toggle button').forEach((btn) =>
-    btn.addEventListener('click', function (this: HTMLButtonElement) {
-      document.querySelectorAll('.mode-toggle button').forEach((b) => b.classList.remove('active'));
-      this.classList.add('active');
-      if (this.dataset.mode === 'scan') {
-        show(document.getElementById('checkin-mode-scan'));
-        hide(document.getElementById('checkin-mode-admin'));
+  document.querySelectorAll(".mode-toggle button").forEach((btn) =>
+    btn.addEventListener("click", function (this: HTMLButtonElement) {
+      document
+        .querySelectorAll(".mode-toggle button")
+        .forEach((b) => b.classList.remove("active"));
+      this.classList.add("active");
+      if (this.dataset.mode === "scan") {
+        show(document.getElementById("checkin-mode-scan"));
+        hide(document.getElementById("checkin-mode-admin"));
       } else {
-        hide(document.getElementById('checkin-mode-scan'));
-        show(document.getElementById('checkin-mode-admin'));
+        hide(document.getElementById("checkin-mode-scan"));
+        show(document.getElementById("checkin-mode-admin"));
         renderCheckinLog();
         stopScanner();
       }
@@ -679,88 +839,134 @@ export function initCheckinEvents(): void {
   );
 
   // Start/stop scan
-  document.getElementById('btn-start-scan')?.addEventListener('click', () => startScanner());
+  document
+    .getElementById("btn-start-scan")
+    ?.addEventListener("click", () => startScanner());
 
   // Stop scan
-  document.getElementById('btn-stop-scan')?.addEventListener('click', () => stopScanner());
+  document
+    .getElementById("btn-stop-scan")
+    ?.addEventListener("click", () => stopScanner());
 
   // Switch camera
-  document.getElementById('btn-switch-camera')?.addEventListener('click', () => switchCamera());
+  document
+    .getElementById("btn-switch-camera")
+    ?.addEventListener("click", () => switchCamera());
 
   // Post-scan modal close
-  document.getElementById('postscan-modal-overlay')?.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).dataset.modalClose !== undefined ||
-        (e.target as HTMLElement).id === 'postscan-modal-overlay') {
-      hideModal('postscan-modal-overlay');
-      isProcessing = false;
-    }
-  });
+  document
+    .getElementById("postscan-modal-overlay")
+    ?.addEventListener("click", (e) => {
+      if (
+        (e.target as HTMLElement).dataset.modalClose !== undefined ||
+        (e.target as HTMLElement).id === "postscan-modal-overlay"
+      ) {
+        hideModal("postscan-modal-overlay");
+        isProcessing = false;
+      }
+    });
 
   // Post-scan buttons
-  document.getElementById('postscan-btn-all')?.addEventListener('click', doPostscanCheckinAll);
-  document.getElementById('postscan-btn-partial')?.addEventListener('click', doPostscanCheckinPartial);
-  document.getElementById('postscan-btn-override')?.addEventListener('click', doPostscanOverride);
-  document.getElementById('postscan-btn-close')?.addEventListener('click', () => {
-    hideModal('postscan-modal-overlay');
-    isProcessing = false;
-  });
+  document
+    .getElementById("postscan-btn-all")
+    ?.addEventListener("click", doPostscanCheckinAll);
+  document
+    .getElementById("postscan-btn-partial")
+    ?.addEventListener("click", doPostscanCheckinPartial);
+  document
+    .getElementById("postscan-btn-override")
+    ?.addEventListener("click", doPostscanOverride);
+  document
+    .getElementById("postscan-btn-close")
+    ?.addEventListener("click", () => {
+      hideModal("postscan-modal-overlay");
+      isProcessing = false;
+    });
 
   // Override modal
-  document.getElementById('override-modal-overlay')?.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).dataset.modalClose !== undefined ||
-        (e.target as HTMLElement).id === 'override-modal-overlay') {
-      hideModal('override-modal-overlay');
-    }
-  });
-  document.getElementById('override-confirm-btn')?.addEventListener('click', doPostscanOverrideConfirm);
-  document.getElementById('override-cancel-btn')?.addEventListener('click', () => {
-    hideModal('override-modal-overlay');
-  });
+  document
+    .getElementById("override-modal-overlay")
+    ?.addEventListener("click", (e) => {
+      if (
+        (e.target as HTMLElement).dataset.modalClose !== undefined ||
+        (e.target as HTMLElement).id === "override-modal-overlay"
+      ) {
+        hideModal("override-modal-overlay");
+      }
+    });
+  document
+    .getElementById("override-confirm-btn")
+    ?.addEventListener("click", doPostscanOverrideConfirm);
+  document
+    .getElementById("override-cancel-btn")
+    ?.addEventListener("click", () => {
+      hideModal("override-modal-overlay");
+    });
 
   // Manual check-in (5.7)
-  document.getElementById('btn-toggle-manual')?.addEventListener('click', () =>
-    document.getElementById('manual-search-panel')?.classList.toggle('d-none-important'));
+  document
+    .getElementById("btn-toggle-manual")
+    ?.addEventListener("click", () =>
+      document
+        .getElementById("manual-search-panel")
+        ?.classList.toggle("d-none-important"),
+    );
 
-  const mi = document.getElementById('manual-checkin-search') as HTMLInputElement | null;
-  mi?.addEventListener('input', function () {
+  const mi = document.getElementById(
+    "manual-checkin-search",
+  ) as HTMLInputElement | null;
+  mi?.addEventListener("input", function () {
     const q = this.value.trim().toLowerCase();
-    const r = document.getElementById('manual-checkin-results');
+    const r = document.getElementById("manual-checkin-results");
     if (!r) return;
-    if (!q) { r.innerHTML = ''; return; }
+    if (!q) {
+      r.innerHTML = "";
+      return;
+    }
     const matches = guestList
-      .filter((g) => checkinStatus(g) !== 'sudah' && (g.name.toLowerCase().includes(q) || (g.nomor_wa ?? '').includes(q)))
+      .filter(
+        (g) =>
+          checkinStatus(g) !== "sudah" &&
+          (g.name.toLowerCase().includes(q) || (g.nomor_wa ?? "").includes(q)),
+      )
       .slice(0, 3);
     r.innerHTML = matches.length
       ? matches
           .map(
             (g) =>
               `<div class="manual-result-item">
-                <span>${escapeHtml(g.name)} ${g.kelompok ? `<span style="color:var(--ink-muted);font-size:0.75rem">(${escapeHtml(g.kelompok)})</span>` : ''}</span>
+                <span>${escapeHtml(g.name)} ${g.kelompok ? `<span style="color:var(--ink-muted);font-size:0.75rem">(${escapeHtml(g.kelompok)})</span>` : ""}</span>
                 <button type="button" data-manual-checkin="${g.id}">Check-in</button>
               </div>`,
           )
-          .join('')
+          .join("")
       : '<p style="color:var(--ink-muted);font-size:.8125rem;">Tidak ditemukan tamu yang cocok.</p>';
   });
 
-  document.getElementById('manual-checkin-results')?.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-manual-checkin]');
-    if (!btn) return;
-    const id = btn.dataset.manualCheckin!;
-    if (mi) mi.value = '';
-    const r = document.getElementById('manual-checkin-results');
-    if (r) r.innerHTML = '';
-    // Dispatch to open check-in dialog (handled by guests.ts)
-    window.dispatchEvent(new CustomEvent('open-checkin-dialog', { detail: { id } }));
-  });
+  document
+    .getElementById("manual-checkin-results")
+    ?.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>(
+        "[data-manual-checkin]",
+      );
+      if (!btn) return;
+      const id = btn.dataset.manualCheckin!;
+      if (mi) mi.value = "";
+      const r = document.getElementById("manual-checkin-results");
+      if (r) r.innerHTML = "";
+      // Dispatch to open check-in dialog (handled by guests.ts)
+      window.dispatchEvent(
+        new CustomEvent("open-checkin-dialog", { detail: { id } }),
+      );
+    });
 
   // Page change — stop scanner
-  window.addEventListener('page-changed', ((e: CustomEvent) => {
-    if (e.detail.page !== 'checkin' && isScanning) stopScanner();
-    if (e.detail.page === 'checkin') renderCheckinLog();
+  window.addEventListener("page-changed", ((e: CustomEvent) => {
+    if (e.detail.page !== "checkin" && isScanning) stopScanner();
+    if (e.detail.page === "checkin") renderCheckinLog();
   }) as EventListener);
 
-  window.addEventListener('checkin-updated', () => {
+  window.addEventListener("checkin-updated", () => {
     renderCheckinLog();
     renderScanResults();
   });
