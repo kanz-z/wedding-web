@@ -204,30 +204,33 @@ async function restartWithCamera(cameraId: string): Promise<void> {
 }
 
 async function switchCamera(): Promise<void> {
-  let cameras: { id: string; label: string }[];
-  try {
-    cameras = await getCameras();
-  } catch {
-    showToast("Gagal mendeteksi kamera", true);
-    return;
+  // Gunakan availableCameras yang sudah di-cache oleh startScanner().
+  // Jangan panggil getCameras() ulang saat stream aktif — di Android Chrome,
+  // enumerateDevices() hanya me-return kamera yang sedang streaming.
+  if (availableCameras.length === 0) {
+    // Fallback: hanya jika startScanner() belum pernah mengisi cache
+    try {
+      availableCameras = await getCameras();
+    } catch {
+      showToast("Gagal mendeteksi kamera", true);
+      return;
+    }
   }
 
-  if (cameras.length < 2) {
+  if (availableCameras.length < 2) {
     showToast("Hanya tersedia 1 kamera", true);
     return;
   }
-
-  availableCameras = cameras;
 
   if (!html5QrCode || !isScanning) {
     showToast("Scanner tidak aktif — mulai scan terlebih dahulu", true);
     return;
   }
 
-  const curIdx = cameras.findIndex((c) => c.id === currentCameraId);
+  const curIdx = availableCameras.findIndex((c) => c.id === currentCameraId);
   const prevCameraId = currentCameraId;
-  const nextIdx = (curIdx + 1) % cameras.length;
-  currentCameraId = cameras[nextIdx].id;
+  const nextIdx = (curIdx + 1) % availableCameras.length;
+  currentCameraId = availableCameras[nextIdx].id;
 
   if (!prevCameraId) {
     showToast("Tidak dapat menentukan kamera saat ini", true);
