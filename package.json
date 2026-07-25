@@ -5,6 +5,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:ci": "CI=true npx playwright test",
+    "test:report": "npx playwright show-report",
     "edge-func": "supabase functions deploy"
   },
   "dependencies": {
@@ -19,7 +23,8 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
-    "@types/node": "^26.1.0",
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^26.1.1",
     "@types/qrcode": "^1.5.6",
     "playwright": "^1.61.1",
     "typescript": "^6.0.3",
