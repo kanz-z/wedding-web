@@ -204,18 +204,44 @@ async function restartWithCamera(cameraId: string): Promise<void> {
 }
 
 async function switchCamera(): Promise<void> {
-  const cameras = await getCameras();
-  if (cameras.length < 2) return;
+  let cameras: { id: string; label: string }[];
+  try {
+    cameras = await getCameras();
+  } catch {
+    showToast("Gagal mendeteksi kamera", true);
+    return;
+  }
+
+  if (cameras.length < 2) {
+    showToast("Hanya tersedia 1 kamera", true);
+    return;
+  }
 
   availableCameras = cameras;
+
+  if (!html5QrCode || !isScanning) {
+    showToast("Scanner tidak aktif — mulai scan terlebih dahulu", true);
+    return;
+  }
 
   const curIdx = cameras.findIndex((c) => c.id === currentCameraId);
   const prevCameraId = currentCameraId;
   const nextIdx = (curIdx + 1) % cameras.length;
   currentCameraId = cameras[nextIdx].id;
 
-  if (!html5QrCode || !isScanning) return;
-  if (!prevCameraId) return;
+  if (!prevCameraId) {
+    showToast("Tidak dapat menentukan kamera saat ini", true);
+    return;
+  }
+
+  // Loading state: disable tombol + spinner
+  const switchBtn = document.getElementById(
+    "btn-switch-camera",
+  ) as HTMLButtonElement | null;
+  if (switchBtn) {
+    switchBtn.disabled = true;
+    switchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Ganti...';
+  }
 
   try {
     await html5QrCode.stop();
@@ -238,6 +264,12 @@ async function switchCamera(): Promise<void> {
       isScanning = false;
       resetScannerView();
       showToast("Gagal mengganti kamera", true);
+    }
+  } finally {
+    // Reset tombol state
+    if (switchBtn) {
+      switchBtn.disabled = false;
+      switchBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Ganti Kamera';
     }
   }
 }
@@ -359,6 +391,9 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
       overlay.dataset.guestCount = String(reservation.guest_count);
       overlay.dataset.checkedIn = String(checkedIn);
     }
+    // Tampilkan feedback instan sebelum network call agar user tidak menunggu
+    showScanSuccessFlash(reservation.name, 1);
+    showToast("Memproses check-in...");
     doPostscanCheckinAll();
     return;
   }
