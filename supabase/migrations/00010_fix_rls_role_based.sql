@@ -37,10 +37,14 @@ CREATE POLICY "auth_update_reservations" ON reservations
   ))
   WITH CHECK (true);
 
--- 6. DELETE — tidak ada policy → DELETE ditolak oleh RLS untuk semua role.
---    Penghapusan hanya bisa dilakukan via Edge Function (service_role).
---    Ini sesuai dengan desain GAP-015 — reservations tidak boleh di-hard-delete
---    dari client dashboard, hanya soft-delete (approval_status = 'cancelled').
+-- 6. DELETE — hanya superadmin dan admin yang bisa menghapus tamu
+CREATE POLICY "auth_delete_reservations" ON reservations
+  FOR DELETE TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM admin_users
+    WHERE admin_users.id = auth.uid()
+      AND admin_users.role IN ('superadmin', 'admin')
+  ));
 
 -- 7. Pastikan GRANT tetap untuk authenticated
-GRANT SELECT, INSERT, UPDATE ON public.reservations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.reservations TO authenticated;
