@@ -504,6 +504,8 @@ body {
 }
 
 .summary-grid {
+  overflow-x: auto;
+  scrollbar-width: none;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: var(--space-lg);

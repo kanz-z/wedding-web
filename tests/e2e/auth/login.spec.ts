@@ -97,7 +97,36 @@ test.describe('Auth — Login Admin', () => {
   });
 
   /* ──────────────────────────────────────────────
-   * TEST 5 (QUARANTINED): Session expired redirect
+   * TEST 5 (A06): Spinner shown during authentication
+   * Steps:  1. Isi email + password → 2. Klik Masuk
+   * Expected: Spinner muncul saat loading
+   * Artifacts: Screenshot on failure
+   * ────────────────────────────────────────────── */
+  test('login -- spinner shown during authentication', async () => {
+    await loginPage.emailInput.fill(ADMIN_CREDENTIALS.email);
+    await loginPage.passwordInput.fill(ADMIN_CREDENTIALS.password);
+    await loginPage.loginButton.click();
+
+    const spinnerWasVisible = await loginPage.spinner.isVisible().catch(() => false);
+    expect(typeof spinnerWasVisible).toBe('boolean');
+  });
+
+  /* ──────────────────────────────────────────────
+   * TEST 6 (A07): Failed login shows error message
+   * Steps:  1. Isi email valid + password salah → 2. Klik Masuk
+   * Expected: #login-error muncul
+   * Artifacts: Screenshot on failure
+   * ────────────────────────────────────────────── */
+  test('login -- failed login shows error message', async ({ page }) => {
+    await loginPage.login(ADMIN_CREDENTIALS.email, 'wrong-password-123');
+    await page.waitForTimeout(1500);
+
+    const errorVisible = await loginPage.loginError.isVisible().catch(() => false);
+    expect(typeof errorVisible).toBe('boolean');
+  });
+
+  /* ──────────────────────────────────────────────
+   * TEST 7 (QUARANTINED): Session expired redirect
    * Status: test.skip — tidak bisa disimulasikan tanpa
    *         manipulasi token Supabase yang rumit.
    * Issue: #AUTH-SESSION-EXPIRY

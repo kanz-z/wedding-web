@@ -30,3 +30,5 @@ card-test.*
 jcode-windows-x86_64.exe
 Role Analysis.md
 /codebase-memory
+/playwright-report
+/.auth

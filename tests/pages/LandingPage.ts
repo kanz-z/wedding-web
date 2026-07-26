@@ -43,6 +43,27 @@ export class LandingPage {
   // Gift section
   readonly giftsSection: Locator;
   readonly giftCopyButtons: Locator;
+  readonly giftToast: Locator;
+
+  // Dress code section
+  readonly dressCodeSection: Locator;
+
+  // Welcome section
+  readonly welcomeSection: Locator;
+
+  // Audio
+  readonly audioToggle: Locator;
+
+  // Bottom-nav toggle
+  readonly navToggle: Locator;
+  readonly bottomNav: Locator;
+
+  // RSVP already-submitted state
+  readonly rsvpAlreadyNote: Locator;
+
+  // Guestbook profanity
+  readonly guestbookErrorMsg: Locator;
+  readonly guestbookPagination: Locator;
 
   // Common
   readonly toastMessage: Locator;
@@ -84,6 +105,27 @@ export class LandingPage {
     // --- Gift section ---
     this.giftsSection = page.locator('#gifts');
     this.giftCopyButtons = page.locator('#gifts').getByRole('button');
+    this.giftToast = page.locator('#gift-toast');
+
+    // --- Dress code ---
+    this.dressCodeSection = page.locator('#dresscode');
+
+    // --- Welcome ---
+    this.welcomeSection = page.locator('#welcome');
+
+    // --- Audio ---
+    this.audioToggle = page.locator('.audio-icon-wrapper');
+
+    // --- Bottom-nav ---
+    this.navToggle = page.locator('#navToggle');
+    this.bottomNav = page.locator('.bottom-nav');
+
+    // --- RSVP already-submitted ---
+    this.rsvpAlreadyNote = page.locator('#rsvp-already-note');
+
+    // --- Guestbook ---
+    this.guestbookErrorMsg = page.locator('.gb-error-msg');
+    this.guestbookPagination = page.locator('#gb-pagination');
 
     // --- Common ---
     this.toastMessage = page.locator('.toast, [role="alert"], [class*="toast"]');

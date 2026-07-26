@@ -394,8 +394,6 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
       overlay.dataset.guestCount = String(reservation.guest_count);
       overlay.dataset.checkedIn = String(checkedIn);
     }
-    // Tampilkan feedback instan sebelum network call agar user tidak menunggu
-    showScanSuccessFlash(reservation.name, 1);
     showToast("Memproses check-in...");
     doPostscanCheckinAll();
     return;

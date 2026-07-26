@@ -762,6 +762,27 @@ export function initGuestEvents(): void {
       if (btn) btn.disabled = false;
     }
   });
+  document.getElementById('bulk-del')?.addEventListener('click', async () => {
+    if (selectedIds.size === 0) return;
+    const ids = [...selectedIds];
+    if (!confirm(`Hapus ${ids.length} undangan tamu? Data RSVP dan check-in akan ikut terhapus.`)) return;
+    const btn = document.getElementById('bulk-del') as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    try {
+      const { error } = await supabase.from('reservations').delete().in('id', ids);
+      if (error) throw error;
+      showToast(ids.length + ' undangan tamu dihapus');
+      selectedIds.clear();
+      updateBulkBar();
+      await fetchGuests();
+      populateKelompokFilter();
+      renderGuestTable();
+    } catch (err: unknown) {
+      showToast('Gagal menghapus: ' + (err instanceof Error ? err.message : String(err)), true);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
   document.getElementById('bulk-clear')?.addEventListener('click', () => { selectedIds.clear(); updateBulkBar(); renderGuestTable(); });
 
   // Detail modal check-in button

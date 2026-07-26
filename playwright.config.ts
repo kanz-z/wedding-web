@@ -35,20 +35,54 @@ export default defineConfig({
   },
 
   projects: [
+    // === Auth setup (sekali, sebelum semua test) ===
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+      testDir: "./tests",
+      use: { ...devices["Desktop Chrome"] },
+    },
+
+    // === Dashboard: 1 browser, reuse auth state ===
+    {
+      name: "dashboard",
+      testMatch: [
+        "hub.spec.ts",
+        "guests.spec.ts",
+        "reservations.spec.ts",
+        "checkin.spec.ts",
+        "public-messages.spec.ts",
+        "private-messages.spec.ts",
+        "admin-management.spec.ts",
+        "dashboard.spec.ts",
+        "auth/login.spec.ts",
+      ],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: ".auth/admin-state.json",
+      },
+      dependencies: ["setup"],
+    },
+
+    // === Publik: 4 browser (UX tamu — cross-browser dibutuhkan) ===
     {
       name: "chromium",
+      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "firefox",
+      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit",
+      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
     {
       name: "mobile-chrome",
+      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
       use: { ...devices["Pixel 5"] },
     },
   ],

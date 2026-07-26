@@ -74,6 +74,11 @@ export class DashboardPage {
     await this.page.waitForLoadState('networkidle');
   }
 
+  /** Dapatkan halaman aktif berdasarkan data-page attribute */
+  getActivePage(): Locator {
+    return this.page.locator('.app-page:not(.d-none-important)');
+  }
+
   async searchGuest(query: string) {
     await this.guestSearchInput.fill(query);
     await this.page.waitForTimeout(400);

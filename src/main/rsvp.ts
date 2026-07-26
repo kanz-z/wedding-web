@@ -214,6 +214,15 @@ export function initRsvp(): void {
           ],
         });
         saveRsvpSubmitted(namaInput, statusInput);
+        success = true;
+        form
+          .querySelectorAll("input, select, textarea")
+          .forEach(function (el) {
+            (el as HTMLInputElement).disabled = true;
+          });
+        submitBtn.textContent = "Lihat undangan ->";
+        submitBtn.onclick = () => { if (slug) location.href = "/" + slug + "/card"; };
+        return;
       }
       success = true;
       form

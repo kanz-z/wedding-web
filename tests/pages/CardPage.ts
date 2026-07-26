@@ -32,6 +32,16 @@ export class CardPage {
   // Permalink
   readonly permalinkText: Locator;
 
+  // Orientation
+  readonly orientationPortraitBtn: Locator;
+  readonly invitationCard: Locator;
+
+  // Error state
+  readonly cardError: Locator;
+
+  // Download spinner
+  readonly downloadSpinner: Locator;
+
   constructor(page: Page) {
     this.page = page;
 
@@ -57,6 +67,11 @@ export class CardPage {
     );
 
     this.permalinkText = page.locator('text=/invitation\\//i');
+
+    this.orientationPortraitBtn = page.locator('#cardOrientationPortrait');
+    this.invitationCard = page.locator('#invitationCard');
+    this.cardError = page.locator('.card-error');
+    this.downloadSpinner = page.locator('#btn-download-card .spinner-border, #btn-download-card [class*="spinner"]');
   }
 
   /** Navigasi ke halaman kartu dengan slug */
