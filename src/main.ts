@@ -9,7 +9,7 @@ import "./styles/circle.css";
 import AOS from "aos";
 
 import { config } from "./config";
-import { fetchGuestData, routeType, getNama } from "./main/slug-router";
+import { fetchGuestData, routeType, getGuestName } from "./main/slug-router";
 import { renderCardPage } from "./main/card-page";
 import { initCountdown } from "./main/countdown";
 import { supabaseClient } from "./main/supabase-client";
@@ -97,7 +97,7 @@ async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
     }
 
     const val = (data as { value: string }).value;
-    console.log("[checkEventStatus] raw value dari DB", { val, type: typeof val });
+    if (import.meta.env.DEV) console.log("[checkEventStatus] raw value dari DB", { val, type: typeof val });
 
     let status: string = val;
     if (
@@ -107,7 +107,7 @@ async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
       status = JSON.parse(val);
     }
     const result = status === "offline" ? "offline" : "online";
-    console.log("[checkEventStatus] resolved =>", result);
+    if (import.meta.env.DEV) console.log("[checkEventStatus] resolved =>", result);
     return result;
   } catch (err) {
     console.error("[checkEventStatus] exception", err);
@@ -138,7 +138,7 @@ async function initApp(): Promise<void> {
         ),
       ]);
       status = result;
-      console.log("[initApp] status check result =>", status);
+      if (import.meta.env.DEV) console.log("[initApp] status check result =>", status);
     } catch (err) {
       console.error("[initApp] status check exception", err);
       status = "error";
@@ -174,7 +174,7 @@ async function initApp(): Promise<void> {
     }
 
     // Isi nama tamu di hero untuk rute undangan
-    const nama = getNama();
+    const nama = getGuestName();
     const namaContainer = document.querySelector<HTMLElement>(".hero h4 span");
     if (namaContainer) {
       namaContainer.innerText = nama
