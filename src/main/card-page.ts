@@ -3,9 +3,10 @@
 // Render setelah tamu mengisi RSVP — menampilkan kartu undangan digital
 // dengan data tamu, QR code, dan info acara.
 
-import { getGuestData, getNama } from "./slug-router";
+import { getGuestData, getGuestName } from "./slug-router";
 import html2canvas from "html2canvas";
 import QRCode from "qrcode";
+import { showToast } from "@/shared/ui";
 
 interface CardData {
   nama: string;
@@ -30,7 +31,7 @@ export function renderCardPage(container: HTMLElement): void {
   }
 
   const data: CardData = {
-    nama: getNama(),
+    nama: getGuestName(),
     qrToken: guest.token ?? "",
     tanggal: "Sabtu, 22 Agustus 2026",
     lokasi: "RIVEA Riverside Cafe and Space, Ngaglik, Sleman, DIY",
@@ -46,12 +47,12 @@ export function renderCardPage(container: HTMLElement): void {
 /*  HTML Builders                                                     */
 /* ------------------------------------------------------------------ */
 
-function buildCardHTML(d: CardData, slug: string): string {
+function buildCardHTML(data: CardData, slug: string): string {
   return `
     <div class="card-page">
       <header class="card-toolbar">
         <div class="card-toolbar__start">
-          <a href="/${escAttr(slug)}" class="card-btn-back">
+          <a href="/${escapeAttr(slug)}" class="card-btn-back">
             <span class="card-btn-back__arrow" aria-hidden="true">&#8592;</span>
             <span>Kembali</span>
           </a>
@@ -78,24 +79,24 @@ function buildCardHTML(d: CardData, slug: string): string {
               <dl class="card-info-list">
                 <div class="card-info-row">
                   <dt class="card-info-label">Nama</dt>
-                  <dd class="card-info-value">${esc(d.nama)}</dd>
+                  <dd class="card-info-value">${escapeHtml(data.nama)}</dd>
                 </div>
                 <div class="card-info-row">
                   <dt class="card-info-label">Tanggal</dt>
-                  <dd class="card-info-value">${esc(d.tanggal)}</dd>
+                  <dd class="card-info-value">${escapeHtml(data.tanggal)}</dd>
                 </div>
                 <div class="card-info-row">
                   <dt class="card-info-label">Lokasi</dt>
-                  <dd class="card-info-value">${esc(d.lokasi)}</dd>
+                  <dd class="card-info-value">${escapeHtml(data.lokasi)}</dd>
                 </div>
                 <div class="card-info-row">
                   <dt class="card-info-label">Dress code</dt>
-                  <dd class="card-info-value">${esc(d.dressCode)}</dd>
+                  <dd class="card-info-value">${escapeHtml(data.dressCode)}</dd>
                 </div>
               </dl>
             </div>
             <div class="card-body-qr">
-              <div class="card-qr card-qr--loading" id="card-qr" role="img" aria-label="Memuat kode QR untuk ${escAttr(d.nama)}"></div>
+              <div class="card-qr card-qr--loading" id="card-qr" role="img" aria-label="Memuat kode QR untuk ${escapeAttr(data.nama)}"></div>
             </div>
           </div>
           <div class="card-footer-section">
@@ -169,7 +170,7 @@ function generateQR(token: string, guestName: string): void {
         container.setAttribute("aria-label", "Gagal memuat kode QR");
         container.innerHTML =
           '<span style="color: var(--card-ink-500); font-size: 0.8rem;">Gagal memuat QR</span>';
-        showToast("Gagal memuat kode QR. Silakan refresh halaman.", "error");
+        showToast("Gagal memuat kode QR. Silakan refresh halaman.", true);
         return;
       }
 
@@ -268,7 +269,7 @@ function handleDownload(): void {
       link.href = canvas.toDataURL("image/png");
       link.click();
 
-      showToast("Kartu berhasil diunduh!", "success");
+      showToast("Kartu berhasil diunduh!");
     })
     .catch((err: unknown) => {
       console.error("Gagal mengunduh kartu:", err);
@@ -276,7 +277,7 @@ function handleDownload(): void {
         err instanceof Error
           ? err.message
           : "Terjadi kesalahan saat mengunduh kartu.";
-      showToast(message, "error");
+      showToast(message, true);
     })
     .finally(() => {
       btn.disabled = false;
@@ -288,33 +289,17 @@ function handleDownload(): void {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Toast                                                             */
-/* ------------------------------------------------------------------ */
-
-function showToast(message: string, type: "success" | "error"): void {
-  const toast = document.getElementById("card-toast");
-  if (!toast) return;
-
-  toast.textContent = message;
-  toast.className = `card-toast card-toast--${type} card-toast--visible`;
-
-  setTimeout(() => {
-    toast.classList.remove("card-toast--visible");
-  }, 4000);
-}
-
-/* ------------------------------------------------------------------ */
 /*  Utilities                                                         */
 /* ------------------------------------------------------------------ */
 
-function esc(s: string): string {
+function escapeHtml(str: string): string {
   const div = document.createElement("div");
-  div.textContent = s;
+  div.textContent = str;
   return div.innerHTML;
 }
 
-function escAttr(s: string): string {
+function escapeAttr(str: string): string {
   const div = document.createElement("div");
-  div.textContent = s;
+  div.textContent = str;
   return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }

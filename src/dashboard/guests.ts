@@ -41,24 +41,24 @@ import { supabase } from "./supabase-client";
 import type { GuestWithMeta, CheckinLogEntry } from "./state";
 
 // --- Derived helpers ---
-function gStatus(g: GuestWithMeta) {
+function getGuestStatus(g: GuestWithMeta) {
   return checkinStatus(g);
 }
 
-function rsvpBadge(s: string): string {
-  if (s === "hadir") return badge("success", "Hadir");
-  if (s === "tidak") return badge("danger", "Tidak Hadir");
+function rsvpBadge(status: string): string {
+  if (status === "hadir") return badge("success", "Hadir");
+  if (status === "tidak") return badge("danger", "Tidak Hadir");
   return badge("muted", "Belum Respon");
 }
 
-function checkinBadgeText(s: string): string {
-  if (s === "sudah") return badge("success", "Sudah Hadir");
-  if (s === "sebagian") return badge("warning", "Sebagian");
+function checkinBadgeText(status: string): string {
+  if (status === "sudah") return badge("success", "Sudah Hadir");
+  if (status === "sebagian") return badge("warning", "Sebagian");
   return badge("muted", "Belum Hadir");
 }
 
-function kategoriBadge(k: string): string {
-  return k === "keluarga"
+function kategoriBadge(kategori: string): string {
+  return kategori === "keluarga"
     ? badge("info", "Keluarga")
     : badge("purple", "Bukan Keluarga");
 }
@@ -100,7 +100,7 @@ function getFilteredGuests(): GuestWithMeta[] {
         .toLowerCase();
       if (!hay.includes(searchQuery.toLowerCase())) return false;
     }
-    if (filters.checkin && gStatus(g) !== filters.checkin) return false;
+    if (filters.checkin && getGuestStatus(g) !== filters.checkin) return false;
     if (filters.rsvp && g.rsvp !== filters.rsvp) return false;
     if (filters.kategori && g.kategori !== filters.kategori) return false;
     if (filters.kelompok && g.kelompok !== filters.kelompok) return false;
@@ -116,8 +116,8 @@ function getSortedGuests(list: GuestWithMeta[]): GuestWithMeta[] {
       av = a.checkedInAt ?? "";
       bv = b.checkedInAt ?? "";
     } else if (sortKey === "checkinStatus") {
-      av = gStatus(a);
-      bv = gStatus(b);
+      av = getGuestStatus(a);
+      bv = getGuestStatus(b);
     } else {
       av = a.name.toLowerCase();
       bv = b.name.toLowerCase();
@@ -130,7 +130,7 @@ function getSortedGuests(list: GuestWithMeta[]): GuestWithMeta[] {
 
 // --- Row rendering (4.2) ---
 function renderGuestRow(g: GuestWithMeta): string {
-  const status = gStatus(g);
+  const status = getGuestStatus(g);
   const rowClass = [
     status === "sudah" ? "is-checked-in" : "",
     status === "sebagian" ? "is-partial" : "",
@@ -266,7 +266,7 @@ function renderPaginationNav(totalPages: number): void {
   ul.innerHTML = "";
   if (totalPages <= 1) return;
 
-  const pi = (
+  const createPageItem = (
     label: string,
     enabled: boolean,
     active: boolean,
@@ -288,14 +288,14 @@ function renderPaginationNav(totalPages: number): void {
   };
 
   ul.appendChild(
-    pi("&laquo;", currentPage > 0, false, () => {
+    createPageItem("&laquo;", currentPage > 0, false, () => {
       setCurrentPage(currentPage - 1);
       renderGuestTable();
     }),
   );
   for (let i = 0; i < totalPages; i++) {
     ul.appendChild(
-      pi(
+      createPageItem(
         String(i + 1),
         true,
         i === currentPage,
@@ -307,7 +307,7 @@ function renderPaginationNav(totalPages: number): void {
     );
   }
   ul.appendChild(
-    pi("&raquo;", currentPage < totalPages - 1, false, () => {
+    createPageItem("&raquo;", currentPage < totalPages - 1, false, () => {
       setCurrentPage(currentPage + 1);
       renderGuestTable();
     }),
@@ -346,7 +346,7 @@ export function openGuestModal(id: string): void {
   const g = guestList.find((x) => x.id === id);
   if (!g) return;
   activeGuestId = id;
-  const status = gStatus(g);
+  const status = getGuestStatus(g);
 
   const nameEl = document.getElementById("modal-guest-name");
   if (nameEl) nameEl.textContent = g.name;
