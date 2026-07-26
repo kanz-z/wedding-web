@@ -1,6 +1,6 @@
 // src/dashboard/ui.ts — shared UI: modals, notifications, keyboard
 
-import { hide, show, prefersReducedMotion, formatRelativeTime } from "@/shared/ui";
+import { hide, show, prefersReducedMotion, formatRelativeTime, escapeHtml } from "@/shared/ui";
 import { guestList, guestbookEntries, getAnomalyCount } from "./state";
 
 /** Entry notifikasi sederhana */
@@ -31,7 +31,7 @@ export function renderNotifications(): void {
       items.push({
         id: "anom-" + g.id,
         icon: "bi-flag-fill",
-        message: "<strong>" + g.name + "</strong>: " + g.flag,
+        message: "<strong>" + escapeHtml(g.name) + "</strong>: " + g.flag,
         time: g.updated_at ?? g.created_at,
         flagged: true,
       });
@@ -46,7 +46,7 @@ export function renderNotifications(): void {
         icon: "bi-envelope-heart-fill",
         message:
           "<strong>" +
-          g.name +
+          escapeHtml(g.name) +
           "</strong> mengisi RSVP — menunggu persetujuan.",
         time: g.updated_at ?? g.created_at,
         flagged: false,
@@ -62,7 +62,7 @@ export function renderNotifications(): void {
       icon: "bi-chat-heart-fill",
       message:
         "<strong>" +
-        entry.name +
+        escapeHtml(entry.name) +
         "</strong> mengirim ucapan baru di guestbook.",
       time: entry.created_at,
       flagged: false,

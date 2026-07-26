@@ -31,7 +31,7 @@ interface CheckInPayload {
 
 serve(async (req: Request) => {
   const origin = req.headers.get("origin") ?? "";
-  const isAllowed = ALLOWED_ORIGINS.some((o) => origin.startsWith(o));
+  const isAllowed = ALLOWED_ORIGINS.includes(origin);
 
   // CORS preflight
   if (req.method === "OPTIONS") {

@@ -24,14 +24,28 @@ const ALLOWED_ORIGINS = [
 
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
-    ? origin
-    : ALLOWED_ORIGINS[0];
+
+  if (req.method === "OPTIONS") {
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, apiKey",
+      },
+    });
+  }
+
+  if (!ALLOWED_ORIGINS.includes(origin)) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   const headers = {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, apiKey",
+    "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
   };
 
@@ -139,12 +153,9 @@ serve(async (req) => {
       .maybeSingle();
 
     if (eventStatusData) {
-      const eventStatus = eventStatusData.value; // JSON string: "online" atau "offline"
-      if (
-        eventStatus === "offline" ||
-        (typeof eventStatus === "string" &&
-          JSON.parse(eventStatus) === "offline")
-      ) {
+      const raw = eventStatusData.value as string;
+      const eventStatus = JSON.parse(raw);
+      if (eventStatus === "offline") {
         return new Response(
           JSON.stringify({
             error: "Acara sedang offline. RSVP tidak dapat dilakukan saat ini.",
@@ -341,7 +352,7 @@ serve(async (req) => {
     const code = debug.code || "UNKNOWN";
 
     return new Response(
-      JSON.stringify({ error: msg, code, _debug: debug }),
+      JSON.stringify({ error: "Terjadi kesalahan internal. Silakan coba lagi." }),
       { status: 500, headers },
     );
   }

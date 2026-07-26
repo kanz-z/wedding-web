@@ -83,6 +83,36 @@ export function initAuth(): void {
   // Login form (3.1)
   document.getElementById("login-form")?.addEventListener("submit", async function (e: Event) {
     e.preventDefault();
+
+    // Rate limiting: max 5 percobaan dalam 30 detik
+    const RL_KEY = "login_rl";
+    const now = Date.now();
+    const RL_WINDOW = 30_000;
+    const RL_MAX = 5;
+
+    function trackLoginFailure(): void {
+      const raw = sessionStorage.getItem(RL_KEY);
+      let rl: { count: number; first: number } | null = null;
+      try { if (raw) rl = JSON.parse(raw); } catch { /* ignore */ }
+      if (!rl || now - rl.first >= RL_WINDOW) {
+        sessionStorage.setItem(RL_KEY, JSON.stringify({ count: 1, first: now }));
+      } else {
+        sessionStorage.setItem(RL_KEY, JSON.stringify({ count: rl.count + 1, first: rl.first }));
+      }
+    }
+
+    const raw = sessionStorage.getItem(RL_KEY);
+    let rl: { count: number; first: number } | null = null;
+    try { if (raw) rl = JSON.parse(raw); } catch { /* ignore */ }
+    if (rl && now - rl.first < RL_WINDOW && rl.count >= RL_MAX) {
+      const wait = Math.ceil((RL_WINDOW - (now - rl.first)) / 1000);
+      const errorBox = document.getElementById("login-error");
+      const errorText = document.getElementById("login-error-text");
+      if (errorText) errorText.textContent = "Terlalu banyak percobaan. Coba lagi dalam " + wait + " detik.";
+      show(errorBox);
+      return;
+    }
+
     const email = (document.getElementById("login-email") as HTMLInputElement | null)?.value.trim() ?? "";
     const pass = (document.getElementById("login-password") as HTMLInputElement | null)?.value.trim() ?? "";
     const errorBox = document.getElementById("login-error");
@@ -117,6 +147,7 @@ export function initAuth(): void {
       show(errorBox);
       document.getElementById("field-email")?.classList.add("has-error");
       document.getElementById("field-password")?.classList.add("has-error");
+      trackLoginFailure();
       return;
     }
 
@@ -128,11 +159,15 @@ export function initAuth(): void {
       .maybeSingle();
 
     if (!adminRow) {
-      if (errorText) errorText.textContent = "Akun tidak terdaftar sebagai admin.";
+      if (errorText) errorText.textContent = "Email atau password tidak valid.";
       show(errorBox);
       await supabase.auth.signOut();
+      trackLoginFailure();
       return;
     }
+
+    // Reset rate limit on success
+    sessionStorage.removeItem(RL_KEY);
 
     navigateTo("hub");
   });

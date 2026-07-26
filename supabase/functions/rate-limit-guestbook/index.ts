@@ -55,14 +55,28 @@ function dumpError(e: unknown): Record<string, unknown> {
 
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
-    ? origin
-    : ALLOWED_ORIGINS[0];
+
+  if (req.method === "OPTIONS") {
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, apiKey",
+      },
+    });
+  }
+
+  if (!ALLOWED_ORIGINS.includes(origin)) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   const headers = {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, apiKey",
+    "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
   };
 
@@ -128,17 +142,6 @@ serve(async (req) => {
       );
     }
 
-    // Insert ke rate_limits_guestbook
-    console.log("[guestbook] step 3: insert rate limit");
-    const { error: rateError } = await sb
-      .from("rate_limits_guestbook")
-      .insert([{ ip_address: ip }]);
-
-    if (rateError) {
-      console.error("rate-limit-guestbook: INSERT rate_limits_guestbook gagal:", dumpError(rateError));
-      throw rateError;
-    }
-
     // Insert guestbook (pakai service_role, tembus RLS)
     console.log("[guestbook] step 5: insert guestbook");
     const { error: insertError } = await sb.from("guestbook").insert([
@@ -148,6 +151,17 @@ serve(async (req) => {
     if (insertError) {
       console.error("rate-limit-guestbook: INSERT guestbook gagal:", dumpError(insertError));
       throw insertError;
+    }
+
+    // Catat rate limit SETELAH guestbook sukses — hindari partial failure penalty
+    console.log("[guestbook] step 3: insert rate limit");
+    const { error: rateError } = await sb
+      .from("rate_limits_guestbook")
+      .insert([{ ip_address: ip }]);
+
+    if (rateError) {
+      console.error("rate-limit-guestbook: INSERT rate_limits_guestbook gagal:", dumpError(rateError));
+      // Rate limit gagal dicatat, tapi guestbook sudah terinsert — log & lanjutkan
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -160,7 +174,7 @@ serve(async (req) => {
     const code = debug.code || "UNKNOWN";
 
     return new Response(
-      JSON.stringify({ error: msg, code, _debug: debug }),
+      JSON.stringify({ error: "Terjadi kesalahan internal. Silakan coba lagi." }),
       { status: 500, headers },
     );
   }
