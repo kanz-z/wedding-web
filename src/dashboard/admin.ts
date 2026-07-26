@@ -16,27 +16,31 @@ export function initAdmin(): void {
 }
 
 async function loadAdmins(): Promise<void> {
-  show(document.getElementById('admin-skeleton'));
-  hide(document.getElementById('admin-tbody'));
-  hide(document.getElementById('admin-empty'));
-  hide(document.getElementById('admin-error'));
+  const skel = document.getElementById('admin-skeleton');
+  const tbody = document.getElementById('admin-tbody');
+  const empty = document.getElementById('admin-empty');
+  const err = document.getElementById('admin-error');
+
+  show(skel);
+  hide(tbody);
+  hide(empty);
+  hide(err);
 
   try {
     await fetchAdmins();
-    hide(document.getElementById('admin-skeleton'));
+    hide(skel);
 
-    const tbody = document.getElementById('admin-tbody');
     if (!adminUsers.length) {
       if (tbody) tbody.innerHTML = '';
-      show(document.getElementById('admin-empty'));
+      show(empty);
       return;
     }
 
     renderAdminTable();
     show(tbody);
   } catch {
-    hide(document.getElementById('admin-skeleton'));
-    show(document.getElementById('admin-error'));
+    hide(skel);
+    show(err);
   }
 }
 
