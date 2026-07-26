@@ -1,9 +1,10 @@
 // src/main/guestbook.ts
 import { supabaseClient } from "./supabase-client";
-import { getNama, getGuestId } from "./slug-router";
+import { getGuestName, getGuestId } from "./slug-router";
 import { config } from "../config";
 import { showRsvpModal } from "./utils";
 import { escapeHtml, renderPagination } from "./utils";
+import { formatRelativeTime } from "@/shared/ui";
 
 const GB_PAGE_SIZE = 5;
 let gbCurrentPage = 0;
@@ -35,17 +36,6 @@ function sensorKataKasar(text: string): boolean {
     if (new RegExp("\\b" + KATA_KASAR[i] + "\\b", "i").test(text)) return true;
   }
   return false;
-}
-
-function formatWaktuRelatif(iso: string): string {
-  const now = new Date();
-  const d = new Date(iso);
-  const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (diff < 60) return "Baru saja";
-  if (diff < 3600) return Math.floor(diff / 60) + " menit lalu";
-  if (diff < 86400) return Math.floor(diff / 3600) + " jam lalu";
-  if (diff < 604800) return Math.floor(diff / 86400) + " hari lalu";
-  return d.toLocaleDateString("id-ID", { dateStyle: "medium" });
 }
 
 function showGuestbookState(state: "loading" | "empty" | "error"): void {
@@ -133,7 +123,7 @@ export async function fetchGuestbook(page?: number): Promise<void> {
           '</div><div class="gb-msg">' +
           escapeHtml(m.message) +
           '</div><div class="gb-time">' +
-          formatWaktuRelatif(m.created_at) +
+          formatRelativeTime(m.created_at) +
           "</div>";
         document.getElementById("gb-list")!.appendChild(div);
       });
@@ -230,6 +220,6 @@ export function initGuestbook(): void {
       gbPesan.value.length + "/500";
   });
 
-  (document.getElementById("gb-nama") as HTMLInputElement).value = getNama();
+  (document.getElementById("gb-nama") as HTMLInputElement).value = getGuestName();
   retryFetchGuestbook(0);
 }

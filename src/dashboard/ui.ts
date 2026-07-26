@@ -1,6 +1,6 @@
 // src/dashboard/ui.ts — shared UI: modals, notifications, keyboard
 
-import { hide, show, prefersReducedMotion } from "@/shared/ui";
+import { hide, show, prefersReducedMotion, formatRelativeTime } from "@/shared/ui";
 import { guestList, guestbookEntries, getAnomalyCount } from "./state";
 
 /** Entry notifikasi sederhana */
@@ -86,7 +86,7 @@ export function renderNotifications(): void {
   list.innerHTML = items
     .map(function (item) {
       const iconClass = item.flagged ? "notif-item is-flagged" : "notif-item";
-      const timeStr = formatNotifTime(item.time);
+      const timeStr = formatRelativeTime(item.time);
       return (
         '<div class="' +
         iconClass +
@@ -117,18 +117,6 @@ export function renderNotifications(): void {
   }
 }
 
-function formatNotifTime(iso: string): string {
-  if (!iso) return "";
-  const now = Date.now();
-  const d = new Date(iso).getTime();
-  if (isNaN(d)) return "";
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return "Baru saja";
-  if (diff < 3600) return Math.floor(diff / 60) + " menit lalu";
-  if (diff < 86400) return Math.floor(diff / 3600) + " jam lalu";
-  if (diff < 604800) return Math.floor(diff / 86400) + " hari lalu";
-  return new Date(iso).toLocaleDateString("id-ID", { dateStyle: "medium" });
-}
 
 // --- Notification ---
 function closeNotifPanel(): void {
