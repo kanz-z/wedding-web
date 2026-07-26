@@ -17,6 +17,10 @@ let isScanning = false;
 let isProcessing = false;
 
 const elementId = "qr-reader";
+const RESCAN_DELAY = 2000;
+const CAMERA_SWITCH_DELAY = 2500;
+const SCAN_FLASH_FADE = 1800;
+const SCAN_FLASH_REMOVE = 400;
 
 // --- Camera management ---
 async function getCameras(): Promise<{ id: string; label: string }[]> {
@@ -261,7 +265,7 @@ async function switchCamera(): Promise<void> {
       );
       setTimeout(
         () => setScannerStatus("Arahkan kamera ke QR code tamu"),
-        2500,
+        CAMERA_SWITCH_DELAY,
       );
     } catch (_err2) {
       isScanning = false;
@@ -302,7 +306,7 @@ async function onScanSuccess(decodedText: string): Promise<void> {
       setTimeout(() => {
         setScannerStatus("Arahkan kamera ke QR code tamu");
         isProcessing = false;
-      }, 2000);
+      }, RESCAN_DELAY);
       return;
     }
 
@@ -329,7 +333,7 @@ async function onScanSuccess(decodedText: string): Promise<void> {
       setTimeout(() => {
         setScannerStatus("Arahkan kamera ke QR code tamu");
         isProcessing = false;
-      }, 2000);
+      }, RESCAN_DELAY);
       return;
     }
 
@@ -370,8 +374,8 @@ function showScanSuccessFlash(guestName: string, delta: number): void {
   setTimeout(() => {
     flash.style.opacity = "0";
     flash.style.transition = "opacity 0.4s ease";
-    setTimeout(() => flash.remove(), 400);
-  }, 1800);
+    setTimeout(() => flash.remove(), SCAN_FLASH_REMOVE);
+  }, SCAN_FLASH_FADE);
 }
 
 // --- Post-scan modal (5.2) ---

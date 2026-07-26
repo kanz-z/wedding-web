@@ -26,6 +26,22 @@ export function formatTime(iso: string | null): string {
 }
 
 /**
+ * Format ISO datetime ke string relatif: "Baru saja", "5 menit lalu", dst.
+ */
+export function formatRelativeTime(iso: string): string {
+  if (!iso) return "";
+  const now = Date.now();
+  const d = new Date(iso).getTime();
+  if (isNaN(d)) return "";
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return "Baru saja";
+  if (diff < 3600) return Math.floor(diff / 60) + " menit lalu";
+  if (diff < 86400) return Math.floor(diff / 3600) + " jam lalu";
+  if (diff < 604800) return Math.floor(diff / 86400) + " hari lalu";
+  return new Date(iso).toLocaleDateString("id-ID", { dateStyle: "medium" });
+}
+
+/**
  * Render badge HTML.
  * @param type - kategori badge (success, danger, warning, info, muted, pink, purple)
  * @param label - teks di dalam badge
@@ -74,9 +90,10 @@ export function showToast(msg: string, isError?: boolean): void {
 
   const elAny = el as unknown as Record<string, unknown>;
   clearTimeout(elAny._timer as number | undefined);
+  const TOAST_DURATION = 3000;
   elAny._timer = setTimeout(() => {
     el.classList.remove("show");
-  }, 3000);
+  }, TOAST_DURATION);
 }
 
 /**
