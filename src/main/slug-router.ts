@@ -118,7 +118,7 @@ export function getFetchError(): string | null {
 // ---------------------------------------------------------------------------
 
 /** Nama tamu */
-export function getNama(): string {
+export function getGuestName(): string {
   return _guestData?.nama ?? "";
 }
 

@@ -1,5 +1,5 @@
 // src/main/rsvp.ts
-import { getNama, getGuestId, getGuestToken, slug } from "./slug-router";
+import { getGuestName, getGuestId, getGuestToken, slug } from "./slug-router";
 import { supabaseClient } from "./supabase-client";
 import { config } from "../config";
 import { showToast, showRsvpModal, hideRsvpModal } from "./utils";
@@ -103,7 +103,7 @@ function applyAlreadySubmittedState(): void {
 }
 
 function getRsvpStorageKey(): string {
-  return "rsvp_submitted_" + (slug || getNama() || "anon").toLowerCase();
+  return "rsvp_submitted_" + (slug || getGuestName() || "anon").toLowerCase();
 }
 
 function saveRsvpSubmitted(nama: string, status: string): void {
