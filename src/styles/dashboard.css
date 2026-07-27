@@ -1652,10 +1652,6 @@ body {
   border-bottom-color: var(--accent);
 }
 
-.import-pane {
-  /* no extra styling needed — content fills naturally */
-}
-
 .import-help {
   font-size: 0.8125rem;
   color: var(--ink-muted);
