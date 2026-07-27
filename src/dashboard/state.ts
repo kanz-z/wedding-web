@@ -786,6 +786,13 @@ export function applyRoleRestrictions(): void {
 }
 
 export async function deleteGuests(ids: string[]): Promise<void> {
+  // Hapus child rows dulu untuk menghindari FK constraint violation
+  const { error: auditErr } = await supabase.from("reservation_audit_log").delete().in("reservation_id", ids);
+  if (auditErr) throw auditErr;
+
+  const { error: checkinErr } = await supabase.from("check_in_transactions").delete().in("reservation_id", ids);
+  if (checkinErr) throw checkinErr;
+
   const { error } = await supabase.from("reservations").delete().in("id", ids);
   if (error) throw error;
   guestList = guestList.filter((g) => !ids.includes(g.id));
