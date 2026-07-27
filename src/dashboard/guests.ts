@@ -316,7 +316,7 @@ function renderPaginationNav(totalPages: number): void {
 }
 
 // --- Filter population ---
-function populateKelompokFilter(): void {
+export function populateKelompokFilter(): void {
   const sel = document.getElementById(
     "filter-kelompok",
   ) as HTMLSelectElement | null;
@@ -858,6 +858,7 @@ export async function initGuestTable(): Promise<void> {
 
   setupRealtime((guest) => {
     renderGuestTable();
+    renderNotifications();
     flashRow(guest.id);
   });
 }
@@ -888,6 +889,32 @@ export async function reloadGuests(): Promise<void> {
   }
 
   if (btn) btn.disabled = false;
+}
+
+// --- Export / Import (GAP-016) ---
+
+function exportGuests(): void {
+  const header = ["Name", "Guest Count", "Category", "Group", "Phone", "Notes"];
+  const rows = guestList.map((g) => [
+    g.name,
+    String(g.guest_count),
+    g.kategori,
+    g.kelompok ?? "",
+    g.nomor_wa ?? "",
+    g.notes ?? "",
+  ]);
+  const bom = "﻿"; // BOM UTF-8 agar Excel mengenali encoding
+  const csv = bom + [header, ...rows]
+    .map((cols) => cols.map((c) => '"' + c.replace(/"/g, '""') + '"').join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "daftar-tamu.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`${guestList.length} tamu diekspor ke CSV`);
 }
 
 // --- Event bindings ---
@@ -993,6 +1020,15 @@ export function initGuestEvents(): void {
     ?.addEventListener("click", () => {
       saveNewGuest();
     });
+
+  // Export / Import (GAP-016)
+  document.getElementById("btn-export-guests")?.addEventListener("click", () => {
+    exportGuests();
+  });
+  document.getElementById("btn-import-guests")?.addEventListener("click", () => {
+    // Delegasi ke ImportModal (di-init oleh dashboard.ts)
+    import("./import-modal").then((m) => m.importModal?.open());
+  });
 
   // Edit guest save (4.15)
   document

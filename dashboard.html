@@ -88,7 +88,7 @@
             aria-expanded="false"
           >
             <i class="bi bi-bell"></i>
-            <span class="notif-dot" id="notif-dot"></span>
+            <span class="notif-dot d-none-important" id="notif-dot"></span>
           </button>
           <button
             class="icon-btn icon-btn-logout"
@@ -422,11 +422,11 @@
             class="page-actions mb-3"
             style="justify-content: flex-end; display: flex"
           >
-            <button class="btn-dash btn-dash-outline" type="button">
+            <button class="btn-dash btn-dash-outline" type="button" id="btn-import-guests">
               <i class="bi bi-upload"></i>
               <span>Import</span>
             </button>
-            <button class="btn-dash btn-dash-outline" type="button">
+            <button class="btn-dash btn-dash-outline" type="button" id="btn-export-guests">
               <i class="bi bi-download"></i>
               <span>Export</span>
             </button>
@@ -1631,6 +1631,81 @@
             style="background: var(--warning); border-color: var(--warning)"
           >
             Konfirmasi Override
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= MODAL IMPORT TAMU (GAP-016) ======================================================= -->
+    <div class="modal-overlay" id="import-modal-overlay">
+      <div
+        class="modal-dash"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-modal-title"
+      >
+        <div class="modal-dash__header">
+          <h2 id="import-modal-title">Import Tamu</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">
+            &times;
+          </button>
+        </div>
+        <div class="modal-dash__body">
+          <!-- Tab bar -->
+          <div class="import-tabs" role="tablist">
+            <button class="import-tab active" role="tab" data-import-tab="upload" type="button">Upload CSV</button>
+            <button class="import-tab" role="tab" data-import-tab="paste" type="button">Paste Text</button>
+          </div>
+          <!-- Tab: Upload -->
+          <div class="import-pane" data-import-pane="upload">
+            <p class="import-help">
+              Unggah file CSV atau TSV. Baris pertama harus berupa judul tabel,
+              dan judul Anda tidak boleh mengandung karakter khusus selain
+              tanda hubung (-) atau garis bawah (_).
+            </p>
+            <div class="import-dropzone" id="import-dropzone">
+              <div class="import-dropzone__idle">
+                <i class="bi bi-cloud-upload"></i>
+                <p>Klik untuk memilih file<br>atau seret file ke sini</p>
+              </div>
+              <div class="import-dropzone__preview d-none-important" id="import-file-preview">
+                <i class="bi bi-file-earmark-text"></i>
+                <span id="import-file-name"></span>
+                <span id="import-file-size" class="mono-time"></span>
+              </div>
+            </div>
+            <input type="file" id="import-file-input" accept=".csv,.tsv,.txt" class="d-none-important">
+          </div>
+          <!-- Tab: Paste -->
+          <div class="import-pane d-none-important" data-import-pane="paste">
+            <p class="import-help">
+              Salin tabel dari program spreadsheet seperti Google Sheets atau
+              Excel dan tempelkan di kolom di bawah ini. Baris pertama harus
+              berupa judul tabel, dan judul Anda tidak boleh mengandung karakter
+              khusus selain tanda hubung (-) atau garis bawah (_).
+            </p>
+            <textarea
+              class="form-control import-textarea"
+              id="import-paste-area"
+              rows="8"
+              placeholder="Tempel di sini…"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button
+            class="btn-dash btn-dash-outline"
+            id="import-cancel-btn"
+            type="button"
+          >
+            Batal
+          </button>
+          <button
+            class="btn-dash btn-dash-accent"
+            id="import-submit-btn"
+            type="button"
+          >
+            Submit
           </button>
         </div>
       </div>
