@@ -72,6 +72,20 @@ CREATE TABLE IF NOT EXISTS event_config (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- notifications (dari 00012)
+CREATE TABLE IF NOT EXISTS notifications (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category      TEXT NOT NULL CHECK (category IN (
+                  'anomaly', 'rsvp_pending', 'new_guestbook',
+                  'new_reservation', 'checkin', 'rsvp_approved', 'rsvp_rejected'
+                )),
+  message       TEXT NOT NULL,
+  related_table TEXT,
+  related_id    UUID,
+  is_read       BOOLEAN NOT NULL DEFAULT false,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- reservation_audit_log (dari 00005)
 CREATE TABLE IF NOT EXISTS reservation_audit_log (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -121,6 +135,11 @@ CREATE INDEX IF NOT EXISTS idx_guestbook_reservation_id   ON guestbook (reservat
 CREATE INDEX IF NOT EXISTS idx_audit_log_reservation_id ON reservation_audit_log (reservation_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at     ON reservation_audit_log (created_at);
 
+-- notifications (dari 00012)
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read    ON notifications (is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_category   ON notifications (category);
+
 -- H5 FIX: rate_limits tumbuh tanpa batas — index untuk cleanup query
 CREATE INDEX IF NOT EXISTS idx_rate_limits_rsvp_created_at      ON rate_limits_rsvp (created_at);
 CREATE INDEX IF NOT EXISTS idx_rate_limits_guestbook_created_at ON rate_limits_guestbook (created_at);
@@ -137,6 +156,7 @@ ALTER TABLE rate_limits_rsvp      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rate_limits_guestbook ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_config          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reservation_audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications          ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================
 -- 5. RLS POLICIES (state akhir dari 00001 + 00004 + 00005 + 00008 + 00010)
@@ -236,6 +256,20 @@ CREATE POLICY "auth_select_audit_log" ON reservation_audit_log
 
 CREATE POLICY "auth_insert_audit_log" ON reservation_audit_log
   FOR INSERT TO authenticated
+  WITH CHECK (true);
+
+-- notifications (dari 00012)
+CREATE POLICY "auth_select_notifications" ON notifications
+  FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM admin_users WHERE admin_users.id = auth.uid()
+  ));
+
+CREATE POLICY "auth_update_notifications" ON notifications
+  FOR UPDATE TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM admin_users WHERE admin_users.id = auth.uid()
+  ))
   WITH CHECK (true);
 
 -- rate_limits: no policy → hanya service_role yang bisa akses
@@ -446,6 +480,55 @@ CREATE TRIGGER trg_audit_reservation_update
   FOR EACH ROW
   EXECUTE FUNCTION fn_audit_reservation_update();
 
+-- Notification triggers (dari 00012)
+CREATE OR REPLACE FUNCTION fn_notify_guestbook_insert()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
+BEGIN
+  INSERT INTO notifications (category, message, related_table, related_id)
+  VALUES ('new_guestbook', '<strong>' || NEW.name || '</strong> mengirim ucapan baru di guestbook.', 'guestbook', NEW.id);
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_notify_guestbook_insert AFTER INSERT ON guestbook FOR EACH ROW EXECUTE FUNCTION fn_notify_guestbook_insert();
+
+CREATE OR REPLACE FUNCTION fn_notify_approval_change()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
+BEGIN
+  IF NEW.approval_status = 'pending' AND (OLD.approval_status IS NULL OR OLD.approval_status <> 'pending') THEN
+    INSERT INTO notifications (category, message, related_table, related_id)
+    VALUES ('rsvp_pending', '<strong>' || NEW.name || '</strong> mengisi RSVP — menunggu persetujuan.', 'guests', NEW.id);
+  END IF;
+  IF NEW.approval_status = 'approved' AND OLD.approval_status IS DISTINCT FROM 'approved' THEN
+    INSERT INTO notifications (category, message, related_table, related_id)
+    VALUES ('rsvp_approved', '<strong>' || NEW.name || '</strong> — RSVP telah disetujui.', 'guests', NEW.id);
+  END IF;
+  IF NEW.approval_status = 'rejected' AND OLD.approval_status IS DISTINCT FROM 'rejected' THEN
+    INSERT INTO notifications (category, message, related_table, related_id)
+    VALUES ('rsvp_rejected', '<strong>' || NEW.name || '</strong> — RSVP ditolak.', 'guests', NEW.id);
+  END IF;
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_notify_approval_change AFTER UPDATE OF approval_status ON reservations FOR EACH ROW EXECUTE FUNCTION fn_notify_approval_change();
+
+CREATE OR REPLACE FUNCTION fn_notify_reservation_insert()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
+BEGIN
+  INSERT INTO notifications (category, message, related_table, related_id)
+  VALUES ('new_reservation', '<strong>' || NEW.name || '</strong> ditambahkan sebagai tamu baru.', 'guests', NEW.id);
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_notify_reservation_insert AFTER INSERT ON reservations FOR EACH ROW EXECUTE FUNCTION fn_notify_reservation_insert();
+
+CREATE OR REPLACE FUNCTION fn_notify_checkin()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
+DECLARE v_name TEXT;
+BEGIN
+  SELECT name INTO v_name FROM reservations WHERE id = NEW.reservation_id;
+  INSERT INTO notifications (category, message, related_table, related_id)
+  VALUES ('checkin', '<strong>' || COALESCE(v_name, 'Tamu') || '</strong> melakukan check-in (' || NEW.delta || ' orang).', 'guests', NEW.reservation_id);
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_notify_checkin AFTER INSERT ON check_in_transactions FOR EACH ROW EXECUTE FUNCTION fn_notify_checkin();
+
 -- ============================================================
 -- 8. GRANTS (dari 00001 + 00003 + 00004 + 00005 + 00007 + 00008 + 00010)
 -- ============================================================
@@ -463,6 +546,9 @@ GRANT SELECT ON public.event_config TO anon;
 
 -- reservation_audit_log grants (00005)
 GRANT SELECT, INSERT ON public.reservation_audit_log TO authenticated;
+
+-- notifications grants (00012)
+GRANT SELECT, UPDATE ON public.notifications TO authenticated;
 
 -- anon grants (00001)
 GRANT SELECT ON public.guestbook TO anon;

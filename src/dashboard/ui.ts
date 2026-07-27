@@ -1,78 +1,101 @@
 // src/dashboard/ui.ts — shared UI: modals, notifications, keyboard
 
-import { hide, show, prefersReducedMotion, formatRelativeTime, escapeHtml } from "@/shared/ui";
-import { guestList, guestbookEntries, getAnomalyCount } from "./state";
+import { hide, prefersReducedMotion, formatRelativeTime } from "@/shared/ui";
+import { guestList, getAnomalyCount } from "./state";
+import { supabase } from "./supabase-client";
 
-/** Entry notifikasi sederhana */
+/** Category → icon mapping (satu sumber kebenaran) */
+const CATEGORY_ICON: Record<string, string> = {
+  anomaly: "bi-flag-fill",
+  rsvp_pending: "bi-envelope-heart-fill",
+  new_guestbook: "bi-chat-heart-fill",
+  new_reservation: "bi-person-plus-fill",
+  checkin: "bi-qr-code",
+  rsvp_approved: "bi-check-circle-fill",
+  rsvp_rejected: "bi-x-circle-fill",
+};
+
+const CATEGORY_IS_FLAGGED: Record<string, boolean> = {
+  anomaly: true,
+  rsvp_pending: false,
+  new_guestbook: false,
+  new_reservation: false,
+  checkin: false,
+  rsvp_approved: false,
+  rsvp_rejected: true,
+};
+
+/** Entry notifikasi dari tabel notifications + anomali client-side */
 export interface NotificationItem {
   id: string;
-  icon: string;
+  category: string;
   message: string;
-  time: string;
-  flagged: boolean;
+  created_at: string;
+  is_read: boolean;
+  related_table: string | null;
+  related_id: string | null;
 }
 
 /**
- * Bangun notifikasi dari data nyata:
- * - Tamu dengan anomali (flagged)
- * - RSVP pending
- * - Guestbook baru
+ * Render notifikasi dari kombinasi:
+ * - Tabel `notifications` (trigger DB)
+ * - Anomali client-side dari guestList (flag adalah computed field)
  */
-export function renderNotifications(): void {
+export async function renderNotifications(): Promise<void> {
   const list = document.getElementById("notif-list");
   const empty = document.getElementById("notif-empty");
   if (!list || !empty) return;
 
   const items: NotificationItem[] = [];
 
-  // Anomali tamu
+  // 1. Notifikasi dari tabel (trigger DB)
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (!error && data) {
+    for (const row of data) {
+      items.push({
+        id: row.id,
+        category: row.category,
+        message: row.message,
+        created_at: row.created_at,
+        is_read: row.is_read,
+        related_table: row.related_table,
+        related_id: row.related_id,
+      });
+    }
+  }
+
+  // 2. Anomali client-side (flag adalah computed field, tidak bisa via trigger DB)
   for (const g of guestList) {
     if (g.flag) {
-      items.push({
-        id: "anom-" + g.id,
-        icon: "bi-flag-fill",
-        message: "<strong>" + escapeHtml(g.name) + "</strong>: " + g.flag,
-        time: g.updated_at ?? g.created_at,
-        flagged: true,
+      const exists = items.some(function (item) {
+        return item.category === "anomaly" && item.related_id === g.id;
       });
+      if (!exists) {
+        items.push({
+          id: "anom-" + g.id,
+          category: "anomaly",
+          message: "<strong>" + g.name +
+            "</strong>: " + g.flag,
+          created_at: g.updated_at ?? g.created_at,
+          is_read: false,
+          related_table: "guests",
+          related_id: g.id,
+        });
+      }
     }
-  }
-
-  // RSVP pending
-  for (const g of guestList) {
-    if (g.approval_status === "pending") {
-      items.push({
-        id: "rsvp-" + g.id,
-        icon: "bi-envelope-heart-fill",
-        message:
-          "<strong>" +
-          escapeHtml(g.name) +
-          "</strong> mengisi RSVP — menunggu persetujuan.",
-        time: g.updated_at ?? g.created_at,
-        flagged: false,
-      });
-    }
-  }
-
-  // Guestbook terbaru (maks 5)
-  const recentGb = guestbookEntries.slice(0, 5);
-  for (const entry of recentGb) {
-    items.push({
-      id: "gb-" + entry.id,
-      icon: "bi-chat-heart-fill",
-      message:
-        "<strong>" +
-        escapeHtml(entry.name) +
-        "</strong> mengirim ucapan baru di guestbook.",
-      time: entry.created_at,
-      flagged: false,
-    });
   }
 
   // Urutkan: flagged dulu, lalu terbaru
-  items.sort((a, b) => {
-    if (a.flagged !== b.flagged) return a.flagged ? -1 : 1;
-    return (b.time || "").localeCompare(a.time || "");
+  items.sort(function (a, b) {
+    const aFlag = CATEGORY_IS_FLAGGED[a.category] ?? false;
+    const bFlag = CATEGORY_IS_FLAGGED[b.category] ?? false;
+    if (aFlag !== bFlag) return aFlag ? -1 : 1;
+    return (b.created_at || "").localeCompare(a.created_at || "");
   });
 
   // Render
@@ -85,14 +108,16 @@ export function renderNotifications(): void {
   empty.style.display = "none";
   list.innerHTML = items
     .map(function (item) {
-      const iconClass = item.flagged ? "notif-item is-flagged" : "notif-item";
-      const timeStr = formatRelativeTime(item.time);
+      const isFlagged = CATEGORY_IS_FLAGGED[item.category] ?? false;
+      const iconClass = isFlagged ? "notif-item is-flagged" : "notif-item";
+      const icon = CATEGORY_ICON[item.category] ?? "bi-bell";
+      const timeStr = formatRelativeTime(item.created_at);
       return (
         '<div class="' +
         iconClass +
-        '">' +
+        '" data-notif-id="' + item.id + '">' +
         '<div class="notif-item__icon"><i class="bi ' +
-        item.icon +
+        icon +
         '"></i></div>' +
         '<div class="notif-item__body"><p>' +
         item.message +
@@ -105,16 +130,52 @@ export function renderNotifications(): void {
     })
     .join("");
 
-  // Update dot
+  // Update dot: anomali + notifikasi unread
+  updateNotifDot();
+}
+
+/** Update dot merah berdasarkan anomali + notifikasi unread */
+async function updateNotifDot(): Promise<void> {
   const dot = document.getElementById("notif-dot");
-  if (dot) {
-    const anom = getAnomalyCount();
-    if (anom > 0) {
-      dot.classList.remove("d-none-important");
-    } else {
-      dot.classList.add("d-none-important");
-    }
+  if (!dot) return;
+
+  // Anomali client-side
+  const anom = getAnomalyCount();
+
+  // Unread dari tabel
+  let unreadCount = 0;
+  const { error: e, count } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("is_read", false);
+  if (!e && count !== null) {
+    unreadCount = count;
   }
+
+  if (anom > 0 || unreadCount > 0) {
+    dot.classList.remove("d-none-important");
+  } else {
+    dot.classList.add("d-none-important");
+  }
+}
+
+/** Mark notifikasi dari tabel sebagai read */
+async function markNotificationsRead(): Promise<void> {
+  // Ambil ID notifikasi unread yang dirender di panel
+  const items = document.querySelectorAll<HTMLElement>("#notif-list .notif-item[data-notif-id]");
+  const ids: string[] = [];
+  items.forEach(function (el) {
+    const id = el.getAttribute("data-notif-id");
+    if (id && !id.startsWith("anom-")) {
+      ids.push(id);
+    }
+  });
+  if (ids.length === 0) return;
+
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .in("id", ids);
 }
 
 
@@ -143,6 +204,7 @@ export function initNotifications(): void {
     );
     if (isOpen) {
       document.getElementById("notif-dot")?.classList.add("d-none-important");
+      markNotificationsRead();
     }
   });
 
