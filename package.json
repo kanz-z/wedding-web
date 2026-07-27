@@ -9,7 +9,8 @@
     "test:debug": "npx playwright test --debug",
     "test:ci": "CI=true npx playwright test",
     "test:report": "npx playwright show-report",
-    "edge-func": "supabase functions deploy"
+    "edge-func": "supabase functions deploy",
+    "codemem": "codebase-memory-mcp --ui=true --port=4978"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -18,7 +19,7 @@
     "bootstrap-icons": "^1.13.1",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
-"qrcode": "^1.5.4"
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
