@@ -13,10 +13,11 @@ import { initCheckinEvents, renderCheckinLog } from "./dashboard/checkin";
 import { initReservations } from "./dashboard/reservations";
 import { initMessages } from "./dashboard/messages";
 import { initAdmin } from "./dashboard/admin";
-import { fetchGuests } from "./dashboard/state";
+import { fetchGuests, applyRoleRestrictions } from "./dashboard/state";
 
 // Initialize all modules
 function initDashboard(): void {
+  applyRoleRestrictions();
   initAuth();
   initRouting();
   initNotifications();
@@ -52,4 +53,6 @@ function initDashboard(): void {
 }
 
 // Check session on load — redirect to login if no session
-checkSession().then(() => initDashboard());
+checkSession().then(() => initDashboard()).catch((err: unknown) => {
+  console.error("Dashboard init failed:", err);
+});

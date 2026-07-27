@@ -726,6 +726,12 @@ export let adminError: string | null = null;
 export let currentAdminRole: string | null = null;
 export let currentAdminId: string | null = null;
 
+// ponytail: setter supaya auth.ts bisa assign nilai (ES module imports are read-only)
+export function setCurrentAdmin(role: string, id: string): void {
+  currentAdminRole = role;
+  currentAdminId = id;
+}
+
 export async function fetchAdmins(): Promise<AdminUser[]> {
   adminLoading = true;
   adminError = null;
@@ -752,6 +758,21 @@ export async function fetchCurrentAdmin(): Promise<void> {
       .eq("email", data.user.email)
       .single();
     currentAdminRole = adminData?.role ?? null;
+  }
+}
+
+// ponytail: hide UI elements berdasarkan role (defense-in-depth, RLS sudah memblokir di backend)
+export function applyRoleRestrictions(): void {
+  const role = currentAdminRole;
+
+  // Hanya superadmin yang lihat tab Admin
+  if (role !== 'superadmin') {
+    document.querySelector('[data-goto="admin"]')?.classList.add('d-none');
+  }
+
+  // Operator tidak bisa hapus tamu
+  if (role !== 'superadmin' && role !== 'admin') {
+    document.getElementById('bulk-del')?.classList.add('d-none');
   }
 }
 

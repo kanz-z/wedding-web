@@ -2,21 +2,39 @@
 
 import { showToast, show, hide } from '@/shared/ui';
 import { supabase } from './supabase-client';
+import { setCurrentAdmin } from './state';
 
 const VALID_HASHES = new Set(['', 'hub', 'guests', 'checkin', 'reservations', 'private', 'public', 'admin']);
 
 // --- Session check ---
 export async function checkSession(): Promise<boolean> {
   const { data } = await supabase.auth.getSession();
-  if (data.session) {
-    hide(document.getElementById("view-login"));
-    show(document.getElementById("view-app"));
-    handleHashChange();
-    return true;
+  if (!data.session) {
+    show(document.getElementById("view-login"));
+    hide(document.getElementById("view-app"));
+    return false;
   }
-  show(document.getElementById("view-login"));
-  hide(document.getElementById("view-app"));
-  return false;
+
+  // Verify user is in admin_users table
+  const { data: adminRow } = await supabase
+    .from("admin_users")
+    .select("id, role")
+    .eq("id", data.session.user.id)
+    .maybeSingle();
+
+  if (!adminRow) {
+    await supabase.auth.signOut();
+    show(document.getElementById("view-login"));
+    hide(document.getElementById("view-app"));
+    return false;
+  }
+
+  setCurrentAdmin(adminRow.role, adminRow.id);
+
+  hide(document.getElementById("view-login"));
+  show(document.getElementById("view-app"));
+  handleHashChange();
+  return true;
 }
 
 // --- Hash-based routing (3.2, 3.5) ---
@@ -69,15 +87,13 @@ export function initAuth(): void {
       window.location.hash = '';
     }
     if (event === 'SIGNED_IN') {
-      hide(document.getElementById("view-login"));
-      show(document.getElementById("view-app"));
-      handleHashChange();
+      checkSession();
     }
   });
 
   // Listen for hash changes
   window.addEventListener("hashchange", () => {
-    checkSession().then((ok) => { if (ok) handleHashChange(); });
+    checkSession().catch(() => {});
   });
 
   // Login form (3.1)
@@ -101,75 +117,84 @@ export function initAuth(): void {
       }
     }
 
-    const raw = sessionStorage.getItem(RL_KEY);
-    let rl: { count: number; first: number } | null = null;
-    try { if (raw) rl = JSON.parse(raw); } catch { /* ignore */ }
-    if (rl && now - rl.first < RL_WINDOW && rl.count >= RL_MAX) {
-      const wait = Math.ceil((RL_WINDOW - (now - rl.first)) / 1000);
-      const errorBox = document.getElementById("login-error");
-      const errorText = document.getElementById("login-error-text");
-      if (errorText) errorText.textContent = "Terlalu banyak percobaan. Coba lagi dalam " + wait + " detik.";
-      show(errorBox);
-      return;
-    }
-
-    const email = (document.getElementById("login-email") as HTMLInputElement | null)?.value.trim() ?? "";
-    const pass = (document.getElementById("login-password") as HTMLInputElement | null)?.value.trim() ?? "";
-    const errorBox = document.getElementById("login-error");
-    const errorText = document.getElementById("login-error-text");
-    hide(errorBox);
-    document.getElementById("field-email")?.classList.remove("has-error");
-    document.getElementById("field-password")?.classList.remove("has-error");
-
-    if (!email || !pass) {
-      if (errorText) errorText.textContent = "Email dan kata sandi wajib diisi.";
-      show(errorBox);
-      if (!email) document.getElementById("field-email")?.classList.add("has-error");
-      if (!pass) document.getElementById("field-password")?.classList.add("has-error");
-      return;
-    }
-
     const submitBtn = document.getElementById("login-submit") as HTMLButtonElement | null;
     const label = document.getElementById("login-submit-label");
     const spinner = document.getElementById("login-spinner");
-    if (submitBtn) submitBtn.disabled = true;
-    if (label) label.textContent = "Memproses…";
-    spinner?.classList.remove("d-none-important");
+    const errorBox = document.getElementById("login-error");
+    const errorText = document.getElementById("login-error-text");
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-
-    if (submitBtn) submitBtn.disabled = false;
-    if (label) label.textContent = "Masuk";
-    spinner?.classList.add("d-none-important");
-
-    if (error) {
-      if (errorText) errorText.textContent = "Email atau password tidak valid.";
-      show(errorBox);
-      document.getElementById("field-email")?.classList.add("has-error");
-      document.getElementById("field-password")?.classList.add("has-error");
-      trackLoginFailure();
-      return;
+    function resetUI(): void {
+      if (submitBtn) submitBtn.disabled = false;
+      if (label) label.textContent = "Masuk";
+      spinner?.classList.add("d-none-important");
     }
 
-    // Verify user is in admin_users table
-    const { data: adminRow } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('id', data.user.id)
-      .maybeSingle();
+    try {
+      const raw = sessionStorage.getItem(RL_KEY);
+      let rl: { count: number; first: number } | null = null;
+      try { if (raw) rl = JSON.parse(raw); } catch { /* ignore */ }
+      if (rl && now - rl.first < RL_WINDOW && rl.count >= RL_MAX) {
+        const wait = Math.ceil((RL_WINDOW - (now - rl.first)) / 1000);
+        if (errorText) errorText.textContent = "Terlalu banyak percobaan. Coba lagi dalam " + wait + " detik.";
+        show(errorBox);
+        return;
+      }
 
-    if (!adminRow) {
-      if (errorText) errorText.textContent = "Email atau password tidak valid.";
+      const email = (document.getElementById("login-email") as HTMLInputElement | null)?.value.trim() ?? "";
+      const pass = (document.getElementById("login-password") as HTMLInputElement | null)?.value.trim() ?? "";
+      hide(errorBox);
+      document.getElementById("field-email")?.classList.remove("has-error");
+      document.getElementById("field-password")?.classList.remove("has-error");
+
+      if (!email || !pass) {
+        if (errorText) errorText.textContent = "Email dan kata sandi wajib diisi.";
+        show(errorBox);
+        if (!email) document.getElementById("field-email")?.classList.add("has-error");
+        if (!pass) document.getElementById("field-password")?.classList.add("has-error");
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (label) label.textContent = "Memproses…";
+      spinner?.classList.remove("d-none-important");
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+
+      if (error) {
+        if (errorText) errorText.textContent = "Email atau password tidak valid.";
+        show(errorBox);
+        document.getElementById("field-email")?.classList.add("has-error");
+        document.getElementById("field-password")?.classList.add("has-error");
+        trackLoginFailure();
+        return;
+      }
+
+      // Verify user is in admin_users table
+      const { data: adminRow } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (!adminRow) {
+        if (errorText) errorText.textContent = "Email atau password tidak valid.";
+        show(errorBox);
+        await supabase.auth.signOut();
+        trackLoginFailure();
+        return;
+      }
+
+      // Reset rate limit on success
+      sessionStorage.removeItem(RL_KEY);
+
+      navigateTo("hub");
+    } catch (err) {
+      if (errorText) errorText.textContent = "Terjadi kesalahan jaringan. Silakan coba lagi.";
       show(errorBox);
-      await supabase.auth.signOut();
-      trackLoginFailure();
-      return;
+      console.error("Login error:", err);
+    } finally {
+      resetUI();
     }
-
-    // Reset rate limit on success
-    sessionStorage.removeItem(RL_KEY);
-
-    navigateTo("hub");
   });
 
   // Forgot password
