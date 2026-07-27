@@ -11,6 +11,19 @@ export function escapeHtml(str: string): string {
 }
 
 /**
+ * Escape string untuk konteks atribut HTML — escapeHtml() saja tidak cukup
+ * karena tidak meng-handle karakter yang bisa memecah konteks atribut.
+ * Gunakan setiap kali menyisipkan string ke title, aria-label, data-*, value, href, dll.
+ */
+export function escapeAttr(str: string): string {
+  // ponytail: cukup handle karakter berbahaya di atribut, sisanya escapeHtml
+  return escapeHtml(str)
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/=/g, "&#61;");
+}
+
+/**
  * Format ISO datetime ke string ringkas: "22 Agu, 10:14"
  */
 export function formatTime(iso: string | null): string {

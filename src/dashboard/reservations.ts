@@ -1,7 +1,7 @@
 // src/dashboard/reservations.ts — Fase 6C: Reservasi grid + approval + copy link
 
 import { show, hide, debounce } from '@/shared/ui';
-import { showToast, escapeHtml } from '@/shared/ui';
+import { showToast, escapeHtml, escapeAttr } from '@/shared/ui';
 import {
   guestList,
   fetchGuests,
@@ -87,7 +87,7 @@ function renderReservations(): void {
   grid.innerHTML = guestList
     .map(
       (r) => `
-    <div class="reservation-card" data-res-name="${escapeHtml(r.name.toLowerCase())}">
+    <div class="reservation-card" data-res-name="${escapeAttr(r.name.toLowerCase())}">
       <div class="reservation-card__qr-mini"><i class="bi bi-qr-code"></i></div>
       <div style="flex:1;min-width:0">
         <div class="reservation-card__name">${escapeHtml(r.name)}</div>
@@ -108,8 +108,8 @@ function renderReservations(): void {
           </div>`
         }
         <div class="reservation-card__actions">
-          <button type="button" data-copy-link="${BASE_URL}/invitation/${escapeHtml(r.slug)}"><i class="bi bi-clipboard"></i> Salin</button>
-          <a href="${BASE_URL}/invitation/${escapeHtml(r.slug)}/card" target="_blank" rel="noopener" class="text-decoration-none"><button type="button"><i class="bi bi-eye"></i> Lihat Kartu</button></a>
+          <button type="button" data-copy-link="${BASE_URL}/invitation/${escapeAttr(r.slug)}"><i class="bi bi-clipboard"></i> Salin</button>
+          <a href="${BASE_URL}/invitation/${escapeAttr(r.slug)}/card" target="_blank" rel="noopener" class="text-decoration-none"><button type="button"><i class="bi bi-eye"></i> Lihat Kartu</button></a>
         </div>
       </div>
     </div>
