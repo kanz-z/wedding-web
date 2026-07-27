@@ -228,12 +228,12 @@ function handleDownload(): void {
     "btn-download-card",
   ) as HTMLButtonElement | null;
   const btnText = btn?.querySelector(".btn-download-card__text");
-  const el = document.querySelector(".invitation-card") as HTMLElement | null;
+  const card = document.querySelector(".invitation-card") as HTMLElement | null;
   const guest = getGuestData() as GuestData | null;
-  const card = document.querySelector(".invitation-card") as HTMLElement;
+  if (!card) return;
   card.classList.add("exporting");
 
-  if (!el || !btn) return;
+  if (!btn) return;
 
   // Set loading state
   btn.disabled = true;
@@ -244,7 +244,7 @@ function handleDownload(): void {
 
   const scale = window.devicePixelRatio > 1 ? 2 : 1;
 
-  html2canvas(el, {
+  html2canvas(card, {
     scale,
     useCORS: true,
     backgroundColor: "#ffffff",

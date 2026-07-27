@@ -549,6 +549,7 @@ async function doPostscanCheckinPartial(): Promise<void> {
     }
     if (overrideOverlay) overrideOverlay.dataset.reservationId = resId;
 
+    // ponytail: isProcessing stays true until override completes or user cancels
     showModal("override-modal-overlay");
     return;
   }
@@ -935,6 +936,7 @@ export function initCheckinEvents(): void {
         (e.target as HTMLElement).id === "override-modal-overlay"
       ) {
         hideModal("override-modal-overlay");
+        isProcessing = false;
       }
     });
   document

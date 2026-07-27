@@ -3,6 +3,7 @@
 
 import {
   escapeHtml,
+  escapeAttr,
   formatTime,
   badge,
   showToast,
@@ -147,23 +148,23 @@ function renderGuestRow(g: GuestWithMeta): string {
         : '<span class="edited-dash">–</span>';
 
   const flagHtml = g.flag
-    ? `<i class="bi bi-exclamation-triangle-fill anomaly-flag" title="${escapeHtml(g.flag)}"></i>`
+    ? `<i class="bi bi-exclamation-triangle-fill anomaly-flag" title="${escapeAttr(g.flag)}"></i>`
     : "";
 
   const cDisabled =
     status === "sudah" || g.rsvp !== "hadir" ? "is-disabled" : "";
 
   return `<tr class="${rowClass}" data-id="${g.id}">
-    <td><input type="checkbox" class="row-check" ${selectedIds.has(g.id) ? "checked" : ""} data-select="${g.id}" aria-label="Pilih ${escapeHtml(g.name)}"></td>
+    <td><input type="checkbox" class="row-check" ${selectedIds.has(g.id) ? "checked" : ""} data-select="${g.id}" aria-label="Pilih ${escapeAttr(g.name)}"></td>
     <td><span class="guest-name">${escapeHtml(g.name)} ${flagHtml}</span></td>
     <td><button type="button" class="kelompok-chip" data-kelompok>${escapeHtml(g.kelompok || "Tanpa kelompok")}</button></td>
     <td>${kategoriBadge(g.kategori)}</td><td class="text-end">${g.guest_count} orang</td>
     <td class="mono-time">${escapeHtml(g.nomor_wa ?? "–")}</td><td>${rsvpBadge(g.rsvp)}</td><td>${checkinBadgeText(status)}</td>
     <td class="mono-time">${formatTime(g.checkedInAt)}</td><td>${editedHtml}</td>
     <td><div class="row-actions">
-      <button type="button" data-action="detail" data-id="${g.id}" title="Detail" aria-label="Detail ${escapeHtml(g.name)}"><i class="bi bi-eye"></i></button>
-      <button type="button" data-action="edit" data-id="${g.id}" title="Edit" aria-label="Edit ${escapeHtml(g.name)}"><i class="bi bi-pencil"></i></button>
-      <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeHtml(g.name)}" class="${cDisabled}"><i class="bi bi-qr-code-scan"></i></button>
+      <button type="button" data-action="detail" data-id="${g.id}" title="Detail" aria-label="Detail ${escapeAttr(g.name)}"><i class="bi bi-eye"></i></button>
+      <button type="button" data-action="edit" data-id="${g.id}" title="Edit" aria-label="Edit ${escapeAttr(g.name)}"><i class="bi bi-pencil"></i></button>
+      <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeAttr(g.name)}" class="${cDisabled}"><i class="bi bi-qr-code-scan"></i></button>
     </div></td></tr>`;
 }
 
@@ -325,7 +326,7 @@ function populateKelompokFilter(): void {
     '<option value="">Semua Kelompok</option>' +
     [...new Set(guestList.map((g) => g.kelompok).filter(Boolean))]
       .map(
-        (g) => `<option value="${escapeHtml(g!)}">${escapeHtml(g!)}</option>`,
+        (g) => `<option value="${escapeAttr(g!)}">${escapeHtml(g!)}</option>`,
       )
       .join("");
   sel.value = cur;
@@ -398,21 +399,22 @@ function openEditModal(id: string): void {
   if (!g) return;
   activeGuestId = id;
 
-  (document.getElementById("edit-guest-name") as HTMLInputElement).value =
-    g.name;
-  (document.getElementById("edit-guest-count") as HTMLInputElement).value =
-    String(g.guest_count);
-  (document.getElementById("edit-guest-kelompok") as HTMLSelectElement).value =
-    g.kelompok || "";
-  (document.getElementById("edit-guest-kategori") as HTMLSelectElement).value =
-    g.kategori;
-  (document.getElementById("edit-guest-wa") as HTMLInputElement).value =
-    g.nomor_wa || "";
-  (document.getElementById("edit-guest-notes") as HTMLTextAreaElement).value =
-    g.notes || "";
-  (
-    document.getElementById("edit-modal-overlay") as HTMLElement
-  ).dataset.version = String(g.version);
+  const nm  = document.getElementById("edit-guest-name")     as HTMLInputElement | null;
+  const cnt = document.getElementById("edit-guest-count")    as HTMLInputElement | null;
+  const kl  = document.getElementById("edit-guest-kelompok")  as HTMLSelectElement | null;
+  const kt  = document.getElementById("edit-guest-kategori")  as HTMLSelectElement | null;
+  const wa  = document.getElementById("edit-guest-wa")       as HTMLInputElement | null;
+  const nts = document.getElementById("edit-guest-notes")    as HTMLTextAreaElement | null;
+  const ov  = document.getElementById("edit-modal-overlay")  as HTMLElement | null;
+  if (!nm || !cnt || !kl || !kt || !wa || !nts || !ov) return;
+
+  nm.value  = g.name;
+  cnt.value = String(g.guest_count);
+  kl.value  = g.kelompok || "";
+  kt.value  = g.kategori;
+  wa.value  = g.nomor_wa || "";
+  nts.value = g.notes || "";
+  ov.dataset.version = String(g.version);
 
   showModal("edit-modal-overlay");
 }
@@ -422,27 +424,20 @@ async function saveEdit(): Promise<void> {
   const overlay = document.getElementById("edit-modal-overlay");
   const v = parseInt(overlay?.dataset.version ?? "0", 10);
 
-  const name = (
-    document.getElementById("edit-guest-name") as HTMLInputElement
-  ).value.trim();
-  const gc = parseInt(
-    (document.getElementById("edit-guest-count") as HTMLInputElement).value,
-    10,
-  );
-  const kelompok =
-    (document.getElementById("edit-guest-kelompok") as HTMLSelectElement)
-      .value || null;
-  const kategori = (
-    document.getElementById("edit-guest-kategori") as HTMLSelectElement
-  ).value as "keluarga" | "bukan";
-  const wa =
-    (
-      document.getElementById("edit-guest-wa") as HTMLInputElement
-    ).value.trim() || null;
-  const notes =
-    (
-      document.getElementById("edit-guest-notes") as HTMLTextAreaElement
-    ).value.trim() || null;
+  const nm  = document.getElementById("edit-guest-name")     as HTMLInputElement | null;
+  const cnt = document.getElementById("edit-guest-count")    as HTMLInputElement | null;
+  const kl  = document.getElementById("edit-guest-kelompok")  as HTMLSelectElement | null;
+  const kt  = document.getElementById("edit-guest-kategori")  as HTMLSelectElement | null;
+  const wa  = document.getElementById("edit-guest-wa")       as HTMLInputElement | null;
+  const nts = document.getElementById("edit-guest-notes")    as HTMLTextAreaElement | null;
+  if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
+
+  const name = nm.value.trim();
+  const gc = parseInt(cnt.value, 10);
+  const kelompok = kl.value || null;
+  const kategori = kt.value as "keluarga" | "bukan";
+  const waVal = wa.value.trim() || null;
+  const notes = nts.value.trim() || null;
 
   if (!name || !gc || gc < 1) {
     showToast("Nama dan jumlah tamu wajib diisi", true);
@@ -465,7 +460,7 @@ async function saveEdit(): Promise<void> {
       guest_count: gc,
       kelompok,
       kategori,
-      nomor_wa: wa,
+      nomor_wa: waVal,
       notes,
     });
     hideModal("edit-modal-overlay");
@@ -718,40 +713,37 @@ async function doManualOverrideConfirm(): Promise<void> {
 
 // --- Add guest (4.13) ---
 function openAddGuestModal(): void {
-  (document.getElementById("add-guest-name") as HTMLInputElement).value = "";
-  (document.getElementById("add-guest-count") as HTMLInputElement).value = "1";
-  (document.getElementById("add-guest-kelompok") as HTMLSelectElement).value =
-    "";
-  (document.getElementById("add-guest-kategori") as HTMLSelectElement).value =
-    "bukan";
-  (document.getElementById("add-guest-wa") as HTMLInputElement).value = "";
-  (document.getElementById("add-guest-notes") as HTMLTextAreaElement).value =
-    "";
+  const nm  = document.getElementById("add-guest-name")     as HTMLInputElement | null;
+  const cnt = document.getElementById("add-guest-count")    as HTMLInputElement | null;
+  const kl  = document.getElementById("add-guest-kelompok")  as HTMLSelectElement | null;
+  const kt  = document.getElementById("add-guest-kategori")  as HTMLSelectElement | null;
+  const wa  = document.getElementById("add-guest-wa")       as HTMLInputElement | null;
+  const nts = document.getElementById("add-guest-notes")    as HTMLTextAreaElement | null;
+  if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
+  nm.value  = "";
+  cnt.value = "1";
+  kl.value  = "";
+  kt.value  = "bukan";
+  wa.value  = "";
+  nts.value = "";
   showModal("add-modal-overlay");
 }
 
 async function saveNewGuest(): Promise<void> {
-  const name = (
-    document.getElementById("add-guest-name") as HTMLInputElement
-  ).value.trim();
-  const gc = parseInt(
-    (document.getElementById("add-guest-count") as HTMLInputElement).value,
-    10,
-  );
-  const kelompok =
-    (document.getElementById("add-guest-kelompok") as HTMLSelectElement)
-      .value || null;
-  const kategori = (
-    document.getElementById("add-guest-kategori") as HTMLSelectElement
-  ).value as "keluarga" | "bukan";
-  const wa =
-    (
-      document.getElementById("add-guest-wa") as HTMLInputElement
-    ).value.trim() || null;
-  const notes =
-    (
-      document.getElementById("add-guest-notes") as HTMLTextAreaElement
-    ).value.trim() || null;
+  const nm  = document.getElementById("add-guest-name")     as HTMLInputElement | null;
+  const cnt = document.getElementById("add-guest-count")    as HTMLInputElement | null;
+  const kl  = document.getElementById("add-guest-kelompok")  as HTMLSelectElement | null;
+  const kt  = document.getElementById("add-guest-kategori")  as HTMLSelectElement | null;
+  const wa  = document.getElementById("add-guest-wa")       as HTMLInputElement | null;
+  const nts = document.getElementById("add-guest-notes")    as HTMLTextAreaElement | null;
+  if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
+
+  const name = nm.value.trim();
+  const gc = parseInt(cnt.value, 10);
+  const kelompok = kl.value || null;
+  const kategori = kt.value as "keluarga" | "bukan";
+  const waVal = wa.value.trim() || null;
+  const notes = nts.value.trim() || null;
 
   if (!name || !gc || gc < 1) {
     showToast("Nama dan jumlah tamu wajib diisi", true);
@@ -764,7 +756,7 @@ async function saveNewGuest(): Promise<void> {
       guest_count: gc,
       kelompok,
       kategori,
-      nomor_wa: wa,
+      nomor_wa: waVal,
       notes,
     });
     hideModal("add-modal-overlay");
@@ -797,7 +789,7 @@ function openGroupPicker(chip: HTMLElement): void {
     list.innerHTML = groups
       .map(
         (n) =>
-          `<button type="button" class="group-picker__item" data-group="${escapeHtml(n!)}"><span class="group-picker__dot"></span>${escapeHtml(n!)}</button>`,
+          `<button type="button" class="group-picker__item" data-group="${escapeAttr(n!)}"><span class="group-picker__dot"></span>${escapeHtml(n!)}</button>`,
       )
       .join("");
   }

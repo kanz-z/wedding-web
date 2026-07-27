@@ -39,17 +39,18 @@ function sensorKataKasar(text: string): boolean {
 }
 
 function showGuestbookState(state: "loading" | "empty" | "error"): void {
-  document.getElementById("gb-loading")!.classList.add("d-none");
-  document.getElementById("gb-empty")!.classList.add("d-none");
-  document.getElementById("gb-error")!.classList.add("d-none");
-  document.getElementById("gb-list")!.innerHTML = "";
-  document.getElementById("gb-pagination")!.classList.add("d-none");
+  document.getElementById("gb-loading")?.classList.add("d-none");
+  document.getElementById("gb-empty")?.classList.add("d-none");
+  document.getElementById("gb-error")?.classList.add("d-none");
+  const list = document.getElementById("gb-list");
+  if (list) list.innerHTML = "";
+  document.getElementById("gb-pagination")?.classList.add("d-none");
   if (state === "loading")
-    document.getElementById("gb-loading")!.classList.remove("d-none");
+    document.getElementById("gb-loading")?.classList.remove("d-none");
   else if (state === "empty")
-    document.getElementById("gb-empty")!.classList.remove("d-none");
+    document.getElementById("gb-empty")?.classList.remove("d-none");
   else if (state === "error")
-    document.getElementById("gb-error")!.classList.remove("d-none");
+    document.getElementById("gb-error")?.classList.remove("d-none");
 }
 
 async function submitGuestbook(
@@ -110,7 +111,8 @@ export async function fetchGuestbook(page?: number): Promise<void> {
     };
     if (res.error) throw res.error;
     const data = res.data || [];
-    document.getElementById("gb-list")!.innerHTML = "";
+    const listEl = document.getElementById("gb-list");
+    if (listEl) listEl.innerHTML = "";
     if (data.length === 0) {
       showGuestbookState("empty");
     } else {
@@ -125,7 +127,7 @@ export async function fetchGuestbook(page?: number): Promise<void> {
           '</div><div class="gb-time">' +
           formatRelativeTime(m.created_at) +
           "</div>";
-        document.getElementById("gb-list")!.appendChild(div);
+        listEl?.appendChild(div);
       });
     }
     gbCurrentPage = p;
@@ -134,7 +136,7 @@ export async function fetchGuestbook(page?: number): Promise<void> {
     console.error("Gagal memuat ucapan:", err);
     showGuestbookState("error");
   } finally {
-    document.getElementById("gb-loading")!.classList.add("d-none");
+    document.getElementById("gb-loading")?.classList.add("d-none");
   }
 }
 
@@ -167,11 +169,13 @@ function retryFetchGuestbook(attempt: number = 0): void {
 }
 
 export function initGuestbook(): void {
-  const form = document.getElementById("guestbook-form") as HTMLFormElement;
+  const form = document.getElementById("guestbook-form") as HTMLFormElement | null;
+  if (!form) return;
   form.addEventListener("submit", async function (this: HTMLElement, e: Event) {
     e.preventDefault();
-    const namaEl = document.getElementById("gb-nama") as HTMLInputElement;
-    const pesanEl = document.getElementById("gb-pesan") as HTMLTextAreaElement;
+    const namaEl = document.getElementById("gb-nama") as HTMLInputElement | null;
+    const pesanEl = document.getElementById("gb-pesan") as HTMLTextAreaElement | null;
+    if (!namaEl || !pesanEl) return;
     const errEl = document.createElement("div");
     errEl.className = "gb-error-msg";
     const existing = this.querySelector(".gb-error-msg");
@@ -192,17 +196,18 @@ export function initGuestbook(): void {
       return;
     }
     let gbSuccess = false;
-    const span = this.querySelector("#statusMessage")!;
-    span.textContent = "Mengirim...";
+    const span = this.querySelector("#statusMessage");
+    if (span) span.textContent = "Mengirim...";
     try {
       await submitGuestbook(nm, psn, getGuestId());
       showRsvpModal({ message: "Ucapan berhasil dikirim! Terima kasih!" });
       namaEl.value = "";
       pesanEl.value = "";
-      document.getElementById("gb-counter")!.textContent = "0/500";
+      const counter = document.getElementById("gb-counter");
+      if (counter) counter.textContent = "0/500";
       fetchGuestbook(0);
       gbSuccess = true;
-      span.textContent = "Terkirim";
+      if (span) span.textContent = "Terkirim";
     } catch (err) {
       console.error("Gagal kirim ucapan:", err);
       showRsvpModal({
@@ -210,16 +215,19 @@ export function initGuestbook(): void {
         isError: true,
       });
     } finally {
-      if (!gbSuccess) span.textContent = "Kirim Ucapan";
+      if (span && !gbSuccess) span.textContent = "Kirim Ucapan";
     }
   });
 
-  const gbPesan = document.getElementById("gb-pesan") as HTMLTextAreaElement;
-  gbPesan.addEventListener("input", function () {
-    document.getElementById("gb-counter")!.textContent =
-      gbPesan.value.length + "/500";
-  });
+  const gbPesan = document.getElementById("gb-pesan") as HTMLTextAreaElement | null;
+  if (gbPesan) {
+    gbPesan.addEventListener("input", function () {
+      const counter = document.getElementById("gb-counter");
+      if (counter) counter.textContent = gbPesan.value.length + "/500";
+    });
+  }
 
-  (document.getElementById("gb-nama") as HTMLInputElement).value = getGuestName();
+  const gbNama = document.getElementById("gb-nama") as HTMLInputElement | null;
+  if (gbNama) gbNama.value = getGuestName();
   retryFetchGuestbook(0);
 }
