@@ -28,6 +28,7 @@ import {
   checkinStatus,
   getGuestSummary,
   getAnomalyCount,
+  getAnomalySnapshot,
   fetchGuests,
   insertGuest,
   updateGuest,
@@ -877,12 +878,19 @@ export async function reloadGuests(): Promise<void> {
   hide(document.getElementById("guest-error"));
   show(skel);
 
+  // Snapshot anomali sebelum reload
+  const prevSnapshot = getAnomalySnapshot();
+
   try {
     await fetchGuests();
     hide(skel);
     populateKelompokFilter();
     renderGuestTable();
-    renderNotifications();
+
+    // Notifikasi hanya jika ada perubahan anomali
+    if (getAnomalySnapshot() !== prevSnapshot) {
+      renderNotifications();
+    }
   } catch {
     hide(skel);
     show(document.getElementById("guest-error"));
@@ -1125,41 +1133,7 @@ export function initGuestEvents(): void {
       if (btn) btn.disabled = false;
     }
   });
-  document
-    .getElementById("bulk-resend")
-    ?.addEventListener("click", async () => {
-      if (selectedIds.size === 0) return;
-      const btn = document.getElementById(
-        "bulk-resend",
-      ) as HTMLButtonElement | null;
-      if (btn) btn.disabled = true;
-      try {
-        const ids = [...selectedIds];
-        const { error } = await supabase
-          .from("reservations")
-          .update({
-            approval_status: "approved",
-            approved_at: new Date().toISOString(),
-            edited_status: "admin",
-          })
-          .in("id", ids);
-        if (error) throw error;
-        showToast(ids.length + " tamu di-approve");
-        selectedIds.clear();
-        updateBulkBar();
-        await fetchGuests();
-        populateKelompokFilter();
-        renderGuestTable();
-      } catch (err: unknown) {
-        showToast(
-          "Gagal: " + (err instanceof Error ? err.message : String(err)),
-          true,
-        );
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    });
-  document.getElementById("bulk-clear")?.addEventListener("click", () => {
+document.getElementById("bulk-clear")?.addEventListener("click", () => {
     selectedIds.clear();
     updateBulkBar();
     renderGuestTable();

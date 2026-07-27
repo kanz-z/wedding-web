@@ -109,6 +109,15 @@ export function getAnomalyCount(): number {
   return guestList.filter((g) => g.flag !== null).length;
 }
 
+/** Snapshot ringan untuk deteksi perubahan — digunakan saat reload */
+export function getAnomalySnapshot(): string {
+  return guestList
+    .filter((g) => g.flag !== null)
+    .map((g) => g.id + ":" + g.flag)
+    .sort()
+    .join("|");
+}
+
 // --- Anomaly detection (4.17) ---
 
 function detectAnomaly(

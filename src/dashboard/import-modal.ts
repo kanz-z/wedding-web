@@ -187,6 +187,43 @@ export class ImportModal {
     return cols;
   }
 
+  /**
+   * Header aliases (case-insensitive). Kolom yang tidak dikenali akan
+   * di-skip sehingga urutan kolom tidak lagi kaku.
+   */
+  private static readonly HEADER_MAP: Record<string, keyof ParseResult> = {
+    // Nama
+    name: "name",
+    nama: "name",
+    // Guest count
+    guest_count: "guest_count",
+    "guest count": "guest_count",
+    jumlah: "guest_count",
+    jumlah_tamu: "guest_count",
+    "jumlah tamu": "guest_count",
+    // Kategori
+    kategori: "kategori",
+    category: "kategori",
+    tipe: "kategori",
+    // Kelompok
+    kelompok: "kelompok",
+    group: "kelompok",
+    grup: "kelompok",
+    keluarga: "kelompok",
+    // Nomor WA
+    nomor_wa: "nomor_wa",
+    "nomor wa": "nomor_wa",
+    phone: "nomor_wa",
+    telepon: "nomor_wa",
+    wa: "nomor_wa",
+    nowa: "nomor_wa",
+    // Notes
+    notes: "notes",
+    catatan: "notes",
+    keterangan: "notes",
+    note: "notes",
+  };
+
   private parseTextToRows(raw: string): ParseResult[] {
     const lines = raw.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) return [];
@@ -195,19 +232,69 @@ export class ImportModal {
     const firstLine = lines[0];
     const delim = firstLine.includes("\t") ? "\t" : ",";
 
+    // Parse header → indeks kolom
+    const headerCols = delim === "\t" ? firstLine.split("\t") : this.parseCSVLine(firstLine);
+    const colMap: (keyof ParseResult | null)[] = headerCols.map((h) => {
+      const key = h.trim().toLowerCase();
+      return ImportModal.HEADER_MAP[key] ?? null;
+    });
+
+    // Fallback: jika header tidak dikenali sama sekali, gunakan mapping indeks lama
+    const useFallback = colMap.every((c) => c === null);
+
     const result: ParseResult[] = [];
 
     for (let i = 1; i < lines.length; i++) {
       const cols = delim === "\t" ? lines[i].split("\t") : this.parseCSVLine(lines[i]);
-      if (cols.length < 1 || !cols[0]) continue;
-      result.push({
-        name: cols[0].trim(),
-        guest_count: parseInt(cols[1], 10) || 1,
-        kategori: cols[2]?.trim() === "keluarga" ? "keluarga" : "bukan",
-        kelompok: cols[3]?.trim() || null,
-        nomor_wa: cols[4]?.trim() || null,
-        notes: cols[5]?.trim() || null,
-      });
+
+      if (useFallback) {
+        if (cols.length < 1 || !cols[0]) continue;
+        result.push({
+          name: cols[0].trim(),
+          guest_count: parseInt(cols[1], 10) || 1,
+          kategori: cols[2]?.trim() === "keluarga" ? "keluarga" : "bukan",
+          kelompok: cols[3]?.trim() || null,
+          nomor_wa: cols[4]?.trim() || null,
+          notes: cols[5]?.trim() || null,
+        });
+      } else {
+        const row: ParseResult = {
+          name: "",
+          guest_count: 1,
+          kategori: "bukan",
+          kelompok: null,
+          nomor_wa: null,
+          notes: null,
+        };
+        for (let j = 0; j < colMap.length && j < cols.length; j++) {
+          const field = colMap[j];
+          if (!field) continue;
+          const val = cols[j].trim();
+          if (!val) continue;
+          switch (field) {
+            case "name":
+              row.name = val;
+              break;
+            case "guest_count":
+              row.guest_count = parseInt(val, 10) || 1;
+              break;
+            case "kategori":
+              row.kategori = val.toLowerCase() === "keluarga" ? "keluarga" : "bukan";
+              break;
+            case "kelompok":
+              row.kelompok = val || null;
+              break;
+            case "nomor_wa":
+              row.nomor_wa = val || null;
+              break;
+            case "notes":
+              row.notes = val || null;
+              break;
+          }
+        }
+        if (!row.name) continue;
+        result.push(row);
+      }
     }
     return result;
   }
