@@ -74,6 +74,8 @@ function buildCardHTML(data: CardData, slug: string): string {
             <p class="card-label">Kartu Undangan Pernikahan</p>
             <h1 class="card-couple-name">Reza &amp; Ashila</h1>
           </div>
+          <img src="/assets/img/ornamen.svg" alt="ornament" class="ornament ornament-top">
+          <img src="/assets/img/ornamen.svg" alt="ornament" class="ornament ornament-bottom">
           <div class="card-body-row">
             <div class="card-body-info">
               <dl class="card-info-list">

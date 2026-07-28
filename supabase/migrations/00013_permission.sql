@@ -1,0 +1,1 @@
+GRANT DELETE ON public.reservation_audit_log TO authenticated;

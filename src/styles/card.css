@@ -219,6 +219,29 @@
   /* Scale the entire canvas as one unit */
   transform: scale(var(--card-scale));
   transform-origin: top center;
+
+  overflow: hidden;
+}
+
+.ornament {
+  position: absolute;
+  width: clamp(80px, 20%, 180px); /* Responsif */
+  height: auto;
+  pointer-events: none; /* Tidak mengganggu klik */
+  user-select: none;
+}
+
+/* Pojok kanan atas */
+.ornament-top {
+  top: 0;
+  right: 0;
+}
+
+/* Pojok kiri bawah */
+.ornament-bottom {
+  bottom: 0;
+  left: 0;
+  transform: scale(-1, -1);
 }
 
 /* Landscape */
