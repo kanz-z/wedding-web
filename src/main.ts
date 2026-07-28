@@ -97,7 +97,7 @@ async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
     }
 
     const val = (data as { value: string }).value;
-    if (import.meta.env.DEV) console.log("[checkEventStatus] raw value dari DB", { val, type: typeof val });
+    // (debug log dihapus)
 
     let status: string = val;
     if (
@@ -107,7 +107,6 @@ async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
       status = JSON.parse(val);
     }
     const result = status === "offline" ? "offline" : "online";
-    if (import.meta.env.DEV) console.log("[checkEventStatus] resolved =>", result);
     return result;
   } catch (err) {
     console.error("[checkEventStatus] exception", err);
@@ -138,7 +137,6 @@ async function initApp(): Promise<void> {
         ),
       ]);
       status = result;
-      if (import.meta.env.DEV) console.log("[initApp] status check result =>", status);
     } catch (err) {
       console.error("[initApp] status check exception", err);
       status = "error";
@@ -192,3 +190,19 @@ async function initApp(): Promise<void> {
 }
 
 initApp();
+
+// Gantikan inline onClick di index.html (CSP `script-src 'self'` memblokir inline handler)
+document.getElementById("btn-error-reload")?.addEventListener("click", () => {
+  location.reload();
+});
+
+document.querySelectorAll(".btn-copy-rekening").forEach((btn) => {
+  btn.addEventListener("click", function () {
+    const no = (btn as HTMLElement).dataset.rekening;
+    if (no) copyToClipboard(no);
+  });
+});
+
+document.querySelector(".btn-open-saweria")?.addEventListener("click", () => {
+  window.open("https://saweria.co/ChikoeL", "_blank");
+});

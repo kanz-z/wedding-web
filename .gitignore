@@ -32,3 +32,4 @@ Role Analysis.md
 /codebase-memory
 /playwright-report
 /.auth
+/tests/screenshots

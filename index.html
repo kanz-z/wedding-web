@@ -71,7 +71,7 @@
         <i class="bi bi-wifi-off" style="font-size: 3rem; color: var(--pink);"></i>
         <h4 class="mt-3">Gangguan Koneksi</h4>
         <p>Kami kesulitan memuat undangan. Silakan coba lagi beberapa saat lagi.</p>
-        <button class="btn btn-primary mt-3" onclick="location.reload()">Coba Lagi</button>
+        <button id="btn-error-reload" class="btn btn-primary mt-3">Coba Lagi</button>
       </div>
     </div>
 
@@ -86,8 +86,8 @@
         <h1>Reza & Ashila</h1>
         <a
           href="#welcome"
+          id="btn-open-invitation"
           class="btn btn-lg mt-4"
-          onClick="enableScroll(); showBottomNav();"
           >Lihat Undangan</a
         >
       </main>
@@ -110,7 +110,7 @@
         </div>
       </div>
     </section>
-
+    
     <!-- bagian navbar -->
     <nav class="bottom-nav" id="bottomNav">
       <div class="nav-toggle" id="navToggle" title="Sembunyikan menu"></div>
@@ -140,16 +140,22 @@
         class="nav-item"
         data-section="guestbook-section"
         title="Ucapan"
-      >
+        >
         <i class="bi bi-chat-heart-fill"></i>
       </a>
     </nav>
-
+    
     <!-- bagian home -->
     <section id="home" class="home">
       <div class="container">
         <div class="row justify-content-center">
-          <div class="col-md-8 text-center qs" data-aos="fade-up">
+          <div class="col-md-8 text-center" data-aos="fade-up">
+            <p>
+              Dengan segala hormat, kami bermaksud untuk mengundang
+              Bapak/Ibu/Saudara/i, untuk hadir pada acara pernikahan kami.
+            </p>
+          </div>
+          <div class="col-md-8 text-center mt-5 qs" data-aos="fade-up">
             <p>
               "Dan diantara ayat-ayat-Nya ialah Dia menciptakan untukmu
               istri-istri dari jenismu sendiri, supaya kamu merasa nyaman
@@ -218,12 +224,6 @@
             <span class="heart" data-aos="zoom-in" data-aos-delay="200"
               ><i class="bi bi-heart-fill"></i
             ></span>
-          </div>
-          <div class="col-md-8 text-center mt-5" data-aos="fade-up">
-            <p>
-              Dengan segala hormat, kami bermaksud untuk mengundang
-              Bapak/Ibu/Saudara/i, untuk hadir pada acara pernikahan kami.
-            </p>
           </div>
         </div>
       </div>
@@ -471,8 +471,8 @@
                 <div class="card-account">
                   <span class="card-text mb-1 acc-number">8614023870</span>
                   <button
-                    class="btn-copy-icon"
-                    onclick="copyToClipboard('8614023870')"
+                    class="btn-copy-icon btn-copy-rekening"
+                    data-rekening="8614023870"
                     title="Salin nomor rekening"
                   >
                     <i class="bi bi-clipboard"></i>
@@ -496,10 +496,7 @@
                 <div class="card-account">
                   <span class="card-text mb-1 acc-number">ChikoeL</span>
                   <button
-                    class="btn-copy-icon"
-                    onclick="
-                      window.open('https://saweria.co/ChikoeL', '_blank')
-                    "
+                    class="btn-copy-icon btn-open-saweria"
                     title="Go to the link!"
                   >
                     <i class="bi bi-link"></i>
@@ -523,8 +520,8 @@
                 <div class="card-account">
                   <span class="card-text mb-1 acc-number">1001590401</span>
                   <button
-                    class="btn-copy-icon"
-                    onclick="copyToClipboard('1001590401')"
+                    class="btn-copy-icon btn-copy-rekening"
+                    data-rekening="1001590401"
                     title="Salin nomor rekening"
                   >
                     <i class="bi bi-clipboard"></i>
@@ -594,7 +591,7 @@
               Gagal memuat ucapan.
               <button
                 class="btn btn-sm btn-outline-light mt-2"
-                onclick="fetchGuestbook(0)"
+                id="btn-gb-retry"
               >
                 Coba lagi
               </button>

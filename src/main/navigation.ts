@@ -64,3 +64,14 @@ document.getElementById('navToggle')?.addEventListener('click', function () {
 document.getElementById('navRestore')?.addEventListener('click', function () {
   if (bottomNav) bottomNav.classList.remove('nav-hidden');
 });
+
+// Gantikan inline onClick "Lihat Undangan" (CSP `script-src 'self'` memblokir inline handler)
+document.getElementById('btn-open-invitation')?.addEventListener('click', function (e) {
+  e.preventDefault();
+  window.enableScroll?.(); // wrapper dari main.ts: mencakup enableScroll() + playAudio()
+  showBottomNav();
+  const target = this.getAttribute('href');
+  if (target) {
+    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' });
+  }
+});

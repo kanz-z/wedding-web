@@ -230,4 +230,9 @@ export function initGuestbook(): void {
   const gbNama = document.getElementById("gb-nama") as HTMLInputElement | null;
   if (gbNama) gbNama.value = getGuestName();
   retryFetchGuestbook(0);
+
+  // Gantikan inline onClick (CSP `script-src 'self'` memblokir inline handler)
+  document.getElementById("btn-gb-retry")?.addEventListener("click", () => {
+    fetchGuestbook(0);
+  });
 }
