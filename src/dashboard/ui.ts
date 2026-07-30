@@ -285,7 +285,10 @@ export function initModals(): void {
   });
   document.querySelectorAll(".modal-overlay").forEach((overlay) => {
     overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) hideModal(overlay.id);
+      if (e.target === overlay) {
+        if ((overlay as HTMLElement).dataset.preventClose === "true") return;
+        hideModal(overlay.id);
+      }
     });
   });
 }
@@ -295,7 +298,10 @@ export function initKeyboard(): void {
     if (e.key === "Escape") {
       document
         .querySelectorAll(".modal-overlay.show")
-        .forEach((o) => hideModal(o.id));
+        .forEach((o) => {
+          if ((o as HTMLElement).dataset.preventClose === "true") return;
+          hideModal(o.id);
+        });
       document.getElementById("group-picker")?.classList.remove("show");
       closeNotifPanel();
     }

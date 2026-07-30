@@ -450,6 +450,15 @@
             </span>
             <div class="msg-card__actions">
               <button
+                class="btn-dash btn-dash-accent"
+                id="bulk-wa"
+                type="button"
+                style="min-height: 36px"
+              >
+                <i class="bi bi-whatsapp"></i>
+                Kirim Undangan Banyak
+              </button>
+              <button
                 class="btn-dash btn-dash-outline"
                 id="bulk-del"
                 type="button"
@@ -1698,6 +1707,57 @@
           >
             Submit
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp Blast Modal -->
+    <div class="modal-overlay" id="wa-blast-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="wa-blast-title">
+        <div class="modal-dash__header">
+          <h2 id="wa-blast-title">Kirim Undangan WhatsApp</h2>
+          <button class="modal-dash__close" id="wa-blast-close-btn" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="wa-blast-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Warning!</strong><br>
+            Tombol ini akan membuka WhatsApp Web untuk mengirimkan banyak undangan sekaligus. Pastikan WhatsApp Web sudah login terlebih dahulu.
+          </div>
+          <p style="margin-bottom: 1rem">Jumlah undangan yang akan dikirim: <strong id="wa-blast-count">0</strong></p>
+          <div id="wa-blast-progress" class="d-none-important">
+            <div class="wa-blast-progress-bar"><div class="wa-blast-progress-fill" id="wa-blast-progress-fill"></div></div>
+            <p class="wa-blast-status" id="wa-blast-status"></p>
+          </div>
+          <div id="wa-blast-summary" class="d-none-important wa-blast-summary">
+            <p>✅ <span id="wa-blast-sent">0</span> berhasil dikirim</p>
+            <p>⚠️ <span id="wa-blast-skipped">0</span> dilewati (nomor tidak valid)</p>
+            <p>❌ <span id="wa-blast-errors">0</span> gagal</p>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" id="wa-blast-cancel-btn" type="button">Batal</button>
+          <button class="btn-dash btn-dash-accent" id="wa-blast-start-btn" type="button">
+            <i class="bi bi-whatsapp"></i> Kirim Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp Blast Cancel Confirmation Modal -->
+    <div class="modal-overlay" id="wa-blast-cancel-confirm-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="wa-blast-cancel-title">
+        <div class="modal-dash__header">
+          <h2 id="wa-blast-cancel-title">Batalkan Pengiriman?</h2>
+          <button class="modal-dash__close" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <p>Proses pengiriman undangan akan dihentikan. Undangan yang sudah terbuka di tab sebelumnya tidak akan terpengaruh.</p>
+          <p>Lanjutkan membatalkan?</p>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" id="wa-blast-cancel-no-btn" type="button">Lanjut Kirim</button>
+          <button class="btn-dash btn-dash-outline" id="wa-blast-cancel-yes-btn" type="button" style="color: var(--danger); border-color: var(--danger)">Ya, Batalkan</button>
         </div>
       </div>
     </div>

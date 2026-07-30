@@ -40,7 +40,14 @@ import {
 } from "./state";
 import { showModal, hideModal, renderNotifications } from "./ui";
 import { supabase } from "./supabase-client";
+import { config } from "@/config";
 import type { GuestWithMeta, CheckinLogEntry } from "./state";
+
+// --- WhatsApp blast state ---
+let waBlastActive = false;
+let waBlastCancelFlag = false;
+let waBlastTargetIds: string[] = [];
+const WA_BLAST_DELAY_MS = 1500;
 
 // --- Derived helpers ---
 function getGuestStatus(g: GuestWithMeta) {
@@ -166,6 +173,7 @@ function renderGuestRow(g: GuestWithMeta): string {
       <button type="button" data-action="detail" data-id="${g.id}" title="Detail" aria-label="Detail ${escapeAttr(g.name)}"><i class="bi bi-eye"></i></button>
       <button type="button" data-action="edit" data-id="${g.id}" title="Edit" aria-label="Edit ${escapeAttr(g.name)}"><i class="bi bi-pencil"></i></button>
       <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeAttr(g.name)}" class="${cDisabled}"><i class="bi bi-qr-code-scan"></i></button>
+      <button type="button" data-action="wa" data-id="${g.id}" title="Kirim WA" aria-label="Kirim WA ke ${escapeAttr(g.name)}" ${!g.nomor_wa ? "disabled" : ""}><i class="bi bi-whatsapp"></i></button>
     </div></td></tr>`;
 }
 
@@ -1069,12 +1077,17 @@ export function initGuestEvents(): void {
       const d = t.closest<HTMLElement>('[data-action="detail"]');
       const ed = t.closest<HTMLElement>('[data-action="edit"]');
       const c = t.closest<HTMLElement>('[data-action="checkin"]');
+      const wa = t.closest<HTMLElement>('[data-action="wa"]');
       const ch = t.closest<HTMLElement>("[data-kelompok]");
 
       if (d) openGuestModal(d.dataset.id!);
       else if (ed) openEditModal(ed.dataset.id!);
       else if (c && !c.classList.contains("is-disabled"))
         openCheckinDialog(c.dataset.id!);
+      else if (wa && !wa.hasAttribute("disabled")) {
+        const g = guestList.find((x) => x.id === wa.dataset.id);
+        if (g?.nomor_wa) window.open(buildWaUrl(g.slug, g.nomor_wa), "_blank");
+      }
       else if (ch) openGroupPicker(ch);
     });
 
@@ -1137,6 +1150,20 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
     selectedIds.clear();
     updateBulkBar();
     renderGuestTable();
+  });
+
+  // Bulk WhatsApp blast
+  document.getElementById("bulk-wa")?.addEventListener("click", () => {
+    if (selectedIds.size === 0) return;
+    openWaBlastModal([...selectedIds]);
+  });
+
+  // WA blast events
+  document.getElementById("wa-blast-start-btn")?.addEventListener("click", () => startWaBlast());
+  document.getElementById("wa-blast-cancel-btn")?.addEventListener("click", () => cancelWaBlast());
+  document.getElementById("wa-blast-cancel-yes-btn")?.addEventListener("click", () => confirmCancelWaBlast());
+  document.getElementById("wa-blast-cancel-no-btn")?.addEventListener("click", () => {
+    hideModal("wa-blast-cancel-confirm-overlay");
   });
 
   // Detail modal check-in button
@@ -1264,4 +1291,182 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
   window.addEventListener("open-edit-guest", ((e: CustomEvent) => {
     if (e.detail?.id) openEditModal(e.detail.id);
   }) as EventListener);
+}
+
+// --- WhatsApp Blast ---
+
+const BASE_URL = config.SITE_URL || window.location.origin;
+
+function waMessage(slug: string): string {
+  return `Assalamu'alaikum,\n\nKami mengundang Anda ke acara pernikahan Reza & Ashila.\n\nSilakan buka undangan digital Anda di sini:\n${BASE_URL}/invitation/${slug}\n\nTerima kasih 🤍`;
+}
+
+// Hanya menyisakan digit — nomor WA bisa datang dengan spasi, tanda hubung, atau awalan +
+function cleanPhone(raw: string): string {
+  return raw.replace(/[^0-9]/g, "");
+}
+
+function buildWaUrl(slug: string, nomorWa: string): string {
+  const phone = cleanPhone(nomorWa);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(waMessage(slug))}`;
+}
+
+// --- Modal lifecycle ---
+
+function resetBlastUI(validCount: number): void {
+  const countEl = document.getElementById("wa-blast-count");
+  if (countEl) countEl.textContent = String(validCount);
+
+  hide(document.getElementById("wa-blast-progress"));
+  hide(document.getElementById("wa-blast-summary"));
+
+  const startBtn = document.getElementById("wa-blast-start-btn") as HTMLButtonElement | null;
+  if (startBtn) {
+    show(startBtn);
+    startBtn.disabled = validCount === 0;
+  }
+
+  const cancelBtn = document.getElementById("wa-blast-cancel-btn") as HTMLButtonElement | null;
+  if (cancelBtn) {
+    cancelBtn.textContent = "Batal";
+    cancelBtn.className = "btn-dash btn-dash-outline";
+    cancelBtn.style.color = "";
+    cancelBtn.style.borderColor = "";
+  }
+}
+
+// Modal harus tetap terbuka selama blast — cegah semua mekanisme tutup (overlay click, Escape, tombol X)
+function lockBlastModal(): void {
+  waBlastActive = true;
+  waBlastCancelFlag = false;
+
+  const overlay = document.getElementById("wa-blast-overlay") as HTMLElement | null;
+  if (overlay) overlay.dataset.preventClose = "true";
+
+  hide(document.getElementById("wa-blast-close-btn"));
+
+  hide(document.getElementById("wa-blast-start-btn"));
+
+  const cancelBtn = document.getElementById("wa-blast-cancel-btn") as HTMLButtonElement | null;
+  if (cancelBtn) {
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.classList.add("btn-dash-danger");
+  }
+}
+
+function unlockBlastModal(): void {
+  waBlastActive = false;
+
+  const overlay = document.getElementById("wa-blast-overlay") as HTMLElement | null;
+  if (overlay) delete overlay.dataset.preventClose;
+
+  show(document.getElementById("wa-blast-close-btn"));
+}
+
+function updateBlastProgress(index: number, total: number, guestName: string): void {
+  const progressFill = document.getElementById("wa-blast-progress-fill");
+  const statusEl = document.getElementById("wa-blast-status");
+  const sentEl = document.getElementById("wa-blast-sent");
+
+  const pct = Math.round(((index + 1) / total) * 100);
+  if (progressFill) progressFill.style.width = pct + "%";
+  if (statusEl) statusEl.textContent = `${index + 1}/${total} — ${escapeHtml(guestName)}`;
+  if (sentEl) sentEl.textContent = String(index + 1);
+}
+
+function showBlastSummary(sent: number, skipped: number, errors: number): void {
+  hide(document.getElementById("wa-blast-progress"));
+
+  const summaryEl = document.getElementById("wa-blast-summary");
+  show(summaryEl);
+
+  const sentEl = document.getElementById("wa-blast-sent");
+  const skipEl = document.getElementById("wa-blast-skipped");
+  const errEl = document.getElementById("wa-blast-errors");
+  if (sentEl) sentEl.textContent = String(sent);
+  if (skipEl) skipEl.textContent = String(skipped);
+  if (errEl) errEl.textContent = String(errors);
+
+  // Ganti cancel button menjadi Tutup — blast sudah selesai, admin harus menutup manual
+  const cancelBtn = document.getElementById("wa-blast-cancel-btn") as HTMLButtonElement | null;
+  if (cancelBtn) {
+    cancelBtn.textContent = waBlastCancelFlag ? "Tutup (Dibatalkan)" : "Tutup";
+    cancelBtn.className = "btn-dash btn-dash-outline";
+    cancelBtn.classList.remove("btn-dash-danger");
+    cancelBtn.onclick = () => hideModal("wa-blast-overlay");
+  }
+}
+
+// --- Public entry points ---
+
+function openWaBlastModal(ids: string[]): void {
+  waBlastActive = false;
+  waBlastCancelFlag = false;
+  waBlastTargetIds = ids;
+
+  const valid = ids.filter((id) => {
+    const g = guestList.find((x) => x.id === id);
+    return g?.nomor_wa && cleanPhone(g.nomor_wa).length > 0;
+  });
+
+  resetBlastUI(valid.length);
+  showModal("wa-blast-overlay");
+}
+
+async function startWaBlast(): Promise<void> {
+  lockBlastModal();
+
+  const ids = waBlastTargetIds;
+  const total = ids.length;
+  let sent = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  show(document.getElementById("wa-blast-progress"));
+
+  try {
+    for (let i = 0; i < total; i++) {
+      if (waBlastCancelFlag) break;
+
+      const g = guestList.find((x) => x.id === ids[i]);
+      if (!g) { skipped++; continue; }
+
+      const phone = g.nomor_wa ? cleanPhone(g.nomor_wa) : "";
+      if (!phone) { skipped++; continue; }
+
+      updateBlastProgress(i, total, g.name);
+
+      // _blank agar dashboard tetap terbuka; null berarti popup diblokir browser
+      const waTab = window.open(buildWaUrl(g.slug, phone), "_blank");
+      if (!waTab) {
+        errors++;
+        const statusEl = document.getElementById("wa-blast-status");
+        if (statusEl) statusEl.textContent = `${i + 1}/${total} — popup diblokir browser`;
+      } else {
+        sent++;
+      }
+
+      // Jeda antar tab agar browser tidak memblokir popup beruntun
+      await new Promise((r) => setTimeout(r, WA_BLAST_DELAY_MS));
+    }
+  } catch (err: unknown) {
+    // Jangan sampai error DOM membekukan modal — catat dan tetap tampilkan ringkasan
+    errors++;
+    console.error("WA blast error:", err);
+  }
+
+  unlockBlastModal();
+  showBlastSummary(sent, skipped, errors);
+}
+
+function cancelWaBlast(): void {
+  showModal("wa-blast-cancel-confirm-overlay");
+}
+
+function confirmCancelWaBlast(): void {
+  waBlastCancelFlag = true;
+  hideModal("wa-blast-cancel-confirm-overlay");
+
+  const statusEl = document.getElementById("wa-blast-status");
+  if (statusEl) statusEl.textContent = "Membatalkan...";
 }
