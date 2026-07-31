@@ -1393,7 +1393,6 @@ function showBlastSummary(sent: number, skipped: number, errors: number): void {
     cancelBtn.textContent = waBlastCancelFlag ? "Tutup (Dibatalkan)" : "Tutup";
     cancelBtn.className = "btn-dash btn-dash-outline";
     cancelBtn.classList.remove("btn-dash-danger");
-    cancelBtn.onclick = () => hideModal("wa-blast-overlay");
   }
 }
 
@@ -1402,14 +1401,14 @@ function showBlastSummary(sent: number, skipped: number, errors: number): void {
 function openWaBlastModal(ids: string[]): void {
   waBlastActive = false;
   waBlastCancelFlag = false;
-  waBlastTargetIds = ids;
 
-  const valid = ids.filter((id) => {
+  // Hanya simpan ID dengan nomor WA valid agar progress bar akurat
+  waBlastTargetIds = ids.filter((id) => {
     const g = guestList.find((x) => x.id === id);
     return g?.nomor_wa && cleanPhone(g.nomor_wa).length > 0;
   });
 
-  resetBlastUI(valid.length);
+  resetBlastUI(waBlastTargetIds.length);
   showModal("wa-blast-overlay");
 }
 
@@ -1460,6 +1459,11 @@ async function startWaBlast(): Promise<void> {
 }
 
 function cancelWaBlast(): void {
+  // Jika blast sudah selesai, tutup langsung tanpa konfirmasi batal
+  if (!waBlastActive) {
+    hideModal("wa-blast-overlay");
+    return;
+  }
   showModal("wa-blast-cancel-confirm-overlay");
 }
 

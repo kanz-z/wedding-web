@@ -1650,7 +1650,9 @@ body {
   background: none;
   color: var(--ink-muted);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .import-tab.active,
@@ -1678,7 +1680,9 @@ body {
   border-radius: 8px;
   padding: var(--space-md);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   text-align: center;
 }
 
@@ -1723,7 +1727,13 @@ body {
   width: 100%;
   min-height: 180px;
   font-size: 0.8125rem;
-  font-family: var(--font-mono, "SF Mono", "Cascadia Code", "Consolas", monospace);
+  font-family: var(
+    --font-mono,
+    "SF Mono",
+    "Cascadia Code",
+    "Consolas",
+    monospace
+  );
   resize: vertical;
 }
 
