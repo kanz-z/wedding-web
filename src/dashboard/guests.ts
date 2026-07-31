@@ -44,10 +44,10 @@ import { config } from "@/config";
 import type { GuestWithMeta, CheckinLogEntry } from "./state";
 
 // --- WhatsApp blast state ---
-let waBlastActive = false;
-let waBlastCancelFlag = false;
 let waBlastTargetIds: string[] = [];
-const WA_BLAST_DELAY_MS = 1500;
+let waBlastIndex = 0;
+let waBlastSent = 0;
+let waBlastErrors = 0;
 
 // --- Derived helpers ---
 function getGuestStatus(g: GuestWithMeta) {
@@ -1159,12 +1159,8 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
   });
 
   // WA blast events
-  document.getElementById("wa-blast-start-btn")?.addEventListener("click", () => startWaBlast());
-  document.getElementById("wa-blast-cancel-btn")?.addEventListener("click", () => cancelWaBlast());
-  document.getElementById("wa-blast-cancel-yes-btn")?.addEventListener("click", () => confirmCancelWaBlast());
-  document.getElementById("wa-blast-cancel-no-btn")?.addEventListener("click", () => {
-    hideModal("wa-blast-cancel-confirm-overlay");
-  });
+  document.getElementById("wa-blast-send-btn")?.addEventListener("click", () => sendNextWa());
+  document.getElementById("wa-blast-close-modal-btn")?.addEventListener("click", () => hideModal("wa-blast-overlay"));
 
   // Detail modal check-in button
   document
@@ -1313,54 +1309,25 @@ function buildWaUrl(slug: string, nomorWa: string): string {
 
 // --- Modal lifecycle ---
 
-function resetBlastUI(validCount: number): void {
+function resetBlastUI(total: number): void {
   const countEl = document.getElementById("wa-blast-count");
-  if (countEl) countEl.textContent = String(validCount);
+  if (countEl) countEl.textContent = String(total);
 
   hide(document.getElementById("wa-blast-progress"));
   hide(document.getElementById("wa-blast-summary"));
 
-  const startBtn = document.getElementById("wa-blast-start-btn") as HTMLButtonElement | null;
-  if (startBtn) {
-    show(startBtn);
-    startBtn.disabled = validCount === 0;
-  }
-
-  const cancelBtn = document.getElementById("wa-blast-cancel-btn") as HTMLButtonElement | null;
-  if (cancelBtn) {
-    cancelBtn.textContent = "Batal";
-    cancelBtn.className = "btn-dash btn-dash-outline";
-    cancelBtn.style.color = "";
-    cancelBtn.style.borderColor = "";
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) {
+    sendBtn.disabled = total === 0;
+    sendBtn.innerHTML = '<i class="bi bi-whatsapp"></i> Kirim';
   }
 }
 
-// Modal harus tetap terbuka selama blast — cegah semua mekanisme tutup (overlay click, Escape, tombol X)
-function lockBlastModal(): void {
-  waBlastActive = true;
-  waBlastCancelFlag = false;
-
-  const overlay = document.getElementById("wa-blast-overlay") as HTMLElement | null;
-  if (overlay) overlay.dataset.preventClose = "true";
-
-  hide(document.getElementById("wa-blast-close-btn"));
-
-  hide(document.getElementById("wa-blast-start-btn"));
-
-  const cancelBtn = document.getElementById("wa-blast-cancel-btn") as HTMLButtonElement | null;
-  if (cancelBtn) {
-    cancelBtn.textContent = "Cancel";
-    cancelBtn.classList.add("btn-dash-danger");
+function updateSendButton(index: number, total: number): void {
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) {
+    sendBtn.innerHTML = `<i class="bi bi-whatsapp"></i> Kirim (${index + 1}/${total})`;
   }
-}
-
-function unlockBlastModal(): void {
-  waBlastActive = false;
-
-  const overlay = document.getElementById("wa-blast-overlay") as HTMLElement | null;
-  if (overlay) delete overlay.dataset.preventClose;
-
-  show(document.getElementById("wa-blast-close-btn"));
 }
 
 function updateBlastProgress(index: number, total: number, guestName: string): void {
@@ -1374,103 +1341,82 @@ function updateBlastProgress(index: number, total: number, guestName: string): v
   if (sentEl) sentEl.textContent = String(index + 1);
 }
 
-function showBlastSummary(sent: number, skipped: number, errors: number): void {
+function showBlastComplete(sent: number, errors: number): void {
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="bi bi-check-circle"></i> Selesai';
+  }
+
   hide(document.getElementById("wa-blast-progress"));
 
   const summaryEl = document.getElementById("wa-blast-summary");
   show(summaryEl);
 
   const sentEl = document.getElementById("wa-blast-sent");
-  const skipEl = document.getElementById("wa-blast-skipped");
   const errEl = document.getElementById("wa-blast-errors");
   if (sentEl) sentEl.textContent = String(sent);
-  if (skipEl) skipEl.textContent = String(skipped);
   if (errEl) errEl.textContent = String(errors);
-
-  // Ganti cancel button menjadi Tutup — blast sudah selesai, admin harus menutup manual
-  const cancelBtn = document.getElementById("wa-blast-cancel-btn") as HTMLButtonElement | null;
-  if (cancelBtn) {
-    cancelBtn.textContent = waBlastCancelFlag ? "Tutup (Dibatalkan)" : "Tutup";
-    cancelBtn.className = "btn-dash btn-dash-outline";
-    cancelBtn.classList.remove("btn-dash-danger");
-  }
 }
 
-// --- Public entry points ---
+// --- Entry points ---
 
 function openWaBlastModal(ids: string[]): void {
-  waBlastActive = false;
-  waBlastCancelFlag = false;
-
-  // Hanya simpan ID dengan nomor WA valid agar progress bar akurat
   waBlastTargetIds = ids.filter((id) => {
     const g = guestList.find((x) => x.id === id);
     return g?.nomor_wa && cleanPhone(g.nomor_wa).length > 0;
   });
 
-  resetBlastUI(waBlastTargetIds.length);
+  waBlastIndex = 0;
+  waBlastSent = 0;
+  waBlastErrors = 0;
+
+  const total = waBlastTargetIds.length;
+  resetBlastUI(total);
+  if (total > 0) updateSendButton(0, total);
   showModal("wa-blast-overlay");
 }
 
-async function startWaBlast(): Promise<void> {
-  lockBlastModal();
+/** Kirim undangan ke tamu berikutnya — sinkron agar tidak diblokir popup blocker */
+function sendNextWa(): void {
+  if (waBlastIndex >= waBlastTargetIds.length) return;
 
-  const ids = waBlastTargetIds;
-  const total = ids.length;
-  let sent = 0;
-  let skipped = 0;
-  let errors = 0;
-
-  show(document.getElementById("wa-blast-progress"));
-
-  try {
-    for (let i = 0; i < total; i++) {
-      if (waBlastCancelFlag) break;
-
-      const g = guestList.find((x) => x.id === ids[i]);
-      if (!g) { skipped++; continue; }
-
-      const phone = g.nomor_wa ? cleanPhone(g.nomor_wa) : "";
-      if (!phone) { skipped++; continue; }
-
-      updateBlastProgress(i, total, g.name);
-
-      // _blank agar dashboard tetap terbuka; null berarti popup diblokir browser
-      const waTab = window.open(buildWaUrl(g.slug, phone), "_blank");
-      if (!waTab) {
-        errors++;
-        const statusEl = document.getElementById("wa-blast-status");
-        if (statusEl) statusEl.textContent = `${i + 1}/${total} — popup diblokir browser`;
-      } else {
-        sent++;
-      }
-
-      // Jeda antar tab agar browser tidak memblokir popup beruntun
-      await new Promise((r) => setTimeout(r, WA_BLAST_DELAY_MS));
+  const id = waBlastTargetIds[waBlastIndex];
+  const g = guestList.find((x) => x.id === id);
+  if (!g) {
+    waBlastErrors++;
+    waBlastIndex++;
+    if (waBlastIndex < waBlastTargetIds.length) {
+      updateSendButton(waBlastIndex, waBlastTargetIds.length);
     }
-  } catch (err: unknown) {
-    // Jangan sampai error DOM membekukan modal — catat dan tetap tampilkan ringkasan
-    errors++;
-    console.error("WA blast error:", err);
-  }
-
-  unlockBlastModal();
-  showBlastSummary(sent, skipped, errors);
-}
-
-function cancelWaBlast(): void {
-  // Jika blast sudah selesai, tutup langsung tanpa konfirmasi batal
-  if (!waBlastActive) {
-    hideModal("wa-blast-overlay");
     return;
   }
-  showModal("wa-blast-cancel-confirm-overlay");
+
+  // Progress bar dan summary muncul setelah klik pertama
+  if (waBlastIndex === 0) {
+    show(document.getElementById("wa-blast-progress"));
+  }
+
+  const phone = cleanPhone(g.nomor_wa ?? "");
+  updateBlastProgress(waBlastIndex, waBlastTargetIds.length, g.name);
+
+  // window.open dipanggil SINKRON dalam user gesture — tidak akan diblokir
+  const waTab = window.open(buildWaUrl(g.slug, phone), "_blank");
+  if (!waTab) {
+    waBlastErrors++;
+    const statusEl = document.getElementById("wa-blast-status");
+    if (statusEl) statusEl.textContent = `${waBlastIndex + 1}/${waBlastTargetIds.length} — popup diblokir, izinkan popup untuk situs ini`;
+  } else {
+    waBlastSent++;
+  }
+
+  waBlastIndex++;
+
+  if (waBlastIndex >= waBlastTargetIds.length) {
+    // Semua sudah dikirim
+    showBlastComplete(waBlastSent, waBlastErrors);
+  } else {
+    updateSendButton(waBlastIndex, waBlastTargetIds.length);
+  }
 }
 
-function confirmCancelWaBlast(): void {
-  waBlastCancelFlag = true;
-  hideModal("wa-blast-cancel-confirm-overlay");
-
-  const statusEl = document.getElementById("wa-blast-status");
-  if (statusEl) statusEl.textContent = "Membatalkan...";
-}
