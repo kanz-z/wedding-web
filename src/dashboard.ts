@@ -36,8 +36,8 @@ function initDashboard(): void {
   fetchGuests().then(() => {
     renderSummaryCards();
     renderNotifications();
-  }).catch(() => {
-    // silent — tamu tab akan retry saat dikunjungi
+  }).catch((err) => {
+    console.warn("[dashboard] fetchGuests awal gagal", err);
   });
 
   // Init guest table pada first visit, reload data pada kunjungan berikutnya

@@ -15,6 +15,9 @@ export interface GuestWithMeta extends Reservation {
 /** Daftar tamu aktif — diisi oleh fetchGuests() */
 export let guestList: GuestWithMeta[] = [];
 
+/** Flag untuk mencegah realtime fetch bentrok dengan optimistic update check-in */
+let isOptimisticUpdate = false;
+
 /** Loading/error state */
 export let guestLoading = false;
 export let guestError: string | null = null;
@@ -350,6 +353,8 @@ export async function addCheckin(
   const token = sessionData.session?.access_token;
   if (!token) throw new Error("Sesi tidak valid — silakan login kembali");
 
+  const idempotencyKey = crypto.randomUUID();
+
   const resp = await fetch(
     `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
     {
@@ -364,11 +369,19 @@ export async function addCheckin(
         method,
         is_override: isOverride,
         notes,
+        idempotency_key: idempotencyKey,
       }),
     },
   );
 
-  const result = await resp.json();
+  let result: Record<string, unknown>;
+  try {
+    result = await resp.json();
+  } catch {
+    throw new Error(
+      `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
+    );
+  }
 
   if (!resp.ok) {
     throw new Error(
@@ -376,21 +389,26 @@ export async function addCheckin(
     );
   }
 
-  // Optimistic update local state
-  const idx = guestList.findIndex((g) => g.id === reservationId);
-  if (idx !== -1) {
-    const newCheckedIn = guestList[idx].checkedIn + delta;
-    guestList[idx] = {
-      ...guestList[idx],
-      checkedIn: newCheckedIn,
-      checkedInAt: new Date().toISOString(),
-      flag: detectAnomaly(
-        guestList[idx],
-        newCheckedIn,
-        guestList[idx].rsvp,
-        guestList,
-      ),
-    };
+  // Optimistic update local state — bendera untuk menghindari realtime race
+  isOptimisticUpdate = true;
+  try {
+    const idx = guestList.findIndex((g) => g.id === reservationId);
+    if (idx !== -1) {
+      const newCheckedIn = guestList[idx].checkedIn + delta;
+      guestList[idx] = {
+        ...guestList[idx],
+        checkedIn: newCheckedIn,
+        checkedInAt: new Date().toISOString(),
+        flag: detectAnomaly(
+          guestList[idx],
+          newCheckedIn,
+          guestList[idx].rsvp,
+          guestList,
+        ),
+      };
+    }
+  } finally {
+    isOptimisticUpdate = false;
   }
 }
 
@@ -557,14 +575,16 @@ export function setupRealtime(
         table: "check_in_transactions",
       } as never,
       () => {
+        // Skip jika sedang optimistic update — addCheckin() sudah update state
+        if (isOptimisticUpdate) return;
         // Refresh penuh untuk recalculate checkedIn dari SUM(delta)
         fetchGuests()
           .then(() => {
             const lastGuest = guestList[guestList.length - 1];
             if (lastGuest) onUpdate(lastGuest);
           })
-          .catch(() => {
-            /* silent */
+          .catch((err) => {
+            console.warn("[realtime] fetchGuests gagal setelah check_in_transactions update", err);
           });
       },
     )
@@ -644,25 +664,27 @@ export async function fetchPrivateMessages(): Promise<PrivateMessage[]> {
 
 // --- Reservasi Approval (Fase 6C) ---
 
-export async function approveReservation(id: string): Promise<void> {
+export async function approveReservation(id: string, version: number = 1): Promise<void> {
   const { error } = await supabase
     .from("reservations")
     .update({
       approval_status: "approved",
       approved_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("version", version);
   if (error) throw error;
 }
 
-export async function rejectReservation(id: string): Promise<void> {
+export async function rejectReservation(id: string, version: number = 1): Promise<void> {
   const { error } = await supabase
     .from("reservations")
     .update({
       approval_status: "rejected",
       rejected_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("version", version);
   if (error) throw error;
 }
 
@@ -788,14 +810,27 @@ export function applyRoleRestrictions(): void {
 }
 
 export async function deleteGuests(ids: string[]): Promise<void> {
-  // Hapus child rows dulu untuk menghindari FK constraint violation
-  const { error: auditErr } = await supabase.from("reservation_audit_log").delete().in("reservation_id", ids);
+  if (!ids.length) return;
+
+  // Hapus child rows dulu untuk menghindari FK constraint violation.
+  // Urutan: audit_log → check_in_transactions → reservations (parent terakhir).
+  const { error: auditErr } = await supabase
+    .from("reservation_audit_log")
+    .delete()
+    .in("reservation_id", ids);
   if (auditErr) throw auditErr;
 
-  const { error: checkinErr } = await supabase.from("check_in_transactions").delete().in("reservation_id", ids);
+  const { error: checkinErr } = await supabase
+    .from("check_in_transactions")
+    .delete()
+    .in("reservation_id", ids);
   if (checkinErr) throw checkinErr;
 
-  const { error } = await supabase.from("reservations").delete().in("id", ids);
+  const { error } = await supabase
+    .from("reservations")
+    .delete()
+    .in("id", ids);
   if (error) throw error;
+
   guestList = guestList.filter((g) => !ids.includes(g.id));
 }

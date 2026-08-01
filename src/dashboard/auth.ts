@@ -93,7 +93,9 @@ export function initAuth(): void {
 
   // Listen for hash changes
   window.addEventListener("hashchange", () => {
-    checkSession().catch(() => {});
+    checkSession().catch((err) => {
+      console.warn("[auth] checkSession gagal saat hashchange", err);
+    });
   });
 
   // Login form (3.1)

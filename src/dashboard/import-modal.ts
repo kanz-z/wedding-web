@@ -225,6 +225,7 @@ export class ImportModal {
   };
 
   private parseTextToRows(raw: string): ParseResult[] {
+    raw = raw.replace(/^﻿/, ""); // hapus BOM dari file CSV Excel
     const lines = raw.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) return [];
 

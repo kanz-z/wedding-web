@@ -96,8 +96,8 @@ function renderReservations(): void {
           r.approval_status === 'pending'
             ? `
           <div style="margin-top:6px;display:flex;gap:6px">
-            <button class="btn-dash btn-dash-accent btn-approve" data-id="${r.id}" type="button" style="font-size:0.75rem;padding:2px 8px">Approve</button>
-            <button class="btn-dash btn-dash-outline btn-reject" data-id="${r.id}" type="button" style="font-size:0.75rem;padding:2px 8px">Reject</button>
+            <button class="btn-dash btn-dash-accent btn-approve" data-id="${r.id}" data-version="${r.version}" type="button" style="font-size:0.75rem;padding:2px 8px">Approve</button>
+            <button class="btn-dash btn-dash-outline btn-reject" data-id="${r.id}" data-version="${r.version}" type="button" style="font-size:0.75rem;padding:2px 8px">Reject</button>
           </div>`
             : `
           <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
@@ -121,12 +121,15 @@ function renderReservations(): void {
   grid.querySelectorAll<HTMLButtonElement>('.btn-approve').forEach((btn) => {
     btn.addEventListener('click', async () => {
       try {
-        await approveReservation(btn.dataset.id!);
+        await approveReservation(btn.dataset.id!, parseInt(btn.dataset.version ?? "1", 10));
         renderNotifications();
         showToast('Reservasi disetujui');
         await loadReservations();
-      } catch {
-        showToast('Gagal menyetujui', true);
+      } catch (err: unknown) {
+        showToast(
+          err instanceof Error ? err.message : 'Gagal menyetujui',
+          true,
+        );
       }
     });
   });
@@ -134,12 +137,15 @@ function renderReservations(): void {
   grid.querySelectorAll<HTMLButtonElement>('.btn-reject').forEach((btn) => {
     btn.addEventListener('click', async () => {
       try {
-        await rejectReservation(btn.dataset.id!);
+        await rejectReservation(btn.dataset.id!, parseInt(btn.dataset.version ?? "1", 10));
         renderNotifications();
         showToast('Reservasi ditolak');
         await loadReservations();
-      } catch {
-        showToast('Gagal menolak', true);
+      } catch (err: unknown) {
+        showToast(
+          err instanceof Error ? err.message : 'Gagal menolak',
+          true,
+        );
       }
     });
   });

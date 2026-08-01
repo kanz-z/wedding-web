@@ -480,13 +480,23 @@ async function doPostscanCheckinAll(): Promise<void> {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ reservation_id: resId, delta, method: "qr" }),
+        body: JSON.stringify({ reservation_id: resId, delta, method: "qr", idempotency_key: crypto.randomUUID() }),
       },
     );
 
-    const result = await resp.json();
+    let result: Record<string, unknown>;
+    try {
+      result = await resp.json();
+    } catch {
+      showToast(
+        `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
+        true,
+      );
+      isProcessing = false;
+      return;
+    }
     if (!resp.ok) {
-      showToast(result.error || "Gagal check-in", true);
+      showToast((result.error as string) || "Gagal check-in", true);
       return;
     }
 
@@ -565,13 +575,23 @@ async function doPostscanCheckinPartial(): Promise<void> {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ reservation_id: resId, delta, method: "qr" }),
+        body: JSON.stringify({ reservation_id: resId, delta, method: "qr", idempotency_key: crypto.randomUUID() }),
       },
     );
 
-    const result = await resp.json();
+    let result: Record<string, unknown>;
+    try {
+      result = await resp.json();
+    } catch {
+      showToast(
+        `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
+        true,
+      );
+      isProcessing = false;
+      return;
+    }
     if (!resp.ok) {
-      showToast(result.error || "Gagal check-in", true);
+      showToast((result.error as string) || "Gagal check-in", true);
       return;
     }
 
@@ -670,13 +690,24 @@ async function doPostscanOverrideConfirm(): Promise<void> {
           method: "qr",
           is_override: true,
           notes,
+          idempotency_key: crypto.randomUUID(),
         }),
       },
     );
 
-    const result = await resp.json();
+    let result: Record<string, unknown>;
+    try {
+      result = await resp.json();
+    } catch {
+      showToast(
+        `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
+        true,
+      );
+      isProcessing = false;
+      return;
+    }
     if (!resp.ok) {
-      showToast(result.error || "Gagal override", true);
+      showToast((result.error as string) || "Gagal override", true);
       return;
     }
 

@@ -52,6 +52,13 @@ let waBlastIndex = 0;
 let waBlastSent = 0;
 let waBlastErrors = 0;
 
+// --- Validator helpers ---
+function isValidWa(wa: string | null | undefined): boolean {
+  if (!wa) return true; // null/empty valid — WA opsional
+  const digits = wa.replace(/\D/g, "");
+  return digits.length >= 10 && digits.length <= 15;
+}
+
 // --- Derived helpers ---
 function getGuestStatus(g: GuestWithMeta) {
   return checkinStatus(g);
@@ -468,6 +475,11 @@ async function saveEdit(): Promise<void> {
     return;
   }
 
+  if (waVal && !isValidWa(waVal)) {
+    showToast("Nomor WhatsApp tidak valid. Minimal 10 digit angka.", true);
+    return;
+  }
+
   try {
     await updateGuest(activeGuestId, v, {
       name,
@@ -761,6 +773,11 @@ async function saveNewGuest(): Promise<void> {
 
   if (!name || !gc || gc < 1) {
     showToast("Nama dan jumlah tamu wajib diisi", true);
+    return;
+  }
+
+  if (waVal && !isValidWa(waVal)) {
+    showToast("Nomor WhatsApp tidak valid. Minimal 10 digit angka.", true);
     return;
   }
 
@@ -1202,10 +1219,18 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
       );
       if (!item || !activeKelompokGuestId) return;
       const g = guestList.find((x) => x.id === activeKelompokGuestId);
-      if (g) {
-        updateGuest(activeKelompokGuestId, g.version, {
-          kelompok: item.dataset.group ?? null,
-        })
+      if (!g) {
+        showToast("Data tamu tidak ditemukan", true);
+        return;
+      }
+      const current = guestList.find((x) => x.id === activeKelompokGuestId);
+      if (!current) {
+        showToast("Data tamu tidak ditemukan", true);
+        return;
+      }
+      updateGuest(activeKelompokGuestId, current.version, {
+        kelompok: item.dataset.group ?? null,
+      })
           .then(() => {
             closeGroupPicker();
             populateKelompokFilter();
@@ -1213,7 +1238,6 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
             showToast("Kelompok diperbarui");
           })
           .catch(() => showToast("Gagal mengubah kelompok", true));
-      }
     });
 
   document.getElementById("group-add-btn")?.addEventListener("click", () => {
@@ -1223,9 +1247,12 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
     const val = inp?.value.trim();
     if (!val || !activeKelompokGuestId) return;
 
-    const g = guestList.find((x) => x.id === activeKelompokGuestId);
-    if (g) {
-      updateGuest(activeKelompokGuestId, g.version, { kelompok: val })
+    const current = guestList.find((x) => x.id === activeKelompokGuestId);
+    if (!current) {
+      showToast("Data tamu tidak ditemukan", true);
+      return;
+    }
+    updateGuest(activeKelompokGuestId, current.version, { kelompok: val })
         .then(() => {
           if (inp) inp.value = "";
           closeGroupPicker();
@@ -1234,7 +1261,6 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
           showToast("Kelompok baru dibuat");
         })
         .catch(() => showToast("Gagal membuat kelompok", true));
-    }
   });
 
   document.addEventListener("click", (e) => {

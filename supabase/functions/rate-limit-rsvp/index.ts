@@ -237,6 +237,17 @@ serve(async (req) => {
       );
     }
 
+    // Validasi batas jumlah_hadir berdasarkan kategori
+    const thresholdNonKeluarga = (approvalMode.threshold_non_keluarga as number) || 2;
+    if (existing.kategori !== "keluarga" && hadir > thresholdNonKeluarga) {
+      return new Response(
+        JSON.stringify({
+          error: `Untuk kategori non-keluarga, maksimal ${thresholdNonKeluarga} orang.`,
+        }),
+        { status: 400, headers },
+      );
+    }
+
     // Tentukan approval berdasarkan business rules
     var newApprovalStatus: string;
     var isApproved: boolean;
