@@ -23,27 +23,27 @@ Mengirim undangan pernikahan fisik bisa merepotkan: biaya cetak, alamat salah, k
 
 ### Untuk Tamu (Halaman Publik)
 
-| Fitur | Deskripsi |
-|-------|-----------|
+| Fitur                     | Deskripsi                                                      |
+| ------------------------- | -------------------------------------------------------------- |
 | 🎨 Kartu Undangan Digital | Tampilan undangan yang elegan dan responsif di semua perangkat |
-| ✅ Formulir RSVP | Tamu dapat mengkonfirmasi kehadiran beserta jumlah orang |
-| 📍 Informasi Acara | Tanggal, waktu, lokasi, dan peta acara pernikahan |
-| 💌 Buku Tamu Digital | Tamu dapat meninggalkan ucapan dan doa |
-| 📸 Ekspor Gambar | Simpan kartu undangan sebagai gambar |
+| ✅ Formulir RSVP          | Tamu dapat mengkonfirmasi kehadiran beserta jumlah orang       |
+| 📍 Informasi Acara        | Tanggal, waktu, lokasi, dan peta acara pernikahan              |
+| 💌 Buku Tamu Digital      | Tamu dapat meninggalkan ucapan dan doa                         |
+| 📸 Ekspor Gambar          | Simpan kartu undangan sebagai gambar                           |
 
 ### Untuk Admin (Dashboard)
 
-| Fitur | Deskripsi |
-|-------|-----------|
-| 📊 Ringkasan | Statistik tamu, RSVP, dan pesan dalam satu tampilan |
-| 👥 Manajemen Tamu | Lihat, tambah, edit, dan hapus data tamu undangan |
-| 📋 Kelola RSVP | Setujui atau tolak konfirmasi kehadiran |
-| 💬 Buku Tamu | Moderasi dan tampilkan ucapan dari tamu |
-| 📱 QR Scanner | Pindai QR code untuk check-in tamu di lokasi acara |
-| ✉️ Pesan Pribadi | Baca pesan khusus dari tamu untuk pengantin |
-| 📨 WhatsApp Blast | Kirim undangan massal melalui WhatsApp ke banyak tamu |
-| 💾 Unduh Massal | Unduh banyak kartu undangan sekaligus dalam format pilihan |
-| 🔐 Manajemen Admin | Kelola akun admin yang dapat mengakses dashboard |
+| Fitur              | Deskripsi                                                  |
+| ------------------ | ---------------------------------------------------------- |
+| 📊 Ringkasan       | Statistik tamu, RSVP, dan pesan dalam satu tampilan        |
+| 👥 Manajemen Tamu  | Lihat, tambah, edit, dan hapus data tamu undangan          |
+| 📋 Kelola RSVP     | Setujui atau tolak konfirmasi kehadiran                    |
+| 💬 Buku Tamu       | Moderasi dan tampilkan ucapan dari tamu                    |
+| 📱 QR Scanner      | Pindai QR code untuk check-in tamu di lokasi acara         |
+| ✉️ Pesan Pribadi   | Baca pesan khusus dari tamu untuk pengantin                |
+| 📨 WhatsApp Blast  | Kirim undangan massal melalui WhatsApp ke banyak tamu      |
+| 💾 Unduh Massal    | Unduh banyak kartu undangan sekaligus dalam format pilihan |
+| 🔐 Manajemen Admin | Kelola akun admin yang dapat mengakses dashboard           |
 
 ---
 
@@ -98,13 +98,13 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 
 ### Menjalankan Aplikasi
 
-| Perintah | Kegunaan |
-|----------|----------|
-| `npm run dev` | Menjalankan server pengembangan lokal |
-| `npm run build` | Membuat file produksi di folder `dist/` |
-| `npm run preview` | Melihat hasil build produksi secara lokal |
-| `npm run typecheck` | Memeriksa error TypeScript |
-| `npm test` | Menjalankan pengujian otomatis (Playwright) |
+| Perintah            | Kegunaan                                    |
+| ------------------- | ------------------------------------------- |
+| `npm run dev`       | Menjalankan server pengembangan lokal       |
+| `npm run build`     | Membuat file produksi di folder `dist/`     |
+| `npm run preview`   | Melihat hasil build produksi secara lokal   |
+| `npm run typecheck` | Memeriksa error TypeScript                  |
+| `npm test`          | Menjalankan pengujian otomatis (Playwright) |
 
 ---
 
@@ -134,19 +134,19 @@ wedding-invitation-1/
 
 ## Teknologi yang Digunakan
 
-| Teknologi | Kegunaan |
-|-----------|----------|
-| [TypeScript](https://www.typescriptlang.org/) | Bahasa pemrograman utama |
-| [Vite](https://vitejs.dev/) | Alat build dan server pengembangan |
-| [Supabase](https://supabase.com/) | Database, otentikasi, dan backend |
-| [Bootstrap 5](https://getbootstrap.com/) | Framework CSS untuk tampilan |
-| [Bootstrap Icons](https://icons.getbootstrap.com/) | Ikon-ikon antarmuka |
-| [html2canvas](https://html2canvas.hertzen.com/) | Mengubah kartu undangan menjadi gambar |
-| [html5-qrcode](https://github.com/mebjas/html5-qrcode) | Pemindai QR code untuk check-in |
-| [qrcodejs](https://github.com/davidshimjs/qrcodejs) | Membuat kode QR |
-| [AOS](https://michalsnik.github.io/aos/) | Animasi saat menggulir halaman |
-| [Netlify](https://www.netlify.com/) | Hosting website |
-| [Playwright](https://playwright.dev/) | Pengujian otomatis |
+| Teknologi                                              | Kegunaan                               |
+| ------------------------------------------------------ | -------------------------------------- |
+| [TypeScript](https://www.typescriptlang.org/)          | Bahasa pemrograman utama               |
+| [Vite](https://vitejs.dev/)                            | Alat build dan server pengembangan     |
+| [Supabase](https://supabase.com/)                      | Database, otentikasi, dan backend      |
+| [Bootstrap 5](https://getbootstrap.com/)               | Framework CSS untuk tampilan           |
+| [Bootstrap Icons](https://icons.getbootstrap.com/)     | Ikon-ikon antarmuka                    |
+| [html2canvas](https://html2canvas.hertzen.com/)        | Mengubah kartu undangan menjadi gambar |
+| [html5-qrcode](https://github.com/mebjas/html5-qrcode) | Pemindai QR code untuk check-in        |
+| [qrcodejs](https://github.com/davidshimjs/qrcodejs)    | Membuat kode QR                        |
+| [AOS](https://michalsnik.github.io/aos/)               | Animasi saat menggulir halaman         |
+| [Vercel](https://www.vercel.com/)                      | Hosting website                        |
+| [Playwright](https://playwright.dev/)                  | Pengujian otomatis                     |
 
 ---
 
