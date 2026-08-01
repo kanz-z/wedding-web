@@ -302,6 +302,11 @@
   line-height: 1.1;
 }
 
+/* Override .dash h1 specificity saat kartu di-render di dashboard */
+#card-render-container .card-couple-name {
+  color: var(--card-ink-900);
+}
+
 /* --------------------------------------------------------------------------
    Card Body — FIXED layout, never reflows
    -------------------------------------------------------------------------- */

@@ -40,7 +40,17 @@ import {
 } from "./state";
 import { showModal, hideModal, renderNotifications } from "./ui";
 import { supabase } from "./supabase-client";
+import { config } from "@/config";
 import type { GuestWithMeta, CheckinLogEntry } from "./state";
+import html2canvas from "html2canvas";
+import JSZip from "jszip";
+import QRCode from "qrcode";
+
+// --- WhatsApp blast state ---
+let waBlastTargetIds: string[] = [];
+let waBlastIndex = 0;
+let waBlastSent = 0;
+let waBlastErrors = 0;
 
 // --- Derived helpers ---
 function getGuestStatus(g: GuestWithMeta) {
@@ -166,6 +176,8 @@ function renderGuestRow(g: GuestWithMeta): string {
       <button type="button" data-action="detail" data-id="${g.id}" title="Detail" aria-label="Detail ${escapeAttr(g.name)}"><i class="bi bi-eye"></i></button>
       <button type="button" data-action="edit" data-id="${g.id}" title="Edit" aria-label="Edit ${escapeAttr(g.name)}"><i class="bi bi-pencil"></i></button>
       <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeAttr(g.name)}" class="${cDisabled}"><i class="bi bi-qr-code-scan"></i></button>
+      <button type="button" data-action="wa" data-id="${g.id}" title="${!g.nomor_wa ? "Tamu tidak memiliki nomor WhatsApp" : "Kirim WA"}" aria-label="Kirim WA ke ${escapeAttr(g.name)}" ${!g.nomor_wa ? "disabled" : ""}><i class="bi bi-whatsapp"></i></button>
+      <button type="button" data-action="download" data-id="${g.id}" title="Unduh Kartu" aria-label="Unduh kartu ${escapeAttr(g.name)}"><i class="bi bi-download"></i></button>
     </div></td></tr>`;
 }
 
@@ -250,6 +262,7 @@ export function renderGuestTable(): void {
 
   updateSortIndicators();
   updateSelectAll();
+  updateBulkBar();
 
   const infoEl = document.getElementById("guest-pagination-info");
   if (infoEl) {
@@ -1069,12 +1082,19 @@ export function initGuestEvents(): void {
       const d = t.closest<HTMLElement>('[data-action="detail"]');
       const ed = t.closest<HTMLElement>('[data-action="edit"]');
       const c = t.closest<HTMLElement>('[data-action="checkin"]');
+      const wa = t.closest<HTMLElement>('[data-action="wa"]');
+      const dl = t.closest<HTMLElement>('[data-action="download"]');
       const ch = t.closest<HTMLElement>("[data-kelompok]");
 
       if (d) openGuestModal(d.dataset.id!);
       else if (ed) openEditModal(ed.dataset.id!);
       else if (c && !c.classList.contains("is-disabled"))
         openCheckinDialog(c.dataset.id!);
+      else if (wa && !wa.hasAttribute("disabled")) {
+        const g = guestList.find((x) => x.id === wa.dataset.id);
+        if (g?.nomor_wa) window.open(buildWaUrl(g.slug, g.nomor_wa), "_blank");
+      }
+      else if (dl) openDownloadModal([dl.dataset.id!]);
       else if (ch) openGroupPicker(ch);
     });
 
@@ -1138,6 +1158,30 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
     updateBulkBar();
     renderGuestTable();
   });
+
+  // Bulk WhatsApp blast
+  document.getElementById("bulk-wa")?.addEventListener("click", () => {
+    if (selectedIds.size === 0) return;
+    openWaBlastModal([...selectedIds]);
+  });
+
+  // Bulk download cards
+  document.getElementById("bulk-download")?.addEventListener("click", () => {
+    if (selectedIds.size === 0) return;
+    openDownloadModal([...selectedIds]);
+  });
+
+  // WA blast events
+  document.getElementById("wa-blast-send-btn")?.addEventListener("click", () => sendNextWa());
+  document.getElementById("wa-blast-close-modal-btn")?.addEventListener("click", () => hideModal("wa-blast-overlay"));
+
+  // Download card events
+  document.getElementById("download-card-download-btn")?.addEventListener("click", () => {
+    const landscapeRadio = document.getElementById("download-card-format-landscape") as HTMLInputElement | null;
+    const format: "landscape" | "portrait" = landscapeRadio?.checked ? "landscape" : "portrait";
+    downloadCards(downloadCardIds, format);
+  });
+  document.getElementById("download-card-close-modal-btn")?.addEventListener("click", () => hideModal("download-card-overlay"));
 
   // Detail modal check-in button
   document
@@ -1265,3 +1309,452 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
     if (e.detail?.id) openEditModal(e.detail.id);
   }) as EventListener);
 }
+
+// --- WhatsApp Blast ---
+
+const BASE_URL = config.SITE_URL || window.location.origin;
+
+function waMessage(slug: string): string {
+  return `Assalamu'alaikum,\n\nKami mengundang Anda ke acara pernikahan Reza & Ashila.\n\nSilakan buka undangan digital Anda di sini:\n${BASE_URL}/invitation/${slug}\n\nTerima kasih 🤍`;
+}
+
+// Hanya menyisakan digit — nomor WA bisa datang dengan spasi, tanda hubung, atau awalan +
+function cleanPhone(raw: string): string {
+  return raw.replace(/[^0-9]/g, "");
+}
+
+function buildWaUrl(slug: string, nomorWa: string): string {
+  const phone = cleanPhone(nomorWa);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(waMessage(slug))}`;
+}
+
+// --- Modal lifecycle ---
+
+function resetBlastUI(total: number): void {
+  const countEl = document.getElementById("wa-blast-count");
+  if (countEl) countEl.textContent = String(total);
+
+  hide(document.getElementById("wa-blast-progress"));
+  hide(document.getElementById("wa-blast-summary"));
+
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) {
+    sendBtn.disabled = total === 0;
+    sendBtn.innerHTML = '<i class="bi bi-whatsapp"></i> Kirim';
+  }
+}
+
+function updateSendButton(index: number, total: number): void {
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) {
+    sendBtn.innerHTML = `<i class="bi bi-whatsapp"></i> Kirim (${index + 1}/${total})`;
+  }
+}
+
+function updateBlastProgress(index: number, total: number, guestName: string): void {
+  const progressFill = document.getElementById("wa-blast-progress-fill");
+  const statusEl = document.getElementById("wa-blast-status");
+  const sentEl = document.getElementById("wa-blast-sent");
+
+  const pct = Math.round(((index + 1) / total) * 100);
+  if (progressFill) progressFill.style.width = pct + "%";
+  if (statusEl) statusEl.textContent = `${index + 1}/${total} — ${escapeHtml(guestName)}`;
+  if (sentEl) sentEl.textContent = String(index + 1);
+}
+
+function showBlastComplete(sent: number, errors: number): void {
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="bi bi-check-circle"></i> Selesai';
+  }
+
+  hide(document.getElementById("wa-blast-progress"));
+
+  const summaryEl = document.getElementById("wa-blast-summary");
+  show(summaryEl);
+
+  const sentEl = document.getElementById("wa-blast-sent");
+  const errEl = document.getElementById("wa-blast-errors");
+  if (sentEl) sentEl.textContent = String(sent);
+  if (errEl) errEl.textContent = String(errors);
+}
+
+// --- Entry points ---
+
+function openWaBlastModal(ids: string[]): void {
+  const totalSelected = ids.length;
+  waBlastTargetIds = ids.filter((id) => {
+    const g = guestList.find((x) => x.id === id);
+    return g?.nomor_wa && cleanPhone(g.nomor_wa).length > 0;
+  });
+
+  const skipped = totalSelected - waBlastTargetIds.length;
+  const skipWarning = document.getElementById("wa-blast-skip-warning");
+  if (skipWarning) {
+    if (skipped > 0) {
+      skipWarning.style.display = "";
+      const countEl = document.getElementById("wa-blast-skip-count");
+      if (countEl) countEl.textContent = String(skipped);
+    } else {
+      skipWarning.style.display = "none";
+    }
+  }
+
+  waBlastIndex = 0;
+  waBlastSent = 0;
+  waBlastErrors = 0;
+
+  const total = waBlastTargetIds.length;
+  resetBlastUI(total);
+  if (total > 0) updateSendButton(0, total);
+  showModal("wa-blast-overlay");
+}
+
+/** Kirim undangan ke tamu berikutnya — sinkron agar tidak diblokir popup blocker */
+function sendNextWa(): void {
+  if (waBlastIndex >= waBlastTargetIds.length) return;
+
+  const id = waBlastTargetIds[waBlastIndex];
+  const g = guestList.find((x) => x.id === id);
+  if (!g) {
+    waBlastErrors++;
+    waBlastIndex++;
+    if (waBlastIndex < waBlastTargetIds.length) {
+      updateSendButton(waBlastIndex, waBlastTargetIds.length);
+    }
+    return;
+  }
+
+  // Progress bar dan summary muncul setelah klik pertama
+  if (waBlastIndex === 0) {
+    show(document.getElementById("wa-blast-progress"));
+  }
+
+  const phone = cleanPhone(g.nomor_wa ?? "");
+  updateBlastProgress(waBlastIndex, waBlastTargetIds.length, g.name);
+
+  // window.open dipanggil SINKRON dalam user gesture — tidak akan diblokir
+  const waTab = window.open(buildWaUrl(g.slug, phone), "_blank");
+  if (!waTab) {
+    waBlastErrors++;
+    const statusEl = document.getElementById("wa-blast-status");
+    if (statusEl) statusEl.textContent = `${waBlastIndex + 1}/${waBlastTargetIds.length} — popup diblokir, izinkan popup untuk situs ini`;
+  } else {
+    waBlastSent++;
+  }
+
+  waBlastIndex++;
+
+  if (waBlastIndex >= waBlastTargetIds.length) {
+    // Semua sudah dikirim
+    showBlastComplete(waBlastSent, waBlastErrors);
+  } else {
+    updateSendButton(waBlastIndex, waBlastTargetIds.length);
+  }
+}
+
+// --- Download card state ---
+let downloadCardIds: string[] = [];
+
+// --- Download card functions ---
+
+/** Buka modal unduh kartu — mirror openWaBlastModal */
+function openDownloadModal(ids: string[]): void {
+  // Filter tamu yang punya slug (card memerlukan slug untuk identitas)
+  downloadCardIds = ids.filter((id) => {
+    const g = guestList.find((x) => x.id === id);
+    return g?.slug;
+  });
+
+  const listEl = document.getElementById("download-card-guest-list");
+  if (listEl) {
+    const names = downloadCardIds.map((id) => {
+      const g = guestList.find((x) => x.id === id);
+      return g?.name ?? "Tamu";
+    });
+    if (names.length <= 2) {
+      listEl.textContent = names.join(", ");
+    } else {
+      listEl.textContent = `${names[0]}, ${names[1]}, dan ${names.length - 2} tamu lainnya`;
+    }
+  }
+
+  // Reset radio ke landscape
+  const landscapeRadio = document.getElementById("download-card-format-landscape") as HTMLInputElement | null;
+  const portraitRadio = document.getElementById("download-card-format-portrait") as HTMLInputElement | null;
+  if (landscapeRadio) landscapeRadio.checked = true;
+  if (portraitRadio) portraitRadio.checked = false;
+
+  // Hide progress & errors
+  const progressEl = document.getElementById("download-card-progress");
+  const errorsEl = document.getElementById("download-card-errors");
+  if (progressEl) progressEl.classList.add("d-none-important");
+  if (errorsEl) errorsEl.classList.add("d-none-important");
+
+  // Enable download button
+  const downloadBtn = document.getElementById("download-card-download-btn") as HTMLButtonElement | null;
+  if (downloadBtn) downloadBtn.disabled = false;
+
+  showModal("download-card-overlay");
+}
+
+/** Mirror buildCardHTML() dari card-page.ts — tanpa toolbar dan tombol download */
+function buildCardHTML(
+  guest: { id: string; name: string },
+  qrToken: string | null,
+  format: "landscape" | "portrait",
+): string {
+  const data = {
+    nama: guest.name,
+    tanggal: "Sabtu, 22 Agustus 2026",
+    lokasi: "RIVEA Riverside Cafe and Space, Ngaglik, Sleman, DIY",
+    dressCode: "Formal / semi-formal",
+  };
+
+  const qrId = `card-qr-${guest.id}`;
+
+  return `
+    <section class="invitation-card ${format}" aria-label="Kartu undangan pernikahan Reza dan Ashila">
+      <div class="card-header-section">
+        <p class="card-label">Kartu Undangan Pernikahan</p>
+        <h1 class="card-couple-name">Reza &amp; Ashila</h1>
+      </div>
+      <img src="/assets/img/ornamen.svg" alt="ornament" class="ornament ornament-top">
+      <img src="/assets/img/ornamen.svg" alt="ornament" class="ornament ornament-bottom">
+      <div class="card-body-row">
+        <div class="card-body-info">
+          <dl class="card-info-list">
+            <div class="card-info-row">
+              <dt class="card-info-label">Nama</dt>
+              <dd class="card-info-value">${escapeHtml(data.nama)}</dd>
+            </div>
+            <div class="card-info-row">
+              <dt class="card-info-label">Tanggal</dt>
+              <dd class="card-info-value">${escapeHtml(data.tanggal)}</dd>
+            </div>
+            <div class="card-info-row">
+              <dt class="card-info-label">Lokasi</dt>
+              <dd class="card-info-value">${escapeHtml(data.lokasi)}</dd>
+            </div>
+            <div class="card-info-row">
+              <dt class="card-info-label">Dress code</dt>
+              <dd class="card-info-value">${escapeHtml(data.dressCode)}</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="card-body-qr">
+          <div class="card-qr card-qr--loading" id="${qrId}" role="img" aria-label="Memuat kode QR untuk ${escapeAttr(guest.name)}"></div>
+        </div>
+      </div>
+      <div class="card-footer-section">
+        <p class="card-instruction">Simpan kartu ini dan tunjukkan saat hari acara</p>
+      </div>
+    </section>
+  `;
+}
+
+/** Capture card element to canvas — mirror card-page.ts handleDownload */
+function captureCard(element: HTMLElement): Promise<HTMLCanvasElement> {
+  const scale = window.devicePixelRatio > 1 ? 2 : 1;
+  return html2canvas(element, {
+    scale,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
+    onclone: (clonedDoc: Document) => {
+      const clonedCard = clonedDoc.querySelector(".invitation-card") as HTMLElement | null;
+      if (clonedCard) {
+        clonedCard.style.transition = "none";
+        clonedCard.style.transform = "none";
+      }
+    },
+  });
+}
+
+/** Wrap canvas.toBlob in Promise */
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+}
+
+/** Download single PNG blob via anchor click */
+function downloadSingleCard(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = fileName;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Fetch qr_token dari tabel reservations untuk satu tamu */
+async function fetchTokenForGuest(guestId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("reservations")
+    .select("qr_token")
+    .eq("id", guestId)
+    .single();
+  if (error || !data?.qr_token) return null;
+  return data.qr_token as string;
+}
+
+/** Orchestrator: render, capture, dan download kartu untuk satu atau banyak tamu */
+async function downloadCards(ids: string[], format: "landscape" | "portrait"): Promise<void> {
+  const container = document.getElementById("card-render-container");
+  const downloadBtn = document.getElementById("download-card-download-btn") as HTMLButtonElement | null;
+  const progressBar = document.getElementById("download-card-progress");
+  const progressFill = document.getElementById("download-card-progress-fill") as HTMLElement | null;
+  const progressStatus = document.getElementById("download-card-progress-status");
+  const errorsEl = document.getElementById("download-card-errors");
+
+  if (!container) return;
+
+  try {
+    // 1. Fetch token untuk semua tamu
+    const tokenResults = await Promise.allSettled(ids.map((id) => fetchTokenForGuest(id)));
+
+    // 2. Build array valid guests: punya slug dan qr_token
+    interface ValidGuest {
+      id: string;
+      name: string;
+      slug: string;
+      qrToken: string;
+    }
+
+    const valid: ValidGuest[] = [];
+    let skipped = 0;
+
+    for (let i = 0; i < ids.length; i++) {
+      const result = tokenResults[i];
+      const token = result.status === "fulfilled" ? result.value : null;
+      const g = guestList.find((x) => x.id === ids[i]);
+
+      if (!g?.slug || !token) {
+        skipped++;
+        continue;
+      }
+      valid.push({ id: g.id, name: g.name, slug: g.slug, qrToken: token });
+    }
+
+    // 3. Jika semua tidak valid
+    if (valid.length === 0) {
+      if (errorsEl) {
+        errorsEl.classList.remove("d-none-important");
+        errorsEl.textContent = "Semua tamu dipilih tidak valid — tidak memiliki slug atau token QR.";
+      }
+      if (downloadBtn) downloadBtn.disabled = true;
+      return;
+    }
+
+    // 4. Set loading state
+    if (downloadBtn) downloadBtn.disabled = true;
+    if (progressBar) progressBar.classList.remove("d-none-important");
+    if (errorsEl) errorsEl.classList.add("d-none-important");
+
+    const blobs: { blob: Blob; slug: string }[] = [];
+    const total = valid.length;
+    let completed = 0;
+
+    // Reset container
+    container.innerHTML = "";
+
+    // 5. Proses dalam batch 4 concurrent
+    const CONCURRENCY = 4;
+
+    for (let batch = 0; batch < valid.length; batch += CONCURRENCY) {
+      const batchSlice = valid.slice(batch, batch + CONCURRENCY);
+      const batchResults = await Promise.allSettled(
+        batchSlice.map(async (v): Promise<{ blob: Blob; slug: string }> => {
+          // Render HTML
+          const cardHTML = buildCardHTML(
+            { id: v.id, name: v.name },
+            v.qrToken,
+            format,
+          );
+
+          // Set HTML di container
+          container.innerHTML = cardHTML;
+
+          // Generate QR code (await sebelum capture untuk hindari race condition)
+          const qrEl = document.getElementById(`card-qr-${v.id}`);
+          if (qrEl && v.qrToken) {
+            const qrCanvas = document.createElement("canvas");
+            await new Promise<void>((resolveQr, rejectQr) => {
+              QRCode.toCanvas(qrCanvas, v.qrToken, {
+                width: 300,
+                margin: 2,
+                color: { dark: "#0a0a0a", light: "#ffffff" },
+                errorCorrectionLevel: "H",
+              }, (err: Error | null | undefined) => {
+                if (err) rejectQr(err);
+                else {
+                  qrEl.classList.remove("card-qr--loading");
+                  qrEl.appendChild(qrCanvas);
+                  resolveQr();
+                }
+              });
+            });
+          }
+
+          // Capture
+          const card = container.querySelector(".invitation-card") as HTMLElement | null;
+          if (!card) throw new Error("Card element not found");
+          card.classList.add("exporting");
+          const canvas = await captureCard(card);
+          const blob = await canvasToBlob(canvas);
+          return { blob, slug: v.slug };
+        }),
+      );
+
+      // Track results
+      for (let j = 0; j < batchResults.length; j++) {
+        const r = batchResults[j];
+        completed++;
+        if (r.status === "fulfilled") {
+          blobs.push(r.value);
+        } else {
+          skipped++;
+        }
+
+        // Update progress
+        const pct = Math.round((completed / total) * 100);
+        if (progressFill) progressFill.style.width = `${pct}%`;
+        if (progressStatus) progressStatus.textContent = `${completed}/${total} kartu selesai`;
+      }
+    }
+
+    // 6. Download hasil
+    if (blobs.length === 1) {
+      const fileName = `kartu-undangan-${blobs[0].slug}.png`;
+      downloadSingleCard(blobs[0].blob, fileName);
+    } else if (blobs.length > 1) {
+      const zip = new JSZip();
+      for (const { blob, slug } of blobs) {
+        zip.file(`kartu-undangan-${slug}.png`, blob);
+      }
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.download = "kartu-undangan.zip";
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    showToast(
+      `${blobs.length} kartu undangan berhasil diunduh.` +
+        (skipped > 0 ? ` ${skipped} tamu dilewati.` : ""),
+      skipped > 0,
+    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh kartu.";
+    showToast(message, true);
+  } finally {
+    // 7. Cleanup — always runs
+    if (progressBar) progressBar.classList.add("d-none-important");
+    if (downloadBtn) downloadBtn.disabled = false;
+    container.innerHTML = "";
+    hideModal("download-card-overlay");
+  }
+}
+

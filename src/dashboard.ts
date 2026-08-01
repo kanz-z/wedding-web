@@ -4,6 +4,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./styles/dashboard.css";
+import "@/styles/card.css";
 
 // Dashboard modules
 import { initNotifications, initModals, initKeyboard, renderNotifications } from "./dashboard/ui";

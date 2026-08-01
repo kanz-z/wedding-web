@@ -51,6 +51,7 @@ export function setSortKey(k: string): void {
 export function setSearchQuery(q: string): void {
   searchQuery = q;
   currentPage = 0;
+  selectedIds.clear();
 }
 
 export function resetFilters(): void {
@@ -68,6 +69,7 @@ export function resetFilters(): void {
   });
   document.getElementById("search-box")?.classList.remove("has-value");
   currentPage = 0;
+  selectedIds.clear();
 }
 
 /** Status check-in berdasarkan checkedIn vs guest_count */

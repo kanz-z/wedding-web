@@ -450,6 +450,24 @@
             </span>
             <div class="msg-card__actions">
               <button
+                class="btn-dash btn-dash-accent"
+                id="bulk-wa"
+                type="button"
+                style="min-height: 36px"
+              >
+                <i class="bi bi-whatsapp"></i>
+                Kirim Undangan Banyak
+              </button>
+              <button
+                class="btn-dash btn-dash-outline"
+                id="bulk-download"
+                type="button"
+                style="min-height: 36px"
+              >
+                <i class="bi bi-download"></i>
+                Unduh Kartu
+              </button>
+              <button
                 class="btn-dash btn-dash-outline"
                 id="bulk-del"
                 type="button"
@@ -1701,6 +1719,84 @@
         </div>
       </div>
     </div>
+
+    <!-- WhatsApp Blast Modal -->
+    <div class="modal-overlay" id="wa-blast-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="wa-blast-title">
+        <div class="modal-dash__header">
+          <h2 id="wa-blast-title">Kirim Undangan WhatsApp</h2>
+          <button class="modal-dash__close" id="wa-blast-close-btn" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <div class="wa-blast-warning">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>Kirim satu per satu</strong><br>
+            Setiap klik tombol "Kirim" akan membuka satu tab WhatsApp Web dengan pesan undangan. Klik "Send" di WhatsApp, tutup tab, lalu klik "Kirim" lagi untuk tamu berikutnya.
+          </div>
+          <div id="wa-blast-skip-warning" style="display:none; background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0; color: #92400e;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Perhatian:</strong> <span id="wa-blast-skip-count">0</span> tamu dilewati karena tidak memiliki nomor WhatsApp.
+          </div>
+          <p style="margin-bottom: 1rem">Undangan yang akan dikirim: <strong id="wa-blast-count">0</strong></p>
+          <div id="wa-blast-progress" class="d-none-important">
+            <div class="wa-blast-progress-bar"><div class="wa-blast-progress-fill" id="wa-blast-progress-fill"></div></div>
+            <p class="wa-blast-status" id="wa-blast-status"></p>
+          </div>
+          <div id="wa-blast-summary" class="d-none-important wa-blast-summary">
+            <p>✅ <span id="wa-blast-sent">0</span> berhasil dikirim</p>
+            <p>⚠️ <span id="wa-blast-skipped">0</span> dilewati</p>
+            <p>❌ <span id="wa-blast-errors">0</span> gagal</p>
+          </div>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" id="wa-blast-close-modal-btn" type="button">Tutup</button>
+          <button class="btn-dash btn-dash-accent" id="wa-blast-send-btn" type="button">
+            <i class="bi bi-whatsapp"></i> Kirim
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download Card Modal -->
+    <div class="modal-overlay" id="download-card-overlay">
+      <div class="modal-dash" role="dialog" aria-modal="true" aria-labelledby="download-card-title">
+        <div class="modal-dash__header">
+          <h2 id="download-card-title">Unduh Kartu Undangan</h2>
+          <button class="modal-dash__close" id="download-card-close-btn" data-modal-close aria-label="Tutup">&times;</button>
+        </div>
+        <div class="modal-dash__body">
+          <p style="margin-bottom: 0.5rem">Kartu undangan untuk:</p>
+          <p class="wa-blast-name-list" id="download-card-guest-list"></p>
+
+          <fieldset style="margin-bottom: 1rem; border: none; padding: 0">
+            <legend style="font-weight: 600; margin-bottom: 0.5rem">Pilih format kartu:</legend>
+            <label style="margin-right: 1.5rem; cursor: pointer">
+              <input type="radio" name="downloadCardFormat" id="download-card-format-landscape" value="landscape" checked>
+              Landscape
+            </label>
+            <label style="cursor: pointer">
+              <input type="radio" name="downloadCardFormat" id="download-card-format-portrait" value="portrait">
+              Portrait
+            </label>
+          </fieldset>
+
+          <div id="download-card-progress" class="d-none-important">
+            <div class="wa-blast-progress-bar"><div class="wa-blast-progress-fill" id="download-card-progress-fill"></div></div>
+            <p class="wa-blast-status" id="download-card-progress-status"></p>
+          </div>
+          <p id="download-card-errors" class="d-none-important wa-blast-summary" style="color: #991b1b"></p>
+        </div>
+        <div class="modal-dash__footer">
+          <button class="btn-dash btn-dash-outline" id="download-card-close-modal-btn" type="button">Tutup</button>
+          <button class="btn-dash btn-dash-accent" id="download-card-download-btn" type="button">
+            <i class="bi bi-download"></i> Unduh
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden container for card rendering -->
+    <div id="card-render-container" style="position:fixed;top:-200%;left:-200%;width:800px;height:566px;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
 
     <div id="toast" class="toast-global"></div>
 
