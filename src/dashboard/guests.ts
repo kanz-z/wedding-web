@@ -176,7 +176,7 @@ function renderGuestRow(g: GuestWithMeta): string {
       <button type="button" data-action="detail" data-id="${g.id}" title="Detail" aria-label="Detail ${escapeAttr(g.name)}"><i class="bi bi-eye"></i></button>
       <button type="button" data-action="edit" data-id="${g.id}" title="Edit" aria-label="Edit ${escapeAttr(g.name)}"><i class="bi bi-pencil"></i></button>
       <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeAttr(g.name)}" class="${cDisabled}"><i class="bi bi-qr-code-scan"></i></button>
-      <button type="button" data-action="wa" data-id="${g.id}" title="Kirim WA" aria-label="Kirim WA ke ${escapeAttr(g.name)}" ${!g.nomor_wa ? "disabled" : ""}><i class="bi bi-whatsapp"></i></button>
+      <button type="button" data-action="wa" data-id="${g.id}" title="${!g.nomor_wa ? "Tamu tidak memiliki nomor WhatsApp" : "Kirim WA"}" aria-label="Kirim WA ke ${escapeAttr(g.name)}" ${!g.nomor_wa ? "disabled" : ""}><i class="bi bi-whatsapp"></i></button>
       <button type="button" data-action="download" data-id="${g.id}" title="Unduh Kartu" aria-label="Unduh kartu ${escapeAttr(g.name)}"><i class="bi bi-download"></i></button>
     </div></td></tr>`;
 }
@@ -262,6 +262,7 @@ export function renderGuestTable(): void {
 
   updateSortIndicators();
   updateSelectAll();
+  updateBulkBar();
 
   const infoEl = document.getElementById("guest-pagination-info");
   if (infoEl) {
@@ -1382,10 +1383,23 @@ function showBlastComplete(sent: number, errors: number): void {
 // --- Entry points ---
 
 function openWaBlastModal(ids: string[]): void {
+  const totalSelected = ids.length;
   waBlastTargetIds = ids.filter((id) => {
     const g = guestList.find((x) => x.id === id);
     return g?.nomor_wa && cleanPhone(g.nomor_wa).length > 0;
   });
+
+  const skipped = totalSelected - waBlastTargetIds.length;
+  const skipWarning = document.getElementById("wa-blast-skip-warning");
+  if (skipWarning) {
+    if (skipped > 0) {
+      skipWarning.style.display = "";
+      const countEl = document.getElementById("wa-blast-skip-count");
+      if (countEl) countEl.textContent = String(skipped);
+    } else {
+      skipWarning.style.display = "none";
+    }
+  }
 
   waBlastIndex = 0;
   waBlastSent = 0;
