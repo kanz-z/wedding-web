@@ -31,6 +31,8 @@
   --card-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
+
+  --font-scale: 0.85;
 }
 
 /* --------------------------------------------------------------------------
@@ -223,6 +225,18 @@
   overflow: hidden;
 }
 
+/* Inner frame via pseudo-element */
+.invitation-card::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid var(--card-cream-200);
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 1;
+}
+
 .ornament {
   position: absolute;
   width: clamp(80px, 20%, 180px); /* Responsif */
@@ -247,13 +261,13 @@
 /* Landscape */
 .invitation-card.landscape {
   --canvas-width: 800px;
-  --canvas-height: 566px;
+  --canvas-height: 490px;
   --card-scale: min(1, calc((100vw - 48px) / 800px));
 
   width: 800px;
-  height: 566px;
-  padding: 32px 40px;
-  gap: 20px;
+  height: 490px;
+  padding: 40px 48px;
+  gap: 16px;
 
   /* Compensate layout space so content below sits flush */
   margin-bottom: calc(var(--canvas-height) * (var(--card-scale) - 1));
@@ -262,12 +276,12 @@
 /* Portrait */
 .invitation-card.portrait {
   --canvas-width: 400px;
-  --canvas-height: 566px;
+  --canvas-height: 490px;
   --card-scale: min(1, calc((100vw - 48px) / 400px));
 
   width: 400px;
-  height: 566px;
-  padding: 28px 32px;
+  height: 490px;
+  padding: 36px 36px;
   gap: 16px;
 
   margin-bottom: calc(var(--canvas-height) * (var(--card-scale) - 1));
@@ -283,11 +297,13 @@
 }
 
 .card-label {
-  margin: 0 0 8px;
-  font-family: var(--card-serif);
-  font-size: 14px;
-  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+  font-family: var(--card-sans);
+  font-size: calc(11px * var(--font-scale));
+  font-weight: 500;
+  letter-spacing: 0.15em;
   color: var(--card-ink-500);
+  opacity: 0.7;
   text-transform: uppercase;
 }
 
@@ -296,8 +312,8 @@
   font-family: var(--card-serif);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.045em;
-  font-size: 32px;
+  letter-spacing: 0.06em;
+  font-size: 36px;
   color: var(--card-ink-900);
   line-height: 1.1;
 }
@@ -321,12 +337,24 @@
 .invitation-card.landscape .card-body-row {
   flex-direction: row;
   align-items: center;
-  gap: 32px;
+  gap: 44px;
 }
 
 .invitation-card.landscape .card-body-info {
   flex: 1 1 0;
   min-width: 0;
+  position: relative;
+}
+
+/* Vertical divider between info and QR — landscape only */
+.invitation-card.landscape .card-body-info::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--card-cream-200);
 }
 
 .invitation-card.landscape .card-body-qr {
@@ -352,6 +380,17 @@
   justify-content: center;
 }
 
+/* Guest name highlight — separated from info list */
+.card-guest-highlight {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-cream-200);
+}
+
+.card-guest-highlight .card-info-value--guest-name {
+  margin-top: 2px;
+}
+
 /* --------------------------------------------------------------------------
    Guest Info — FIXED sizes
    -------------------------------------------------------------------------- */
@@ -366,7 +405,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .card-info-row {
@@ -380,19 +419,31 @@
 
 .card-info-label {
   font-weight: 600;
-  flex: 0 0 100px;
+  flex: 0 0 85px;
   color: var(--card-ink-500);
-  font-size: 12px;
+  font-family: var(--card-sans);
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 .card-info-value {
   font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--card-ink-900);
   margin: 0;
   word-break: break-word;
   overflow-wrap: break-word;
+}
+
+/* Guest name highlight */
+.card-info-value--guest-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--card-ink-900);
+  font-family: var(--card-serif);
+  letter-spacing: 0.02em;
 }
 
 /* --------------------------------------------------------------------------
@@ -410,13 +461,14 @@
 .card-qr {
   position: relative;
   z-index: 0;
-  width: 180px;
-  height: 180px;
+  width: 155px;
+  height: 155px;
   background: var(--card-white);
-  border-radius: 24%;
+  border-radius: 14px;
+  border: 1px solid var(--card-cream-200);
   box-shadow:
-    0 22px 40px -12px rgba(30, 28, 20, 0.18),
-    0 8px 18px -6px rgba(30, 28, 20, 0.1);
+    0 8px 20px -8px rgba(30, 28, 20, 0.12),
+    0 2px 8px -2px rgba(30, 28, 20, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -429,7 +481,7 @@
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    rgba(30, 28, 20, 0.08),
+    rgba(30, 28, 20, 0.04),
     rgba(30, 28, 20, 0) 72%
   );
   z-index: -1;
@@ -438,9 +490,9 @@
 
 .card-qr canvas,
 .card-qr img {
-  border-radius: 20%;
-  max-width: 144px;
-  max-height: 144px;
+  border-radius: 10px;
+  max-width: 124px;
+  max-height: 124px;
   width: auto;
   height: auto;
   display: block;
@@ -478,9 +530,8 @@
 
 .card-instruction {
   margin: 0;
-  font-family: var(--card-serif);
-  font-style: italic;
-  font-size: 14px;
+  font-family: var(--card-sans);
+  font-size: 13px;
   color: var(--card-ink-500);
   line-height: 1.5;
 }

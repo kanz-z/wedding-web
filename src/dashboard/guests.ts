@@ -1550,11 +1550,11 @@ function buildCardHTML(
       <img src="/assets/img/ornamen.svg" alt="ornament" class="ornament ornament-bottom">
       <div class="card-body-row">
         <div class="card-body-info">
+          <div class="card-guest-highlight">
+            <p class="card-info-label">Kepada Yth.</p>
+            <p class="card-info-value card-info-value--guest-name">${escapeHtml(data.nama)}</p>
+          </div>
           <dl class="card-info-list">
-            <div class="card-info-row">
-              <dt class="card-info-label">Nama</dt>
-              <dd class="card-info-value">${escapeHtml(data.nama)}</dd>
-            </div>
             <div class="card-info-row">
               <dt class="card-info-label">Tanggal</dt>
               <dd class="card-info-value">${escapeHtml(data.tanggal)}</dd>
