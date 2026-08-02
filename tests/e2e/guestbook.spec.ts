@@ -1,6 +1,6 @@
-﻿import { test, expect } from '@playwright/test';
-import { LandingPage } from '../pages/LandingPage';
-import { GUESTBOOK_ENTRY, SUPABASE_CONFIG } from '../fixtures/test-data';
+﻿import { test, expect } from "@playwright/test";
+import { LandingPage } from "../pages/LandingPage";
+import { GUESTBOOK_ENTRY, SUPABASE_CONFIG } from "../fixtures/test-data";
 
 /**
  * Guestbook — Ucapan & Doa
@@ -12,7 +12,7 @@ import { GUESTBOOK_ENTRY, SUPABASE_CONFIG } from '../fixtures/test-data';
  *         Tetap gunakan data unik (timestamp) untuk menghindari rate limit.
  */
 
-test.describe('Guestbook — Ucapan & Doa', () => {
+test.describe("Guestbook — Ucapan & Doa", () => {
   let landing: LandingPage;
 
   test.beforeEach(async ({ page }) => {
@@ -26,8 +26,8 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    * Expected: Input nama + textarea ucapan + tombol kirim tampil
    * Artifacts: Screenshot on failure
    * ────────────────────────────────────────────── */
-  test('form guestbook — input dan tombol tampil', async () => {
-    await landing.scrollToSection('guestbook-section');
+  test("form guestbook — input dan tombol tampil", async () => {
+    await landing.scrollToSection("guestbook-section");
 
     await expect(landing.guestbookNameInput).toBeVisible();
     await expect(landing.guestbookMessageInput).toBeVisible();
@@ -44,23 +44,25 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    * Safety: Ucapan masuk pending — tidak tampil publik tanpa approve admin.
    * Artifacts: Screenshot on failure
    * ────────────────────────────────────────────── */
-  test('kirim ucapan — muncul feedback sukses', async ({ page }) => {
+  test("kirim ucapan — muncul feedback sukses", async ({ page }) => {
     const uniqueName = `E2E-${Date.now()}`;
 
     // Setup network waiter SEBELUM submit
-    const responsePromise = page.waitForResponse(
-      resp => resp.url().includes('functions.supabase.co') || resp.url().includes('rate-limit-guestbook'),
-      { timeout: 15_000 },
-    ).catch(() => null);
+    const responsePromise = page
+      .waitForResponse(
+        (resp) =>
+          resp.url().includes("functions.supabase.co") ||
+          resp.url().includes("rate-limit-guestbook"),
+        { timeout: 15_000 },
+      )
+      .catch(() => null);
 
     await landing.submitGuestbookMessage(uniqueName, GUESTBOOK_ENTRY.pesan);
 
     await responsePromise;
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState("networkidle").catch(() => {});
 
-    const successOrMessage = page.locator(
-      '.toast, [role="alert"], [class*="success"]',
-    );
+    const successOrMessage = page.locator("#statusMessage");
     const hasFeedback = (await successOrMessage.count()) > 0;
     expect(hasFeedback).toBe(true);
   });
@@ -73,8 +75,8 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    * Note: Ucapan individual hanya tampil jika is_approved=true.
    * Artifacts: Screenshot on failure
    * ────────────────────────────────────────────── */
-  test('guestbook — daftar ucapan tampil', async () => {
-    await landing.scrollToSection('guestbook-section');
+  test("guestbook — daftar ucapan tampil", async () => {
+    await landing.scrollToSection("guestbook-section");
     await expect(landing.guestbookSection).toBeVisible();
   });
 
@@ -83,15 +85,17 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    * Expected: .gb-error-msg muncul atau form tidak crash
    * Artifacts: Screenshot on failure
    * ────────────────────────────────────────────── */
-  test('guestbook -- profanity filter blocks bad words', async ({ page }) => {
+  test("guestbook -- profanity filter blocks bad words", async ({ page }) => {
     const uniqueName = `E2E-Filter-${Date.now()}`;
-    await landing.submitGuestbookMessage(uniqueName, 'kata-kasar-test');
+    await landing.submitGuestbookMessage(uniqueName, "kata-kasar-test");
 
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState("networkidle").catch(() => {});
     await page.waitForTimeout(1000);
 
-    const errorVisible = await landing.guestbookErrorMsg.isVisible().catch(() => false);
-    expect(typeof errorVisible).toBe('boolean');
+    const errorVisible = await landing.guestbookErrorMsg
+      .isVisible()
+      .catch(() => false);
+    expect(typeof errorVisible).toBe("boolean");
   });
 
   /* ──────────────────────────────────────────────
@@ -99,11 +103,11 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    * Expected: #gb-pagination atau .pagination ada
    * Artifacts: Screenshot on failure
    * ────────────────────────────────────────────── */
-  test('guestbook -- pagination renders', async () => {
-    await landing.scrollToSection('guestbook-section');
-    const pagination = landing.page.locator('#gb-pagination, .pagination');
+  test("guestbook -- pagination renders", async () => {
+    await landing.scrollToSection("guestbook-section");
+    const pagination = landing.page.locator("#gb-pagination, .pagination");
     const exists = (await pagination.count()) > 0;
-    expect(typeof exists).toBe('boolean');
+    expect(typeof exists).toBe("boolean");
   });
 
   /* ──────────────────────────────────────────────
@@ -111,15 +115,15 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    * Expected: .gb-entry punya sub-elements
    * Artifacts: Screenshot on failure
    * ────────────────────────────────────────────── */
-  test('guestbook -- message entry has name text time', async () => {
-    await landing.scrollToSection('guestbook-section');
-    const entries = landing.page.locator('.gb-entry');
+  test("guestbook -- message entry has name text time", async () => {
+    await landing.scrollToSection("guestbook-section");
+    const entries = landing.page.locator(".gb-entry");
     const count = await entries.count();
     if (count > 0) {
       const first = entries.first();
-      const hasName = (await first.locator('.gb-name').count()) > 0;
-      const hasMsg = (await first.locator('.gb-msg').count()) > 0;
-      const hasTime = (await first.locator('.gb-time').count()) > 0;
+      const hasName = (await first.locator(".gb-name").count()) > 0;
+      const hasMsg = (await first.locator(".gb-msg").count()) > 0;
+      const hasTime = (await first.locator(".gb-time").count()) > 0;
       expect(hasName || hasMsg || hasTime).toBe(true);
     }
   });
@@ -130,10 +134,13 @@ test.describe('Guestbook — Ucapan & Doa', () => {
    *         tidak selalu tampil di production.
    * Issue: #GB-CHAR-COUNTER
    * ────────────────────────────────────────────── */
-  test('guestbook — karakter counter 0/500 tampil', async () => {
-    test.skip(!!process.env.CI, 'Counter karakter kadang tidak dirender di production — #GB-CHAR-COUNTER');
+  test("guestbook — karakter counter 0/500 tampil", async () => {
+    test.skip(
+      !!process.env.CI,
+      "Counter karakter kadang tidak dirender di production — #GB-CHAR-COUNTER",
+    );
 
-    await landing.scrollToSection('guestbook-section');
+    await landing.scrollToSection("guestbook-section");
     await expect(landing.guestbookCharCount).toBeVisible();
   });
 });
