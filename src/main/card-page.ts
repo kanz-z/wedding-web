@@ -204,6 +204,7 @@ function bindEvents(): void {
       card.classList.add("landscape");
       landscapeInput.setAttribute("aria-checked", "true");
       portraitInput?.setAttribute("aria-checked", "false");
+      triggerQRBounce(card);
     }
   });
 
@@ -213,12 +214,26 @@ function bindEvents(): void {
       card.classList.add("portrait");
       portraitInput.setAttribute("aria-checked", "true");
       landscapeInput?.setAttribute("aria-checked", "false");
+      triggerQRBounce(card);
     }
   });
 
   document
     .getElementById("btn-download-card")
     ?.addEventListener("click", handleDownload);
+}
+
+/* ------------------------------------------------------------------ */
+/*  QR Bounce Animation                                               */
+/* ------------------------------------------------------------------ */
+
+function triggerQRBounce(card: HTMLElement): void {
+  card.classList.add("qr-bounce");
+  card.addEventListener(
+    "animationend",
+    () => card.classList.remove("qr-bounce"),
+    { once: true },
+  );
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,5 +1,6 @@
 /* ==========================================================================
    Invitation Card — Fixed Canvas with Viewport Auto-Scale
+   Dual-Orientation: Landscape & Portrait via CSS Grid
    ========================================================================== */
 
 /*
@@ -7,8 +8,11 @@
  * The canvas auto-scales to fit the available viewport while preserving
  * all internal proportions.
  *
- * Internal layout, typography, colors, spacing — NEVER reflow or change.
- * Only the overall scale changes based on viewport width.
+ * Two truly distinct layouts:
+ *   Landscape  — 2-column grid, QR on the right
+ *   Portrait   — single-column grid, QR at the top
+ *
+ * Both use √2:1 aspect ratio (A-series paper ratio).
  *
  * JS may override --card-scale via inline style for custom behaviour.
  */
@@ -32,7 +36,8 @@
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
 
-  --font-scale: 0.85;
+  /* Default: landscape scale. Portrait overrides this. */
+  --font-scale: 1;
 }
 
 /* --------------------------------------------------------------------------
@@ -189,16 +194,26 @@
 }
 
 /* --------------------------------------------------------------------------
-   Invitation Card — FIXED CANVAS with auto-scale
+   Invitation Card — CSS GRID, FIXED CANVAS with auto-scale
    -------------------------------------------------------------------------- */
 
 /*
- * Landscape canvas: 800px × 566px  (A4 ratio)
- * Portrait canvas:  400px × 566px  (A4 inverted)
+ * Two distinct layouts:
  *
- * --card-scale is auto-calculated from viewport width.
- * It never exceeds 1 (canvas never grows beyond designed size).
- * JS may override --card-scale for custom fitting logic.
+ *   LANDSCAPE (800×566)               PORTRAIT (400×566)
+ *   ┌───────────┬──────────┐          ┌──────────┐
+ *   │   Header              │          │  Header  │
+ *   ├───────────┼──────────┤          ├──────────┤
+ *   │  Guest    │ QR Code  │          │ QR Code  │ ← QR pindah ke atas,
+ *   │  Info     │  155px   │          │  110px   │   lebih kecil
+ *   ├───────────┴──────────┤          ├──────────┤
+ *   │        Footer         │          │  Guest   │
+ *   └───────────────────────┘          │  Info    │
+ *                                      ├──────────┤
+ *                                      │  Footer  │
+ *                                      └──────────┘
+ *
+ * Both share √2:1 aspect ratio (A-series paper ratio).
  */
 
 .invitation-card {
@@ -211,18 +226,52 @@
   overflow: hidden;
   border: 1px solid rgba(30, 28, 20, 0.06);
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-
+  display: grid;
   box-sizing: border-box;
 
   /* Scale the entire canvas as one unit */
   transform: scale(var(--card-scale));
   transform-origin: top center;
+}
 
-  overflow: hidden;
+/* ---- Shared grid-area placement ---- */
+.card-header-section {
+  grid-area: hdr;
+}
+.card-body-row {
+  display: contents;
+}
+.card-body-info {
+  grid-area: info;
+}
+.card-body-qr {
+  grid-area: qr;
+}
+.card-footer-section {
+  grid-area: ftr;
+}
+
+/*
+ * Absolutely-positioned ornaments are excluded from grid flow —
+ * they position themselves relative to the card's padding box.
+ */
+.ornament {
+  position: absolute;
+  width: clamp(80px, 20%, 180px);
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ornament-top {
+  top: 0;
+  right: 0;
+}
+
+.ornament-bottom {
+  bottom: 0;
+  left: 0;
+  transform: scale(-1, -1);
 }
 
 /* Inner frame via pseudo-element */
@@ -237,63 +286,123 @@
   z-index: 1;
 }
 
-.ornament {
-  position: absolute;
-  width: clamp(80px, 20%, 180px); /* Responsif */
-  height: auto;
-  pointer-events: none; /* Tidak mengganggu klik */
-  user-select: none;
-}
-
-/* Pojok kanan atas */
-.ornament-top {
-  top: 0;
-  right: 0;
-}
-
-/* Pojok kiri bawah */
-.ornament-bottom {
-  bottom: 0;
-  left: 0;
-  transform: scale(-1, -1);
-}
-
-/* Landscape */
+/* =========================================================================
+   Landscape  —  800 × 566 px   (√2:1)
+   ========================================================================= */
 .invitation-card.landscape {
   --canvas-width: 800px;
-  --canvas-height: 490px;
+  --canvas-height: 566px;
   --card-scale: min(1, calc((100vw - 48px) / 800px));
+  --font-scale: 1;
 
   width: 800px;
-  height: 490px;
+  height: 566px;
   padding: 40px 48px;
-  gap: 16px;
+
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "hdr  hdr"
+    "info qr"
+    "ftr  ftr";
+  column-gap: 44px;
+  row-gap: 20px;
 
   /* Compensate layout space so content below sits flush */
   margin-bottom: calc(var(--canvas-height) * (var(--card-scale) - 1));
 }
 
-/* Portrait */
+/* Vertical divider between info and QR — centred in the column gap */
+.invitation-card.landscape .card-body-info {
+  position: relative;
+}
+
+.invitation-card.landscape .card-body-info::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--card-cream-200);
+}
+
+/* =========================================================================
+   Portrait  —  400 × 566 px   (√2:1  inverted)
+   ========================================================================= */
 .invitation-card.portrait {
   --canvas-width: 400px;
-  --canvas-height: 490px;
+  --canvas-height: 566px;
   --card-scale: min(1, calc((100vw - 48px) / 400px));
+  --font-scale: 0.78;
 
   width: 400px;
-  height: 490px;
-  padding: 36px 36px;
-  gap: 16px;
+  height: 566px;
+  padding: 32px 36px;
+
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "hdr"
+    "qr"
+    "info"
+    "ftr";
+  row-gap: 14px;
 
   margin-bottom: calc(var(--canvas-height) * (var(--card-scale) - 1));
 }
 
+/* =========================================================================
+   Smooth transition between orientations
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .invitation-card {
+    transition:
+      width 400ms cubic-bezier(0.4, 0, 0.2, 1),
+      height 400ms cubic-bezier(0.4, 0, 0.2, 1),
+      padding 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Grid items resize smoothly as the card changes shape */
+  .card-header-section,
+  .card-body-info,
+  .card-body-qr,
+  .card-footer-section {
+    transition: padding 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* =========================================================================
+   QR Bounce — delightful micro-animation on orientation switch
+   Triggered by JS adding .qr-bounce class to the card.
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .invitation-card.qr-bounce .card-body-qr {
+    animation: qr-switch-bounce 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+@keyframes qr-switch-bounce {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* --------------------------------------------------------------------------
-   Card Header — FIXED sizes, never change
+   Card Header
    -------------------------------------------------------------------------- */
 .card-header-section {
   text-align: center;
   width: 100%;
-  flex-shrink: 0;
 }
 
 .card-label {
@@ -313,7 +422,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 36px;
+  font-size: calc(36px * var(--font-scale));
   color: var(--card-ink-900);
   line-height: 1.1;
 }
@@ -324,66 +433,21 @@
 }
 
 /* --------------------------------------------------------------------------
-   Card Body — FIXED layout, never reflows
+   Guest Info
    -------------------------------------------------------------------------- */
-.card-body-row {
-  display: flex;
+.card-body-info {
   width: 100%;
-  flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
-}
-
-/* Landscape: row — ALWAYS row, never changes */
-.invitation-card.landscape .card-body-row {
-  flex-direction: row;
-  align-items: center;
-  gap: 44px;
-}
-
-.invitation-card.landscape .card-body-info {
-  flex: 1 1 0;
-  min-width: 0;
-  position: relative;
-}
-
-/* Vertical divider between info and QR — landscape only */
-.invitation-card.landscape .card-body-info::after {
-  content: "";
-  position: absolute;
-  right: -22px;
-  top: 8px;
-  bottom: 8px;
-  width: 1px;
-  background: var(--card-cream-200);
-}
-
-.invitation-card.landscape .card-body-qr {
-  flex: 1 1 0;
-  min-width: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Portrait: column — ALWAYS column, never changes */
-.invitation-card.portrait .card-body-row {
   flex-direction: column;
-  align-items: center;
-  justify-content: space-evenly;
-  gap: 20px;
-}
-
-.invitation-card.portrait .card-body-qr {
-  order: -1;
-  display: flex;
-  align-items: center;
   justify-content: center;
 }
 
 /* Guest name highlight — separated from info list */
 .card-guest-highlight {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
+  margin-bottom: calc(14px * var(--font-scale));
+  padding-bottom: calc(12px * var(--font-scale));
   border-bottom: 1px solid var(--card-cream-200);
 }
 
@@ -391,28 +455,19 @@
   margin-top: 2px;
 }
 
-/* --------------------------------------------------------------------------
-   Guest Info — FIXED sizes
-   -------------------------------------------------------------------------- */
-.card-body-info {
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-}
-
 .card-info-list {
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: calc(16px * var(--font-scale));
 }
 
 .card-info-row {
   display: flex;
   gap: 16px;
   font-family: var(--card-serif);
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   line-height: 1.4;
   align-items: flex-start;
 }
@@ -422,14 +477,14 @@
   flex: 0 0 85px;
   color: var(--card-ink-500);
   font-family: var(--card-sans);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .card-info-value {
   font-weight: 400;
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   line-height: 1.5;
   color: var(--card-ink-900);
   margin: 0;
@@ -439,7 +494,7 @@
 
 /* Guest name highlight */
 .card-info-value--guest-name {
-  font-size: 20px;
+  font-size: calc(20px * var(--font-scale));
   font-weight: 700;
   color: var(--card-ink-900);
   font-family: var(--card-serif);
@@ -447,7 +502,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   QR Code — FIXED size
+   QR Code
    -------------------------------------------------------------------------- */
 .card-body-qr {
   display: flex;
@@ -458,11 +513,21 @@
   min-height: 0;
 }
 
+/* Landscape base QR size */
+.invitation-card.landscape .card-qr {
+  width: 240px;
+  height: 240px;
+}
+
+/* Portrait — smaller QR */
+.invitation-card.portrait .card-qr {
+  width: 200px;
+  height: 200px;
+}
+
 .card-qr {
   position: relative;
   z-index: 0;
-  width: 155px;
-  height: 155px;
   background: var(--card-white);
   border-radius: 14px;
   border: 1px solid var(--card-cream-200);
@@ -488,11 +553,21 @@
   pointer-events: none;
 }
 
-.card-qr canvas,
-.card-qr img {
+.invitation-card.landscape .card-qr canvas,
+.invitation-card.landscape .card-qr img {
   border-radius: 10px;
-  max-width: 124px;
-  max-height: 124px;
+  max-width: 232px;
+  max-height: 232px;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.invitation-card.portrait .card-qr canvas,
+.invitation-card.portrait .card-qr img {
+  border-radius: 8px;
+  max-width: 192px;
+  max-height: 192px;
   width: auto;
   height: auto;
   display: block;
@@ -520,18 +595,17 @@
 }
 
 /* --------------------------------------------------------------------------
-   Card Footer — FIXED
+   Card Footer
    -------------------------------------------------------------------------- */
 .card-footer-section {
   text-align: center;
   width: 100%;
-  flex-shrink: 0;
 }
 
 .card-instruction {
   margin: 0;
   font-family: var(--card-sans);
-  font-size: 13px;
+  font-size: calc(13px * var(--font-scale));
   color: var(--card-ink-500);
   line-height: 1.5;
 }
@@ -730,6 +804,10 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .invitation-card {
+    transition: none !important;
   }
 
   .card-qr--loading {
