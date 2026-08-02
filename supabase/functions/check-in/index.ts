@@ -13,6 +13,7 @@ const sb = createClient(SUPABASE_URL, SERVICE_KEY);
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
   "https://wedding-web-reza-shila-2026.vercel.app",
+  "https://rezashila2026.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",

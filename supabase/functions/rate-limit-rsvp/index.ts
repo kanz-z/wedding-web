@@ -15,6 +15,7 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 menit
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
   "https://wedding-web-reza-shila-2026.vercel.app",
+  "https://rezashila2026.vercel.app",
   "https://wedding-invitation-1-git-main-kanzzs-projects.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173",
@@ -27,7 +28,9 @@ serve(async (req) => {
   const origin = req.headers.get("origin") || "";
 
   if (req.method === "OPTIONS") {
-    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+      ? origin
+      : ALLOWED_ORIGINS[0];
     return new Response(null, {
       status: 204,
       headers: {
@@ -239,7 +242,8 @@ serve(async (req) => {
     }
 
     // Validasi batas jumlah_hadir berdasarkan kategori
-    const thresholdNonKeluarga = (approvalMode.threshold_non_keluarga as number) || 2;
+    const thresholdNonKeluarga =
+      (approvalMode.threshold_non_keluarga as number) || 2;
     if (existing.kategori !== "keluarga" && hadir > thresholdNonKeluarga) {
       return new Response(
         JSON.stringify({
@@ -360,11 +364,15 @@ serve(async (req) => {
     const debug = dumpError(err);
     console.error("Rate limit RSVP error:", JSON.stringify(debug));
 
-    const msg = String(debug.message || debug.details || debug.hint || "Internal Server Error");
+    const msg = String(
+      debug.message || debug.details || debug.hint || "Internal Server Error",
+    );
     const code = debug.code || "UNKNOWN";
 
     return new Response(
-      JSON.stringify({ error: "Terjadi kesalahan internal. Silakan coba lagi." }),
+      JSON.stringify({
+        error: "Terjadi kesalahan internal. Silakan coba lagi.",
+      }),
       { status: 500, headers },
     );
   }

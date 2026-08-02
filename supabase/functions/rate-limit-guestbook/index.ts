@@ -15,6 +15,7 @@ const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 menit
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
   "https://wedding-web-reza-shila-2026.vercel.app",
+  "https://rezashila2026.vercel.app",
   "https://wedding-invitation-1-git-main-kanzzs-projects.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173",
@@ -24,10 +25,24 @@ const ALLOWED_ORIGINS = [
 ];
 
 const KATA_KASAR = [
-  "anjing", "babi", "bangsat", "goblok", "tolol",
-  "bodoh", "kontol", "memek", "jancok", "jancuk",
-  "ngentot", "bajingan", "brengsek", "laknat", "sialan",
-  "kampret", "bego", "setan",
+  "anjing",
+  "babi",
+  "bangsat",
+  "goblok",
+  "tolol",
+  "bodoh",
+  "kontol",
+  "memek",
+  "jancok",
+  "jancuk",
+  "ngentot",
+  "bajingan",
+  "brengsek",
+  "laknat",
+  "sialan",
+  "kampret",
+  "bego",
+  "setan",
 ];
 
 function sensorKataKasar(text: string): boolean {
@@ -58,7 +73,9 @@ serve(async (req) => {
   const origin = req.headers.get("origin") || "";
 
   if (req.method === "OPTIONS") {
-    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+      ? origin
+      : ALLOWED_ORIGINS[0];
     return new Response(null, {
       status: 204,
       headers: {
@@ -110,7 +127,9 @@ serve(async (req) => {
 
     if (pesan.length > 500) {
       return new Response(
-        JSON.stringify({ error: "Ucapan terlalu panjang, maksimal 500 karakter." }),
+        JSON.stringify({
+          error: "Ucapan terlalu panjang, maksimal 500 karakter.",
+        }),
         { status: 400, headers },
       );
     }
@@ -132,25 +151,42 @@ serve(async (req) => {
       .gte("created_at", since);
 
     if (countError) {
-      console.error("rate-limit-guestbook: SELECT rate_limits_guestbook gagal:", dumpError(countError));
+      console.error(
+        "rate-limit-guestbook: SELECT rate_limits_guestbook gagal:",
+        dumpError(countError),
+      );
       throw countError;
     }
 
     if (count && count >= RATE_LIMIT_MAX) {
       return new Response(
-        JSON.stringify({ error: "Terlalu banyak permintaan. Silakan coba lagi dalam beberapa menit.", rate_limited: true }),
+        JSON.stringify({
+          error:
+            "Terlalu banyak permintaan. Silakan coba lagi dalam beberapa menit.",
+          rate_limited: true,
+        }),
         { status: 429, headers },
       );
     }
 
     // Insert guestbook (pakai service_role, tembus RLS)
     console.log("[guestbook] step 5: insert guestbook");
-    const { error: insertError } = await sb.from("guestbook").insert([
-      { reservation_id: reservation_id || null, name: nama, message: pesan, is_approved: true },
-    ]);
+    const { error: insertError } = await sb
+      .from("guestbook")
+      .insert([
+        {
+          reservation_id: reservation_id || null,
+          name: nama,
+          message: pesan,
+          is_approved: true,
+        },
+      ]);
 
     if (insertError) {
-      console.error("rate-limit-guestbook: INSERT guestbook gagal:", dumpError(insertError));
+      console.error(
+        "rate-limit-guestbook: INSERT guestbook gagal:",
+        dumpError(insertError),
+      );
       throw insertError;
     }
 
@@ -161,21 +197,31 @@ serve(async (req) => {
       .insert([{ ip_address: ip }]);
 
     if (rateError) {
-      console.error("rate-limit-guestbook: INSERT rate_limits_guestbook gagal:", dumpError(rateError));
+      console.error(
+        "rate-limit-guestbook: INSERT rate_limits_guestbook gagal:",
+        dumpError(rateError),
+      );
       // Rate limit gagal dicatat, tapi guestbook sudah terinsert — log & lanjutkan
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers,
+    });
   } catch (err) {
     const debug = dumpError(err);
     console.error("Rate limit guestbook error:", JSON.stringify(debug));
 
     // Ekstrak pesan yang bisa ditampilkan ke user
-    const msg = String(debug.message || debug.details || debug.hint || "Internal Server Error");
+    const msg = String(
+      debug.message || debug.details || debug.hint || "Internal Server Error",
+    );
     const code = debug.code || "UNKNOWN";
 
     return new Response(
-      JSON.stringify({ error: "Terjadi kesalahan internal. Silakan coba lagi." }),
+      JSON.stringify({
+        error: "Terjadi kesalahan internal. Silakan coba lagi.",
+      }),
       { status: 500, headers },
     );
   }
