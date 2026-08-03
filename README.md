@@ -4,7 +4,7 @@ Sebuah website undangan pernikahan digital interaktif yang dilengkapi dengan das
 
 Website ini dapat diakses langsung di:
 
-🔗 **[wedding-web-reza-shila-2026.vercel.app](https://wedding-web-reza-shila-2026.vercel.app/)**
+🔗 **[rezashila2026.vercel.app](https://rezashila2026.vercel.app/)**
 
 ---
 
