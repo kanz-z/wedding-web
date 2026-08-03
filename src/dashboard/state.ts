@@ -803,9 +803,29 @@ export function applyRoleRestrictions(): void {
     document.querySelector('[data-goto="admin"]')?.classList.add('d-none');
   }
 
-  // Operator tidak bisa hapus tamu
+  if (role === 'couple') {
+    // Tab QR Scanner / Check-in
+    document.querySelector('[data-goto="checkin"]')?.classList.add('d-none');
+
+    // Status toggle (ONLINE/OFFLINE) — couple tidak bisa nonaktifkan server
+    const toggleRow = document.querySelector('.status-toggle');
+    if (toggleRow) (toggleRow as HTMLElement).style.display = 'none';
+
+    // Tombol tambah tamu
+    document.getElementById('btn-add-guest')?.classList.add('d-none');
+
+    // Tombol import tamu
+    document.getElementById('btn-import-guests')?.classList.add('d-none');
+  }
+
+  // Bulk delete — hanya superadmin & admin
   if (role !== 'superadmin' && role !== 'admin') {
     document.getElementById('bulk-del')?.classList.add('d-none');
+  }
+
+  // Row check-in & guestbook toggle — couple tidak bisa (diterapkan via CSS class pada body)
+  if (role === 'couple') {
+    document.body.classList.add('role-couple');
   }
 }
 

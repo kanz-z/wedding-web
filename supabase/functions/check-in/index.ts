@@ -110,7 +110,7 @@ serve(async (req: Request) => {
       );
     }
 
-    // Verify admin role
+    // Verify admin role — couple tidak bisa check-in
     const { data: adminRow } = await sb
       .from("admin_users")
       .select("id, role")
@@ -120,6 +120,20 @@ serve(async (req: Request) => {
     if (!adminRow) {
       return new Response(
         JSON.stringify({ error: "Forbidden — bukan admin" }),
+        {
+          status: 403,
+          headers: {
+            "Content-Type": "application/json",
+            ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
+          },
+        },
+      );
+    }
+
+    // Hanya superadmin, admin, operator yang bisa check-in
+    if (!['superadmin', 'admin', 'operator'].includes(adminRow.role)) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden — role tidak memiliki akses check-in" }),
         {
           status: 403,
           headers: {

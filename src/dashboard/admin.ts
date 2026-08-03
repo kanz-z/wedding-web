@@ -53,8 +53,12 @@ function renderAdminTable(): void {
       superadmin: 'role-badge--superadmin',
       admin: 'role-badge--admin',
       operator: 'role-badge--operator',
+      couple: 'role-badge--couple',
     };
-    const label = role === 'superadmin' ? 'Superadmin' : role === 'admin' ? 'Admin' : 'Operator';
+    const label = role === 'superadmin' ? 'Superadmin'
+      : role === 'admin' ? 'Admin'
+      : role === 'operator' ? 'Operator'
+      : 'Mempelai';
     return `<span class="badge-dash ${map[role] || ''}">${label}</span>`;
   };
 

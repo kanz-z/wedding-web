@@ -56,6 +56,7 @@ export default defineConfig({
         "admin-management.spec.ts",
         "dashboard.spec.ts",
         "auth/login.spec.ts",
+        "roles.spec.ts",
       ],
       use: {
         ...devices["Desktop Chrome"],
