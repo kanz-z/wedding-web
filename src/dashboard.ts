@@ -15,11 +15,10 @@ import { initReservations } from "./dashboard/reservations";
 import { initMessages } from "./dashboard/messages";
 import { initAdmin } from "./dashboard/admin";
 import { initImportModal } from "./dashboard/import-modal";
-import { fetchGuests, applyRoleRestrictions } from "./dashboard/state";
+import { fetchGuests } from "./dashboard/state";
 
 // Initialize all modules
 function initDashboard(): void {
-  applyRoleRestrictions();
   initAuth();
   initRouting();
   initNotifications();

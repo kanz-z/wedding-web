@@ -34,7 +34,7 @@ export interface CheckInTransaction {
 export interface AdminUser {
   id: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'operator';
+  role: 'superadmin' | 'admin' | 'operator' | 'couple';
   created_at: string;
 }
 

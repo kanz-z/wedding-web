@@ -22,7 +22,7 @@ export class LoginPage {
 
     this.brandName = page.getByText('Reza & Ashila').first();
     this.pageSubtitle = page.getByText('Masuk ke Dashboard Admin');
-    this.emailInput = page.getByPlaceholder('admin@rezaashila.id');
+    this.emailInput = page.getByPlaceholder('nama@email.com');
     this.passwordInput = page.getByPlaceholder('••••••••');
     this.loginButton = page.getByRole('button', { name: 'Masuk' });
     this.forgotPasswordLink = page.getByRole('link', { name: 'Lupa kata sandi?' });

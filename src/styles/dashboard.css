@@ -458,6 +458,23 @@ body {
   border-color: #fff;
   color: var(--pink);
 }
+/* Disabled pink button — beda visual untuk menunjukkan tombol memang sengaja tidak bisa digunakan */
+.btn-dash-accent:disabled,
+.btn-dash-accent.is-disabled-couple {
+  background: rgba(var(--pink-rgb), 0.3);
+  border-color: rgba(var(--pink-rgb), 0.2);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+  text-decoration-thickness: 1px;
+}
+.btn-dash-accent:disabled:hover,
+.btn-dash-accent.is-disabled-couple:hover {
+  background: rgba(var(--pink-rgb), 0.3);
+  border-color: rgba(var(--pink-rgb), 0.2);
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .btn-dash-danger {
   color: var(--danger);
@@ -1525,6 +1542,11 @@ body {
   background: rgba(255, 255, 255, 0.08);
   color: var(--ink-muted);
 }
+.role-badge--couple {
+  background: rgba(var(--pink-rgb), 0.14);
+  color: var(--pink);
+  border: 1px solid rgba(var(--pink-rgb), 0.25);
+}
 
 /* ============================= TOAST (dipakai bersama index.html) ============================= */
 .toast-global {
@@ -1553,6 +1575,32 @@ body {
 .toast-global.is-error {
   background: #dc3545;
   border-color: rgba(255, 107, 122, 0.5);
+}
+
+/* ============================= ROLE COUPLE RESTRICTIONS ============================= */
+/* Check-in button di row actions — couple tidak bisa check-in */
+body.role-couple .row-actions [data-action="checkin"] {
+  display: none !important;
+}
+/* Check-in button di modal detail tamu */
+body.role-couple #modal-checkin-btn {
+  display: none !important;
+}
+/* Tombol "Tambah Tamu Pertama" di empty state */
+body.role-couple #guest-empty-first-cta {
+  display: none !important;
+}
+/* Guestbook toggle — couple tidak bisa UPDATE guestbook (RLS enforced) */
+body.role-couple .visibility-switch {
+  opacity: 0.45;
+  pointer-events: none;
+}
+body.role-couple .visibility-switch input {
+  cursor: not-allowed;
+}
+/* Undo check-in button di audit log — couple tidak bisa (RLS enforced) */
+body.role-couple .undo-checkin-btn {
+  display: none !important;
 }
 
 /* ============================= ANIMASI ============================= */
