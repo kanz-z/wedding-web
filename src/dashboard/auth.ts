@@ -2,7 +2,7 @@
 
 import { showToast, show, hide } from '@/shared/ui';
 import { supabase } from './supabase-client';
-import { setCurrentAdmin } from './state';
+import { setCurrentAdmin, applyRoleRestrictions, currentAdminRole } from './state';
 
 const VALID_HASHES = new Set(['', 'hub', 'guests', 'checkin', 'reservations', 'private', 'public', 'admin']);
 
@@ -31,6 +31,9 @@ export async function checkSession(): Promise<boolean> {
 
   setCurrentAdmin(adminRow.role, adminRow.id);
 
+  // Terapkan role restrictions SEBELUM view-app ditampilkan — mencegah flicker
+  applyRoleRestrictions();
+
   hide(document.getElementById("view-login"));
   show(document.getElementById("view-app"));
   handleHashChange();
@@ -45,6 +48,13 @@ function handleHashChange(): void {
 
   if (!VALID_HASHES.has(hash)) {
     show404();
+    return;
+  }
+
+  // Navigation guard: couple tidak bisa akses halaman admin & check-in via URL
+  if (currentAdminRole === 'couple' && (hash === 'admin' || hash === 'checkin')) {
+    navigateTo('hub');
+    showToast('Akses tidak diizinkan untuk role mempelai', true);
     return;
   }
 
