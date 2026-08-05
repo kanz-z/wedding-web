@@ -1586,10 +1586,6 @@ body.role-couple .row-actions [data-action="checkin"] {
 body.role-couple #modal-checkin-btn {
   display: none !important;
 }
-/* Tombol "Tambah Tamu Pertama" di empty state */
-body.role-couple #guest-empty-first-cta {
-  display: none !important;
-}
 /* Guestbook toggle — couple tidak bisa UPDATE guestbook (RLS enforced) */
 body.role-couple .visibility-switch {
   opacity: 0.45;

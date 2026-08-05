@@ -279,7 +279,7 @@ export async function insertGuest(guest: {
       nomor_wa: guest.nomor_wa,
       notes: guest.notes,
       approval_status: "approved",
-      edited_status: "admin",
+      edited_status: currentAdminRole === "couple" ? "couple" : "admin",
     })
     .select("*")
     .single();
@@ -314,7 +314,7 @@ export async function updateGuest(
     .update({
       ...updates,
       version: expectedVersion + 1,
-      edited_status: "admin",
+      edited_status: currentAdminRole === "couple" ? "couple" : "admin",
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -810,16 +810,10 @@ export function applyRoleRestrictions(): void {
     // Status toggle (ONLINE/OFFLINE) — couple tidak bisa nonaktifkan server
     const toggleRow = document.querySelector('.status-toggle');
     if (toggleRow) (toggleRow as HTMLElement).style.display = 'none';
-
-    // Tombol tambah tamu
-    document.getElementById('btn-add-guest')?.classList.add('d-none');
-
-    // Tombol import tamu
-    document.getElementById('btn-import-guests')?.classList.add('d-none');
   }
 
-  // Bulk delete — hanya superadmin & admin
-  if (role !== 'superadmin' && role !== 'admin') {
+  // Bulk delete — superadmin, admin, dan couple
+  if (role !== 'superadmin' && role !== 'admin' && role !== 'couple') {
     document.getElementById('bulk-del')?.classList.add('d-none');
   }
 

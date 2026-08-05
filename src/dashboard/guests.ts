@@ -163,7 +163,9 @@ function renderGuestRow(g: GuestWithMeta): string {
       ? badge("pink", "RSVP")
       : g.edited_status === "admin"
         ? badge("muted", "Admin")
-        : '<span class="edited-dash">–</span>';
+        : g.edited_status === "couple"
+          ? badge("pink", "Mempelai")
+          : '<span class="edited-dash">–</span>';
 
   const flagHtml = g.flag
     ? `<i class="bi bi-exclamation-triangle-fill anomaly-flag" title="${escapeAttr(g.flag)}"></i>`
@@ -381,7 +383,7 @@ export function openGuestModal(id: string): void {
   html += `<dt>Status RSVP</dt><dd>${rsvpBadge(g.rsvp)}</dd>`;
   html += `<dt>Status Check-in</dt><dd>${checkinBadgeText(status)} <span class="mono-time">(${g.checkedIn}/${g.guest_count})</span></dd>`;
   html += `<dt>Waktu Check-in</dt><dd>${g.checkedInAt ? formatTime(g.checkedInAt) : "Belum check-in"}</dd>`;
-  html += `<dt>Diedit oleh</dt><dd>${g.edited_status === "rsvp" ? "Tamu (via RSVP)" : g.edited_status === "admin" ? "Admin" : "–"}</dd>`;
+  html += `<dt>Diedit oleh</dt><dd>${g.edited_status === "rsvp" ? "Tamu (via RSVP)" : g.edited_status === "admin" ? "Admin" : g.edited_status === "couple" ? "Mempelai" : "–"}</dd>`;
   if (g.notes) html += `<dt>Catatan</dt><dd>${escapeHtml(g.notes)}</dd>`;
   if (g.flag)
     html += `<dt>Peringatan</dt><dd style="color:var(--warning)"><i class="bi bi-exclamation-triangle-fill"></i> ${escapeHtml(g.flag)}</dd>`;
