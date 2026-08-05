@@ -178,7 +178,6 @@ serve(async (req: Request) => {
       p_method: body.method,
       p_is_override: body.is_override ?? false,
       p_notes: body.notes ?? null,
-      p_idempotency_key: body.idempotency_key ?? null,
     });
 
     if (error) {
