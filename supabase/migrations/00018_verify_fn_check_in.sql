@@ -14,4 +14,5 @@ END;
 $$;
 
 -- Re-grant execute untuk authenticated
-GRANT EXECUTE ON FUNCTION public.fn_check_in(TEXT, TEXT, TEXT, BOOLEAN, TEXT, TEXT, INTEGER) TO authenticated;
+-- Signature: fn_check_in(p_reservation_id UUID, p_admin_id UUID, p_delta INTEGER, p_method TEXT, p_is_override BOOLEAN, p_notes TEXT)
+GRANT EXECUTE ON FUNCTION public.fn_check_in(UUID, UUID, INTEGER, TEXT, BOOLEAN, TEXT) TO authenticated;
