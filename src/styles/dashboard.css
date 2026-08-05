@@ -1181,6 +1181,8 @@ body {
   position: absolute;
   z-index: 1500;
   width: 240px;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
   background: #161616;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
@@ -1575,6 +1577,13 @@ body {
 .toast-global.is-error {
   background: #dc3545;
   border-color: rgba(255, 107, 122, 0.5);
+}
+
+/* ============================= BULK BAR MOBILE ============================= */
+@media (max-width: 767px) {
+  #bulk-bar { flex-direction: column; gap: 8px; align-items: stretch !important; }
+  #bulk-bar .msg-card__actions { flex-wrap: wrap; gap: 6px; }
+  #bulk-bar .msg-card__actions button { flex: 1 1 auto; min-width: 0; font-size: 0.75rem; padding: 6px 10px; }
 }
 
 /* ============================= ROLE COUPLE RESTRICTIONS ============================= */

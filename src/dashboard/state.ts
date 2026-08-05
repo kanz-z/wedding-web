@@ -224,11 +224,11 @@ export async function fetchGuests(): Promise<GuestWithMeta[]> {
     (r: Reservation) => {
       const ci = ciMap.get(r.id) ?? { checkedIn: 0, checkedInAt: null };
       const rsvp: GuestWithMeta["rsvp"] =
-        r.approval_status === "approved"
-          ? "hadir"
-          : r.approval_status === "rejected"
-            ? "tidak"
-            : "belum";
+    r.edited_status === "rsvp"
+      ? r.approval_status === "approved" ? "hadir"
+      : r.approval_status === "rejected" ? "tidak"
+      : "belum"
+    : "belum";
       return {
         ...r,
         checkedIn: ci.checkedIn,
@@ -384,6 +384,12 @@ export async function addCheckin(
   }
 
   if (!resp.ok) {
+    if (resp.status === 401) {
+      throw new Error("Sesi tidak valid — silakan login kembali");
+    }
+    if (resp.status === 409) {
+      throw new Error("Kuota check-in melebihi jumlah tamu — gunakan override jika diperlukan");
+    }
     throw new Error(
       ((result as Record<string, unknown>).error as string) || "Gagal check-in",
     );

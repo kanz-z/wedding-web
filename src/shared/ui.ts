@@ -129,3 +129,105 @@ export function hide(el: HTMLElement | null): void {
 export function toggle(el: HTMLElement | null): void {
   el?.classList.toggle("d-none-important");
 }
+
+// --- Download Loading ---
+
+export interface DownloadLoadingInstance {
+  setLoading: (label?: string) => void;
+  setSuccess: (label?: string, autoHideMs?: number) => void;
+  setError: (label?: string) => void;
+  dismiss: () => void;
+  el: HTMLElement;
+}
+
+export function createDownloadLoading(container: HTMLElement): DownloadLoadingInstance {
+  const overlay = document.createElement("div");
+  overlay.className = "download-loading-overlay";
+  overlay.innerHTML = `<div class="download-loading-content"><div class="download-loading-spinner"></div><p class="download-loading-text">Menyiapkan...</p></div>`;
+  container.style.position = "relative";
+  container.appendChild(overlay);
+
+  const textEl = overlay.querySelector(".download-loading-text") as HTMLElement;
+
+  return {
+    setLoading(label) {
+      overlay.className = "download-loading-overlay";
+      overlay.querySelector(".download-loading-spinner")?.classList.remove("d-none");
+      if (textEl && label) textEl.textContent = label;
+    },
+    setSuccess(label, autoHideMs = 2500) {
+      overlay.classList.add("is-success");
+      overlay.querySelector(".download-loading-spinner")?.classList.add("d-none");
+      if (textEl && label) textEl.textContent = label;
+      if (autoHideMs > 0) setTimeout(() => this.dismiss(), autoHideMs);
+    },
+    setError(label) {
+      overlay.classList.add("is-error");
+      overlay.querySelector(".download-loading-spinner")?.classList.add("d-none");
+      if (textEl && label) textEl.textContent = label;
+    },
+    dismiss() {
+      overlay.remove();
+      container.style.position = "";
+    },
+    el: overlay,
+  };
+}
+
+// --- Invite Message ---
+
+import { config } from "@/config";
+
+export function generateInviteMessage(slug: string, name?: string): string {
+  const inviteUrl = `${config.SITE_URL}/invitation/${slug}`;
+  const cardUrl = `${config.SITE_URL}/invitation/${slug}/card`;
+  const greeting = name ? `Kepada Yth.\nBapak/Ibu/Saudara/i\n*${name}*` : "Kepada Yth.\nBapak/Ibu/Saudara/i";
+
+  return `${greeting}
+
+*Assalamu'alaikum Wr. Wb.*
+*Bismillahirahmanirrahim.*
+
+Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat untuk menghadiri acara resepsi pernikahan kami.
+
+Berikut link untuk info lengkap dari acara kami:
+${inviteUrl}
+
+Link kartu undangan:
+${cardUrl}
+
+Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.
+
+*Wassalamu'alaikum Wr. Wb.*
+
+Terima Kasih.
+
+Hormat kami,
+*Ashila Luqyana Danurdoro & Muhammad Reza Ramadhan*`;
+}
+
+export async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch { /* fallback */ }
+
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  ta.style.top = "-9999px";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand("copy");
+    return true;
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(ta);
+  }
+}

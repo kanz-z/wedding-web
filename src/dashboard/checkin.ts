@@ -471,6 +471,11 @@ async function doPostscanCheckinAll(): Promise<void> {
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) {
+      showToast("Sesi tidak valid — silakan login kembali", true);
+      isProcessing = false;
+      return;
+    }
 
     const resp = await fetch(
       `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
@@ -488,15 +493,18 @@ async function doPostscanCheckinAll(): Promise<void> {
     try {
       result = await resp.json();
     } catch {
-      showToast(
-        `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
-        true,
-      );
+      showToast("Server tidak merespon — coba lagi nanti", true);
       isProcessing = false;
       return;
     }
     if (!resp.ok) {
-      showToast((result.error as string) || "Gagal check-in", true);
+      if (resp.status === 401) {
+        showToast("Sesi tidak valid — silakan login kembali", true);
+      } else if (resp.status === 409) {
+        showToast("Kuota melebihi jumlah tamu — gunakan override", true);
+      } else {
+        showToast((result.error as string) || "Gagal check-in", true);
+      }
       return;
     }
 
@@ -566,6 +574,11 @@ async function doPostscanCheckinPartial(): Promise<void> {
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) {
+      showToast("Sesi tidak valid — silakan login kembali", true);
+      isProcessing = false;
+      return;
+    }
 
     const resp = await fetch(
       `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
@@ -583,15 +596,18 @@ async function doPostscanCheckinPartial(): Promise<void> {
     try {
       result = await resp.json();
     } catch {
-      showToast(
-        `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
-        true,
-      );
+      showToast("Server tidak merespon — coba lagi nanti", true);
       isProcessing = false;
       return;
     }
     if (!resp.ok) {
-      showToast((result.error as string) || "Gagal check-in", true);
+      if (resp.status === 401) {
+        showToast("Sesi tidak valid — silakan login kembali", true);
+      } else if (resp.status === 409) {
+        showToast("Kuota melebihi jumlah tamu — gunakan override", true);
+      } else {
+        showToast((result.error as string) || "Gagal check-in", true);
+      }
       return;
     }
 
@@ -675,6 +691,11 @@ async function doPostscanOverrideConfirm(): Promise<void> {
 
   try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) {
+      showToast("Sesi tidak valid — silakan login kembali", true);
+      isProcessing = false;
+      return;
+    }
 
     const resp = await fetch(
       `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,

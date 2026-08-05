@@ -813,8 +813,13 @@ function openGroupPicker(chip: HTMLElement): void {
   const picker = document.getElementById("group-picker");
   if (!picker) return;
   const rect = chip.getBoundingClientRect();
+  const pickerWidth = 240;
   picker.style.top = window.scrollY + rect.bottom + 6 + "px";
-  picker.style.left = window.scrollX + rect.left + "px";
+  const left = rect.left + pickerWidth > window.innerWidth
+    ? Math.max(8, window.innerWidth - pickerWidth - 8)
+    : Math.max(8, rect.left);
+  picker.style.left = window.scrollX + left + "px";
+  picker.style.maxWidth = Math.min(pickerWidth, window.innerWidth - 16) + "px";
 
   const groups = [...new Set(guestList.map((g) => g.kelompok).filter(Boolean))];
   const list = document.getElementById("group-picker-list");
@@ -1611,8 +1616,12 @@ function downloadSingleCard(blob: Blob, fileName: string): void {
   const link = document.createElement("a");
   link.download = fileName;
   link.href = url;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
 
 /** Fetch qr_token dari tabel reservations untuk satu tamu */
