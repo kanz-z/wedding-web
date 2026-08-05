@@ -9,7 +9,7 @@ import "@/styles/card.css";
 // Dashboard modules
 import { initNotifications, initModals, initKeyboard, renderNotifications } from "./dashboard/ui";
 import { initGuestEvents, initGuestTable, reloadGuests, renderSummaryCards } from "./dashboard/guests";
-import { initAuth, initRouting, checkSession } from "./dashboard/auth";
+import { initAuth, initRouting } from "./dashboard/auth";
 import { initCheckinEvents, renderCheckinLog } from "./dashboard/checkin";
 import { initReservations } from "./dashboard/reservations";
 import { initMessages } from "./dashboard/messages";
@@ -18,8 +18,11 @@ import { initImportModal } from "./dashboard/import-modal";
 import { fetchGuests } from "./dashboard/state";
 
 // Initialize all modules
-function initDashboard(): void {
-  initAuth();
+async function initDashboard(): Promise<void> {
+  // Panggil initAuth() dulu — pastikan session valid sebelum query DB (RLS)
+  const sessionOk = await initAuth();
+  if (!sessionOk) return;
+
   initRouting();
   initNotifications();
   initModals();
@@ -54,7 +57,7 @@ function initDashboard(): void {
   }) as EventListener);
 }
 
-// Check session on load — redirect to login if no session
-checkSession().then(() => initDashboard()).catch((err: unknown) => {
+// initDashboard() secara internal menunggu initAuth() → checkSession() sebelum fetch data
+initDashboard().catch((err: unknown) => {
   console.error("Dashboard init failed:", err);
 });

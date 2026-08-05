@@ -81,7 +81,7 @@ function normalizeHash(raw: string): string {
   return raw.replace('#', '') || 'hub';
 }
 
-export function initAuth(): void {
+export async function initAuth(): Promise<boolean> {
   // 3.3 + 3.4: Route protection + session management
   supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
@@ -107,6 +107,9 @@ export function initAuth(): void {
       console.warn("[auth] checkSession gagal saat hashchange", err);
     });
   });
+
+  // Pastikan session sudah ter-resolve sebelum caller melanjutkan (agar RLS tidak menolak query)
+  const sessionOk = await checkSession();
 
   // Login form (3.1)
   document.getElementById("login-form")?.addEventListener("submit", async function (e: Event) {
@@ -220,6 +223,8 @@ export function initAuth(): void {
     await supabase.auth.signOut();
     // onAuthStateChange handles UI toggle
   });
+
+  return sessionOk;
 }
 
 // --- Init routing on dashboard load ---
