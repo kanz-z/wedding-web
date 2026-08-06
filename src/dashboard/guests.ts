@@ -10,6 +10,7 @@ import {
   show,
   hide,
   debounce,
+  createDownloadLoading,
 } from "@/shared/ui";
 import {
   guestList,
@@ -1656,6 +1657,10 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
 
   if (!container) return;
 
+  const downloadBody = document.querySelector("#download-card-overlay .modal-dash__body") as HTMLElement | null;
+  if (!downloadBody) return;
+  const dl = createDownloadLoading(downloadBody);
+
   try {
     // 1. Fetch token untuk semua tamu
     const tokenResults = await Promise.allSettled(ids.map((id) => fetchTokenForGuest(id)));
@@ -1693,10 +1698,10 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
       return;
     }
 
-    // 4. Set loading state
+    // 4. Setup download loading
     if (downloadBtn) downloadBtn.disabled = true;
-    if (progressBar) progressBar.classList.remove("d-none-important");
     if (errorsEl) errorsEl.classList.add("d-none-important");
+    dl.setLoading("Menyiapkan kartu...");
 
     const blobs: { blob: Blob; slug: string }[] = [];
     const total = valid.length;
@@ -1764,9 +1769,7 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
         }
 
         // Update progress
-        const pct = Math.round((completed / total) * 100);
-        if (progressFill) progressFill.style.width = `${pct}%`;
-        if (progressStatus) progressStatus.textContent = `${completed}/${total} kartu selesai`;
+        dl.setLoading(`${completed}/${total} kartu selesai`);
       }
     }
 
@@ -1788,17 +1791,17 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
       URL.revokeObjectURL(url);
     }
 
-    showToast(
+    dl.setSuccess(
       `${blobs.length} kartu undangan berhasil diunduh.` +
         (skipped > 0 ? ` ${skipped} tamu dilewati.` : ""),
-      skipped > 0,
+      3000,
     );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh kartu.";
     showToast(message, true);
+    dl.setError(message);
   } finally {
-    // 7. Cleanup — always runs
-    if (progressBar) progressBar.classList.add("d-none-important");
+    // 7. Cleanup
     if (downloadBtn) downloadBtn.disabled = false;
     container.innerHTML = "";
     hideModal("download-card-overlay");

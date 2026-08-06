@@ -1885,3 +1885,53 @@ body.role-couple .undo-checkin-btn {
 .wa-blast-summary p {
   margin-bottom: 0.25rem;
 }
+
+/* --- Download loading overlay --- */
+
+.download-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+.download-loading-content {
+  text-align: center;
+  color: var(--ink-body);
+  padding: 2rem;
+}
+.download-loading-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 1rem;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--pink);
+  border-radius: 50%;
+  animation: dl-spin 0.7s linear infinite;
+}
+@keyframes dl-spin {
+  to { transform: rotate(360deg); }
+}
+.download-loading-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+.download-loading-overlay.is-success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.download-loading-overlay.is-success .download-loading-text {
+  color: #10b981;
+}
+.download-loading-overlay.is-error {
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+.download-loading-overlay.is-error .download-loading-text {
+  color: #dc3545;
+}
