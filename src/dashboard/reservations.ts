@@ -109,6 +109,7 @@ function renderReservations(): void {
         }
         <div class="reservation-card__actions">
           <button type="button" data-copy-link="${BASE_URL}/invitation/${escapeAttr(r.slug)}"><i class="bi bi-clipboard"></i> Salin</button>
+          <button type="button" data-copy-invite="${escapeAttr(r.slug)}" data-copy-invite-name="${escapeAttr(r.name)}"><i class="bi bi-chat-dots"></i> Salin Pesan</button>
           <a href="${BASE_URL}/invitation/${escapeAttr(r.slug)}/card" target="_blank" rel="noopener" class="text-decoration-none"><button type="button"><i class="bi bi-eye"></i> Lihat Kartu</button></a>
         </div>
       </div>
@@ -157,6 +158,17 @@ function renderReservations(): void {
         ?.writeText(btn.dataset.copyLink ?? '')
         .then(() => showToast('Tautan disalin'))
         .catch(() => showToast('Gagal menyalin tautan', true));
+    });
+  });
+
+  // Copy invite message (Fase 6C: Salin Pesan)
+  grid.querySelectorAll<HTMLButtonElement>('[data-copy-invite]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const slug = btn.dataset.copyInvite ?? '';
+      const name = btn.dataset.copyInviteName ?? '';
+      const msg = generateInviteMessage(slug, name);
+      const ok = await copyTextToClipboard(msg);
+      showToast(ok ? 'Pesan undangan disalin' : 'Gagal menyalin pesan', !ok);
     });
   });
 

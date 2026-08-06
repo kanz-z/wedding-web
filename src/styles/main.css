@@ -933,3 +933,31 @@ footer li {
   font-size: 0.95rem;
   line-height: 1.55;
 }
+
+/* ---------- floating share button ---------- */
+.btn-share-invite {
+  position: fixed;
+  bottom: 5.5rem;
+  right: 1.25rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--pink, #f14e95);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(241, 78, 149, 0.4);
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+}
+.btn-share-invite:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(241, 78, 149, 0.55);
+}
+.btn-share-invite:active {
+  transform: scale(0.95);
+}

@@ -9,13 +9,14 @@ import "./styles/circle.css";
 import AOS from "aos";
 
 import { config } from "./config";
-import { fetchGuestData, routeType, getGuestName } from "./main/slug-router";
+import { fetchGuestData, routeType, slug, getGuestName } from "./main/slug-router";
 import { renderCardPage } from "./main/card-page";
 import { initCountdown } from "./main/countdown";
 import { supabaseClient } from "./main/supabase-client";
 import { enableScroll, showBottomNav } from "./main/navigation";
 import { playAudio } from "./main/audio";
 import { copyToClipboard } from "./main/utils";
+import { generateInviteMessage, copyTextToClipboard, showToast } from "@/shared/ui";
 import { initRsvp } from "./main/rsvp";
 import { initGuestbook, fetchGuestbook } from "./main/guestbook";
 
@@ -114,6 +115,18 @@ async function checkEventStatus(): Promise<"online" | "offline" | "error"> {
   }
 }
 
+function initShareButton(): void {
+  const btn = document.getElementById("btn-share-invite");
+  if (!btn) return;
+  btn.classList.remove("d-none");
+  btn.addEventListener("click", async () => {
+    const name = getGuestName();
+    const msg = generateInviteMessage(slug, name);
+    const ok = await copyTextToClipboard(msg);
+    showToast(ok ? "Pesan undangan disalin" : "Gagal menyalin pesan", !ok);
+  });
+}
+
 // Init modules — async karena fetchGuestData() perlu resolve dulu
 async function initApp(): Promise<void> {
   try {
@@ -179,6 +192,9 @@ async function initApp(): Promise<void> {
         ? " " + nama + ","
         : " Mr/Mrs/Ms Invited Guest,";
     }
+
+    // Tampilkan tombol share undangan
+    initShareButton();
 
     initCountdown();
     initRsvp();
