@@ -171,8 +171,8 @@ function renderGuestRow(g: GuestWithMeta): string {
     ? `<i class="bi bi-exclamation-triangle-fill anomaly-flag" title="${escapeAttr(g.flag)}"></i>`
     : "";
 
-  const cDisabled =
-    status === "sudah" || g.rsvp !== "hadir" ? "is-disabled" : "";
+  // Check-in hanya diblokir jika semua tamu sudah check-in. RSVP bersifat opsional.
+  const cDisabled = status === "sudah" ? "is-disabled" : "";
 
   return `<tr class="${rowClass}" data-id="${g.id}">
     <td><input type="checkbox" class="row-check" ${selectedIds.has(g.id) ? "checked" : ""} data-select="${g.id}" aria-label="Pilih ${escapeAttr(g.name)}"></td>
@@ -396,7 +396,8 @@ export function openGuestModal(id: string): void {
     "modal-checkin-btn",
   ) as HTMLButtonElement | null;
   if (cBtn) {
-    cBtn.disabled = status === "sudah" || g.rsvp !== "hadir";
+    // Check-in hanya diblokir jika semua tamu sudah check-in. RSVP bersifat opsional.
+    cBtn.disabled = status === "sudah";
     cBtn.innerHTML =
       status === "sudah"
         ? '<i class="bi bi-check2-circle"></i> Sudah Check-in'

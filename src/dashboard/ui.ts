@@ -25,6 +25,23 @@ const CATEGORY_IS_FLAGGED: Record<string, boolean> = {
   rsvp_rejected: true,
 };
 
+/** Filter aktif panel notifikasi. "all" = tanpa filter */
+let notifFilter = "all";
+
+/**
+ * Kelompokkan kategori notifikasi ke filter tombol:
+ * - rsvp  : rsvp_pending, rsvp_approved, rsvp_rejected, new_reservation
+ * - checkin : checkin
+ * - guestbook : new_guestbook
+ * - misc  : anomaly + kategori lain
+ */
+const FILTER_CATEGORIES: Record<string, string[]> = {
+  rsvp: ["rsvp_pending", "rsvp_approved", "rsvp_rejected", "new_reservation"],
+  checkin: ["checkin"],
+  guestbook: ["new_guestbook"],
+  misc: ["anomaly"],
+};
+
 /** Entry notifikasi dari tabel notifications + anomali client-side */
 export interface NotificationItem {
   id: string;
@@ -90,12 +107,12 @@ export async function renderNotifications(): Promise<void> {
     }
   }
 
-  // Urutkan: flagged dulu, lalu terbaru
+  // Urutkan murni berdasarkan waktu — terbaru dulu.
+  // localeCompare pada string ISO menilai sama/acak karena awalan tanggal identik.
   items.sort(function (a, b) {
-    const aFlag = CATEGORY_IS_FLAGGED[a.category] ?? false;
-    const bFlag = CATEGORY_IS_FLAGGED[b.category] ?? false;
-    if (aFlag !== bFlag) return aFlag ? -1 : 1;
-    return (b.created_at || "").localeCompare(a.created_at || "");
+    return (
+      (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0)
+    );
   });
 
   // Render
@@ -115,7 +132,7 @@ export async function renderNotifications(): Promise<void> {
       return (
         '<div class="' +
         iconClass +
-        '" data-notif-id="' + item.id + '">' +
+        '" data-notif-id="' + item.id + '" data-notif-cat="' + item.category + '">' +
         '<div class="notif-item__icon"><i class="bi ' +
         icon +
         '"></i></div>' +
@@ -132,6 +149,35 @@ export async function renderNotifications(): Promise<void> {
 
   // Update dot: anomali + notifikasi unread
   updateNotifDot();
+  applyNotifFilter();
+}
+
+/** Terapkan filter aktif ke item yang sudah dirender (tanpa re-fetch). */
+function applyNotifFilter(): void {
+  const list = document.getElementById("notif-list");
+  if (!list) return;
+  let visibleCount = 0;
+  list.querySelectorAll<HTMLElement>(".notif-item").forEach((el) => {
+    const cat = el.getAttribute("data-notif-cat") ?? "";
+    const matches =
+      notifFilter === "all" ||
+      (FILTER_CATEGORIES[notifFilter] ?? []).includes(cat);
+    el.classList.toggle("hidden", !matches);
+    if (matches) visibleCount++;
+  });
+  const empty = document.getElementById("notif-empty");
+  if (empty) empty.style.display = visibleCount === 0 ? "" : "none";
+}
+
+/** Handler tombol filter. */
+function setNotifFilter(filter: string): void {
+  notifFilter = filter;
+  document.querySelectorAll<HTMLButtonElement>(".notif-filter").forEach((btn) => {
+    const active = btn.getAttribute("data-notif-filter") === filter;
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", String(active));
+  });
+  applyNotifFilter();
 }
 
 /** Update dot merah berdasarkan anomali + notifikasi unread */
@@ -211,6 +257,15 @@ export function initNotifications(): void {
   document
     .getElementById("notif-panel-close")
     ?.addEventListener("click", closeNotifPanel);
+
+  // Tombol filter notifikasi (Semua / RSVP / Check-in / Guestbook / Lain-lain)
+  document.querySelectorAll(".notif-filter").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter =
+        (btn as HTMLElement).getAttribute("data-notif-filter") || "all";
+      setNotifFilter(filter);
+    });
+  });
 
   // Tap overlay → tutup drawer mobile
   notifOverlay?.addEventListener("click", closeNotifPanel);

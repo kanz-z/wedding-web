@@ -313,6 +313,44 @@ body {
   font-weight: 600;
   color: var(--ink);
 }
+/* baris filter notifikasi (Semua / RSVP / Check-in / Guestbook / Lain-lain) */
+.notif-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: 10px var(--space-md);
+}
+.notif-filter {
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+.notif-filter:hover {
+  border-color: var(--pink);
+  color: var(--ink);
+}
+.notif-filter.is-active {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #fff;
+}
+/* pembatas antara filter dan daftar notifikasi */
+.notif-divider {
+  height: 1px;
+  background: var(--panel-border);
+  margin: 0 var(--space-md);
+}
+.notif-item.hidden {
+  display: none;
+}
 .notif-item {
   display: flex;
   gap: 10px;

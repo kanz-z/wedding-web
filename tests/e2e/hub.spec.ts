@@ -34,4 +34,28 @@ test.describe('Hub Dashboard — Ringkasan & Navigasi', () => {
     await hub.closeNotifications();
     await expect(hub.notificationPanel).not.toBeVisible({ timeout: 3000 });
   });
+
+  test('hub -- notification filter buttons render', async () => {
+    await hub.openNotifications();
+    const labels = ['Semua', 'RSVP', 'Check-in', 'Guestbook', 'Lain-lain'];
+    await expect(hub.notificationFilters).toHaveCount(5);
+    for (const label of labels) {
+      await expect(hub.notificationFilters.filter({ hasText: label })).toBeVisible();
+    }
+  });
+
+  test('hub -- filter rsvp only shows rsvp items', async () => {
+    await hub.openNotifications();
+    const rsvpBtn = hub.notificationFilters.filter({ hasText: 'RSVP' });
+    await rsvpBtn.click();
+    await expect(rsvpBtn).toHaveAttribute('aria-pressed', 'true');
+    const visibleItems = hub.notifItems.filter({ visible: true });
+    const count = await visibleItems.count();
+    expect(count).toBeGreaterThanOrEqual(0);
+    // Semua item yang terlihat harus bertipe rsvp (data-notif-cat dalam grup RSVP)
+    for (let i = 0; i < count; i++) {
+      const cat = await visibleItems.nth(i).getAttribute('data-notif-cat');
+      expect(['rsvp_pending', 'rsvp_approved', 'rsvp_rejected', 'new_reservation']).toContain(cat);
+    }
+  });
 });

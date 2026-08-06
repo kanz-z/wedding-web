@@ -1,7 +1,7 @@
 // src/dashboard/reservations.ts — Fase 6C: Reservasi grid + approval + copy link
 
 import { show, hide, debounce } from '@/shared/ui';
-import { showToast, escapeHtml, escapeAttr } from '@/shared/ui';
+import { showToast, escapeHtml, escapeAttr, generateInviteMessage, copyTextToClipboard } from '@/shared/ui';
 import {
   guestList,
   fetchGuests,

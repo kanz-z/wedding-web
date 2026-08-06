@@ -18,6 +18,8 @@ export class HubPage {
   readonly notificationPanel: Locator;
   readonly notificationPanelClose: Locator;
   readonly notificationOverlay: Locator;
+  readonly notificationFilters: Locator;
+  readonly notifItems: Locator;
 
   // Event status toggle
   readonly eventStatusSwitch: Locator;
@@ -33,6 +35,8 @@ export class HubPage {
     this.notificationPanel = page.locator('#notif-panel');
     this.notificationPanelClose = page.locator('#notif-panel-close');
     this.notificationOverlay = page.locator('#notif-overlay');
+    this.notificationFilters = page.locator('.notif-filter');
+    this.notifItems = page.locator('#notif-list .notif-item');
 
     this.eventStatusSwitch = page.locator('#event-status-switch');
     this.eventStatusLabel = page.locator('#event-status-label');
