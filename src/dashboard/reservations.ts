@@ -210,5 +210,6 @@ function initEventStatusToggle(): void {
         ? 'Undangan online — publik dapat mengakses'
         : 'Undangan offline — publik tidak dapat mengakses',
     );
+    renderNotifications();
   });
 }

@@ -496,6 +496,7 @@ async function saveEdit(): Promise<void> {
     populateKelompokFilter();
     flashRow(activeGuestId);
     showToast("Data tamu berhasil diperbarui");
+    renderNotifications();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Gagal memperbarui";
     showToast(
@@ -586,6 +587,7 @@ async function doCheckinAll(): Promise<void> {
     renderGuestTable();
     flashRow(activeGuestId);
     showToast(g.name + " berhasil check-in (+" + delta + ")");
+    renderNotifications();
     window.dispatchEvent(new CustomEvent("checkin-updated"));
   } catch (err: unknown) {
     showToast(
@@ -650,6 +652,7 @@ async function doCheckinPartial(): Promise<void> {
     renderGuestTable();
     flashRow(activeGuestId);
     showToast(g.name + " check-in (+" + delta + ")");
+    renderNotifications();
     window.dispatchEvent(new CustomEvent("checkin-updated"));
   } catch (err: unknown) {
     showToast(
@@ -724,6 +727,7 @@ async function doManualOverrideConfirm(): Promise<void> {
     }
 
     renderGuestTable();
+    renderNotifications();
     window.dispatchEvent(new CustomEvent("checkin-updated"));
 
     // Jika override dari checkin dialog, refresh dialog
@@ -797,6 +801,7 @@ async function saveNewGuest(): Promise<void> {
     renderGuestTable();
     flashRow(g.id);
     showToast("Tamu berhasil ditambahkan: " + g.name);
+    renderNotifications();
   } catch (err: unknown) {
     showToast(
       "Gagal: " + (err instanceof Error ? err.message : String(err)),
@@ -1163,6 +1168,7 @@ export function initGuestEvents(): void {
     try {
       await deleteGuests([...selectedIds]);
       showToast(selectedIds.size + " tamu berhasil dihapus");
+      renderNotifications();
       selectedIds.clear();
       updateBulkBar();
       populateKelompokFilter();
@@ -1243,6 +1249,7 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
             populateKelompokFilter();
             renderGuestTable();
             showToast("Kelompok diperbarui");
+            renderNotifications();
           })
           .catch(() => showToast("Gagal mengubah kelompok", true));
     });
@@ -1266,6 +1273,7 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
           populateKelompokFilter();
           renderGuestTable();
           showToast("Kelompok baru dibuat");
+          renderNotifications();
         })
         .catch(() => showToast("Gagal membuat kelompok", true));
   });
@@ -1323,6 +1331,7 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
         renderGuestTable();
         await renderAuditLog();
         showToast("Check-in berhasil di-undo (-" + delta + ")");
+        renderNotifications();
       } catch (err: unknown) {
         showToast(
           "Gagal undo: " + (err instanceof Error ? err.message : String(err)),

@@ -113,7 +113,6 @@ function buildCardHTML(data: CardData, slug: string): string {
         </div>
       </div>
 
-      <div class="card-toast" id="card-toast" role="status" aria-live="polite" aria-atomic="true"></div>
     </div>
   `;
 }

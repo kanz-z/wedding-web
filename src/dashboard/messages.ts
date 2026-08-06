@@ -103,6 +103,7 @@ function renderPublicMessages(): void {
       try {
         await updateGuestbookApproval(id, this.checked);
         showToast(this.checked ? 'Ucapan ditampilkan ke publik' : 'Ucapan disembunyikan dari publik');
+        renderNotifications();
       } catch {
         showToast('Gagal mengubah status tampilan', true);
         this.checked = !this.checked;

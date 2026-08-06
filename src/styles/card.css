@@ -709,48 +709,6 @@
 }
 
 /* --------------------------------------------------------------------------
-   Toast Notification
-   -------------------------------------------------------------------------- */
-.card-toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  padding: 16px 24px;
-  border-radius: 14px;
-  font-family: var(--card-sans);
-  font-size: 15px;
-  font-weight: 500;
-  box-shadow:
-    0 10px 15px -3px rgba(30, 28, 20, 0.1),
-    0 4px 6px -4px rgba(30, 28, 20, 0.1);
-  z-index: 100;
-  opacity: 0;
-  transition: all 250ms ease;
-  pointer-events: none;
-  max-width: 90vw;
-  text-align: center;
-}
-
-.card-toast--visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
-}
-
-.card-toast--error {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.card-toast--success {
-  background: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-/* --------------------------------------------------------------------------
    Export State
    -------------------------------------------------------------------------- */
 .invitation-card.exporting {
