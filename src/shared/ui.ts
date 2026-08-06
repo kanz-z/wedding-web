@@ -178,18 +178,29 @@ export function createDownloadLoading(container: HTMLElement): DownloadLoadingIn
 
 import { config } from "@/config";
 
-export function generateInviteMessage(slug: string, name?: string): string {
+export function generateInviteMessage(slug: string, nameOrOptions?: string | { name?: string; guestCount?: number }): string {
   const inviteUrl = `${config.SITE_URL}/invitation/${slug}`;
   const cardUrl = `${config.SITE_URL}/invitation/${slug}/card`;
+
+  let name: string | undefined;
+  let guestCount: number | undefined;
+
+  if (typeof nameOrOptions === "string") {
+    name = nameOrOptions;
+  } else if (nameOrOptions) {
+    name = nameOrOptions.name;
+    guestCount = nameOrOptions.guestCount;
+  }
+
   const greeting = name ? `Kepada Yth.\nBapak/Ibu/Saudara/i\n*${name}*` : "Kepada Yth.\nBapak/Ibu/Saudara/i";
+  const quotaLine = (guestCount != null && guestCount > 1) ? `\n*Undangan ini berlaku untuk ${guestCount} orang.*\n` : "";
 
   return `${greeting}
 
 *Assalamu'alaikum Wr. Wb.*
 *Bismillahirahmanirrahim.*
 
-Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat untuk menghadiri acara resepsi pernikahan kami.
-
+Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat untuk menghadiri acara resepsi pernikahan kami.${quotaLine}
 Berikut link untuk info lengkap dari acara kami:
 ${inviteUrl}
 
@@ -207,27 +218,50 @@ Hormat kami,
 }
 
 export async function copyTextToClipboard(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
+  // 1. Modern Clipboard API (HTTPS atau localhost)
+  if (navigator.clipboard?.writeText) {
+    try {
       await navigator.clipboard.writeText(text);
       return true;
-    }
-  } catch { /* fallback */ }
+    } catch { /* fallback ke textarea */ }
+  }
 
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.style.position = "fixed";
-  ta.style.left = "-9999px";
-  ta.style.top = "-9999px";
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
+  // 2. Textarea fallback — pakai setSelectionRange (non-deprecated), bukan execCommand
   try {
-    document.execCommand("copy");
-    return true;
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;left:-9999px;top:-9999px;opacity:0";
+    document.body.appendChild(ta);
+
+    // iOS: perlu contentEditable + range untuk keyboard
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      ta.contentEditable = "true";
+      ta.readOnly = false;
+      const range = document.createRange();
+      range.selectNodeContents(ta);
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      ta.setSelectionRange(0, text.length);
+    } else {
+      ta.focus();
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+    }
+
+    const ok = document.execCommand("copy");
+    return ok;
   } catch {
     return false;
   } finally {
-    document.body.removeChild(ta);
+    // Bersihkan textarea (bisa saja gagal dihapus jika sudah removed)
+    try {
+      const leftover = document.querySelector("textarea[readonly][style*='-9999px']");
+      if (leftover) document.body.removeChild(leftover);
+    } catch { /* ignore */ }
   }
 }

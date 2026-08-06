@@ -108,9 +108,9 @@ function renderReservations(): void {
           </div>`
         }
         <div class="reservation-card__actions">
-          <button type="button" data-copy-link="${BASE_URL}/invitation/${escapeAttr(r.slug)}"><i class="bi bi-clipboard"></i> Salin</button>
-          <button type="button" data-copy-invite="${escapeAttr(r.slug)}" data-copy-invite-name="${escapeAttr(r.name)}"><i class="bi bi-chat-dots"></i> Salin Pesan</button>
-          <a href="${BASE_URL}/invitation/${escapeAttr(r.slug)}/card" target="_blank" rel="noopener" class="text-decoration-none"><button type="button"><i class="bi bi-eye"></i> Lihat Kartu</button></a>
+          <button type="button" data-copy-link="${BASE_URL}/invitation/${escapeAttr(r.slug)}" class="res-action res-action--secondary"><i class="bi bi-clipboard"></i> Salin Link</button>
+          <button type="button" data-copy-invite="${escapeAttr(r.slug)}" data-copy-invite-name="${escapeAttr(r.name)}" data-copy-invite-guest-count="${r.guest_count ?? 1}" class="res-action res-action--primary"><i class="bi bi-share-fill"></i> Salin Pesan</button>
+          <a href="${BASE_URL}/invitation/${escapeAttr(r.slug)}/card" target="_blank" rel="noopener" class="text-decoration-none"><button type="button" class="res-action res-action--ghost"><i class="bi bi-eye"></i> Kartu</button></a>
         </div>
       </div>
     </div>
@@ -166,7 +166,8 @@ function renderReservations(): void {
     btn.addEventListener('click', async () => {
       const slug = btn.dataset.copyInvite ?? '';
       const name = btn.dataset.copyInviteName ?? '';
-      const msg = generateInviteMessage(slug, name);
+      const guestCount = parseInt(btn.dataset.copyInviteGuestCount ?? '1', 10) || 1;
+      const msg = generateInviteMessage(slug, { name, guestCount });
       const ok = await copyTextToClipboard(msg);
       showToast(ok ? 'Pesan undangan disalin' : 'Gagal menyalin pesan', !ok);
     });

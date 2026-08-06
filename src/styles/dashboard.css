@@ -1553,20 +1553,62 @@ body {
 .reservation-card__actions {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
-.reservation-card__actions button {
+
+/* --- res-action button system --- */
+.res-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   min-height: 32px;
-  padding: 0 10px;
+  padding: 0 12px;
   font-size: 0.75rem;
+  font-weight: 500;
   border-radius: 999px;
-  border: 1px solid var(--panel-border);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+  line-height: 1;
+}
+.res-action i {
+  font-size: 0.8rem;
+}
+
+/* Primary — filled pink */
+.res-action--primary {
+  background: var(--pink);
+  color: #fff;
+  border-color: var(--pink);
+}
+.res-action--primary:hover {
+  background: rgba(241, 78, 149, 0.85);
+  box-shadow: 0 2px 8px rgba(241, 78, 149, 0.35);
+}
+
+/* Secondary — outlined */
+.res-action--secondary {
   background: transparent;
   color: var(--ink-body);
+  border-color: var(--panel-border);
 }
-.reservation-card__actions button:hover {
-  border-color: var(--pink);
-  color: var(--pink);
+.res-action--secondary:hover {
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+
+/* Ghost — minimal, for non-primary views */
+.res-action--ghost {
+  background: transparent;
+  color: var(--ink-muted);
+  border-color: transparent;
+}
+.res-action--ghost:hover {
+  color: var(--ink-body);
+  border-color: var(--panel-border);
 }
 
 /* ============================= ADMIN (kelola akun) ============================= */
