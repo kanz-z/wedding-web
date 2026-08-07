@@ -30,8 +30,18 @@ export function formatTime(iso: string | null): string {
   if (!iso) return "–";
   const d = new Date(iso);
   const bulan = [
-    "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-    "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Jul",
+    "Agu",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Des",
   ];
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
@@ -140,7 +150,9 @@ export interface DownloadLoadingInstance {
   el: HTMLElement;
 }
 
-export function createDownloadLoading(container: HTMLElement): DownloadLoadingInstance {
+export function createDownloadLoading(
+  container: HTMLElement,
+): DownloadLoadingInstance {
   const overlay = document.createElement("div");
   overlay.className = "download-loading-overlay";
   overlay.innerHTML = `<div class="download-loading-content"><div class="download-loading-spinner"></div><p class="download-loading-text">Menyiapkan...</p></div>`;
@@ -152,18 +164,24 @@ export function createDownloadLoading(container: HTMLElement): DownloadLoadingIn
   return {
     setLoading(label) {
       overlay.className = "download-loading-overlay";
-      overlay.querySelector(".download-loading-spinner")?.classList.remove("d-none");
+      overlay
+        .querySelector(".download-loading-spinner")
+        ?.classList.remove("d-none");
       if (textEl && label) textEl.textContent = label;
     },
     setSuccess(label, autoHideMs = 2500) {
       overlay.classList.add("is-success");
-      overlay.querySelector(".download-loading-spinner")?.classList.add("d-none");
+      overlay
+        .querySelector(".download-loading-spinner")
+        ?.classList.add("d-none");
       if (textEl && label) textEl.textContent = label;
       if (autoHideMs > 0) setTimeout(() => this.dismiss(), autoHideMs);
     },
     setError(label) {
       overlay.classList.add("is-error");
-      overlay.querySelector(".download-loading-spinner")?.classList.add("d-none");
+      overlay
+        .querySelector(".download-loading-spinner")
+        ?.classList.add("d-none");
       if (textEl && label) textEl.textContent = label;
     },
     dismiss() {
@@ -178,9 +196,11 @@ export function createDownloadLoading(container: HTMLElement): DownloadLoadingIn
 
 import { config } from "@/config";
 
-export function generateInviteMessage(slug: string, nameOrOptions?: string | { name?: string; guestCount?: number }): string {
+export function generateInviteMessage(
+  slug: string,
+  nameOrOptions?: string | { name?: string; guestCount?: number },
+): string {
   const inviteUrl = `${config.SITE_URL}/invitation/${slug}`;
-  const cardUrl = `${config.SITE_URL}/invitation/${slug}/card`;
 
   let name: string | undefined;
   let guestCount: number | undefined;
@@ -192,29 +212,57 @@ export function generateInviteMessage(slug: string, nameOrOptions?: string | { n
     guestCount = nameOrOptions.guestCount;
   }
 
-  const greeting = name ? `Kepada Yth.\nBapak/Ibu/Saudara/i\n*${name}*` : "Kepada Yth.\nBapak/Ibu/Saudara/i";
-  const quotaLine = (guestCount != null && guestCount > 1) ? `\n*Undangan ini berlaku untuk ${guestCount} orang.*\n` : "";
+  const greeting = name
+    ? `Kepada Yth.\nBapak/Ibu/Saudara/i\n*${name}*`
+    : "Kepada Yth.\nBapak/Ibu/Saudara/i";
+  const quotaLine =
+    guestCount != null && guestCount > 1
+      ? `\n*Undangan ini berlaku untuk ${guestCount} orang.*\n`
+      : "";
 
   return `${greeting}
-
+\n\n
 *Assalamu'alaikum Wr. Wb.*
 *Bismillahirahmanirrahim.*
-
-Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat untuk menghadiri acara resepsi pernikahan kami.${quotaLine}
+\n\n
+Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat untuk menghadiri acara resepsi pernikahan kami, yang akan diselenggarakan pada:
+\n\n
+🗓️ Tanggal: Sabtu, 22 Agustus 2026
+🕧 Jam Acara: 12.30 - 14.30
+📍 Tempat: RIVEA Riverside Cafe and Space
+\n\n
 Berikut link untuk info lengkap dari acara kami:
 ${inviteUrl}
-
-Link kartu undangan:
-${cardUrl}
-
+\n\n
+${quotaLine}
 Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.
-
+\n\n
 *Wassalamu'alaikum Wr. Wb.*
-
+\n\n
 Terima Kasih.
-
+\n\n
 Hormat kami,
-*Ashila Luqyana Danurdoro & Muhammad Reza Ramadhan*`;
+*Ashila Luqyana Danurdoro & Muhammad Reza Ramadhan*
+\n\n
+----------------
+\n\n
+ *Ketentuan Kehadiran:* 
+ *Mohon Berkenan* 
+* Membawa serta menunjukkan QR Code yang tertera pada undangan pada saat registrasi.
+* Menghadiri acara sesuai dengan jumlah tamu yang tercantum pada undangan.
+* Hadir beberapa saat sebelum acara dimulai guna mendukung kelancaran proses registrasi.
+* Memberikan konfirmasi kehadiran (RSVP) melalui tautan yang tersedia apabila memungkinkan.
+\n\n
+ *Mohon Tidak Diperkenankan* 
+* Meneruskan tautan maupun QR Code undangan kepada pihak lain tanpa seizin kami.
+* Menggunakan QR Code yang bukan diperuntukkan bagi Bapak/Ibu/Saudara/i.
+* Menghadiri acara dengan jumlah tamu melebihi kuota yang tercantum pada undangan.
+\n\n
+Ketentuan tersebut kami sampaikan demi menjaga ketertiban dan kelancaran penyelenggaraan acara. 
+\n\n
+Jika ada pertanyaan bisa menghubungi 089614285558 (Ashila) / 0895405092900 (Reza)
+\n\n
+Atas perhatian, pengertian, dan kerja sama Bapak/Ibu/Saudara/i, kami ucapkan terima kasih.`;
 }
 
 export async function copyTextToClipboard(text: string): Promise<boolean> {
@@ -223,7 +271,9 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
     try {
       await navigator.clipboard.writeText(text);
       return true;
-    } catch { /* fallback ke textarea */ }
+    } catch {
+      /* fallback ke textarea */
+    }
   }
 
   // 2. Textarea fallback — pakai setSelectionRange (non-deprecated), bukan execCommand
@@ -260,8 +310,12 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
   } finally {
     // Bersihkan textarea (bisa saja gagal dihapus jika sudah removed)
     try {
-      const leftover = document.querySelector("textarea[readonly][style*='-9999px']");
+      const leftover = document.querySelector(
+        "textarea[readonly][style*='-9999px']",
+      );
       if (leftover) document.body.removeChild(leftover);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 }
