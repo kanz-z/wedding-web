@@ -7,6 +7,7 @@ import {
   formatTime,
   badge,
   showToast,
+  showErrorModal,
   show,
   hide,
   debounce,
@@ -504,13 +505,18 @@ async function saveEdit(): Promise<void> {
     renderNotifications();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "";
-    // Business error (konflik versi) — pesan spesifik + langkah berikutnya
-    if (msg.includes("Data telah berubah")) {
-      showToast(msg + " — refresh untuk lihat data terbaru.", true);
-    } else {
-      // System error — pesan generik, jangan expose detail internal
+    // Business error (konflik versi) — pesan spesifik + langkah berikutnya.
+    // Fatal: data tidak tersimpan, user harus refresh agar tidak menimpa data terbaru.
+    showErrorModal({
+      message:
+        msg.includes("Data telah berubah")
+          ? msg + " — muat ulang halaman untuk melihat data terbaru."
+          : "Gagal memperbarui data. Coba lagi.",
+      buttons: [{ text: "Tutup", className: "btn btn-primary" }],
+    });
+    if (!msg.includes("Data telah berubah")) {
+      // System error — jangan expose detail internal
       console.error("saveEdit gagal:", err);
-      showToast("Gagal memperbarui data. Coba lagi.", true);
     }
   } finally {
     if (btn) btn.disabled = false;
@@ -832,10 +838,13 @@ async function saveNewGuest(): Promise<void> {
     showToast("Tamu berhasil ditambahkan: " + g.name);
     renderNotifications();
   } catch (err: unknown) {
-    showToast(
-      "Gagal: " + (err instanceof Error ? err.message : String(err)),
-      true,
-    );
+    showErrorModal({
+      message:
+        "Gagal menambahkan tamu: " +
+        (err instanceof Error ? err.message : String(err)),
+      buttons: [{ text: "Tutup", className: "btn btn-primary" }],
+    });
+    console.error("saveNewGuest gagal:", err);
   } finally {
     if (btn) btn.disabled = false;
   }

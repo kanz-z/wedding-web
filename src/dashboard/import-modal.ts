@@ -2,7 +2,7 @@
 // Mengenkapsulasi lifecycle modal import: tab CSV / Paste Text, preview file, dan submit
 
 import { showModal, hideModal } from "./ui";
-import { showToast } from "@/shared/ui";
+import { showToast, showErrorModal } from "@/shared/ui";
 import { insertGuest } from "./state";
 import { populateKelompokFilter, renderGuestTable } from "./guests";
 import { renderNotifications } from "./ui";
@@ -399,7 +399,10 @@ export class ImportModal {
               .slice(0, 3)
               .map((e) => "Baris " + e.row + ": " + e.message)
               .join("; ") + " +" + (errors.length - 3) + " galat lain";
-      showToast("Import gagal: " + detail, true);
+      showErrorModal({
+        message: "Import gagal: " + detail,
+        buttons: [{ text: "Tutup", className: "btn btn-primary" }],
+      });
       return;
     }
 

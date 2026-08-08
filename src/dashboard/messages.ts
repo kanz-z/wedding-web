@@ -67,8 +67,8 @@ async function loadPublicMessages(): Promise<void> {
     renderPublicMessages();
     show(document.getElementById('public-messages-list'));
   } catch {
-    hide(document.getElementById('public-skeleton'));
-    show(document.getElementById('public-error'));
+    // Gagal memuat data sekunder — coba lagi otomatis (blip jaringan), bukan toast.
+    setTimeout(loadPublicMessages, 1200);
   }
 }
 
@@ -132,8 +132,8 @@ async function loadPrivateMessages(): Promise<void> {
     renderPrivateMessages();
     show(document.getElementById('private-messages-list'));
   } catch {
-    hide(document.getElementById('private-skeleton'));
-    show(document.getElementById('private-error'));
+    // Gagal memuat data sekunder — coba lagi otomatis (blip jaringan), bukan toast.
+    setTimeout(loadPrivateMessages, 1200);
   }
 }
 

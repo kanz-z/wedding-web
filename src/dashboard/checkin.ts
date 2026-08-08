@@ -2,7 +2,7 @@
 // Fase 5: integrasi html5-qrcode sungguhan + halaman reservasi post-scan
 
 import { Html5Qrcode } from "html5-qrcode";
-import { escapeHtml, formatTime, showToast, show, hide, debounce } from "@/shared/ui";
+import { escapeHtml, formatTime, showToast, showErrorModal, show, hide, debounce } from "@/shared/ui";
 import { showModal, hideModal, renderNotifications } from "./ui";
 import { guestList, checkinStatus, fetchGuests } from "./state";
 import { supabase } from "./supabase-client";
@@ -398,7 +398,6 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
       overlay.dataset.guestCount = String(reservation.guest_count);
       overlay.dataset.checkedIn = String(checkedIn);
     }
-    showToast("Memproses check-in...");
     doPostscanCheckinAll();
     return;
   }
@@ -457,6 +456,85 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
 }
 
 // --- Post-scan actions ---
+
+/**
+ * Satu jalur pemanggilan edge function check-in (memunculkan 3 duplikat).
+ * Return: { ok } — UI error diputuskan di sini:
+ *  - 401/unauthorized (sesi mati) → modal fatal
+ *  - 409/quota (bukan sesi)      → toast (tetap ada opsi override)
+ *  - selainnya                   → modal error (aksi check-in gagal total)
+ */
+interface CheckinCallResult {
+  ok: boolean;
+  guestName?: string;
+}
+
+async function doCheckinCall(
+  resId: string,
+  delta: number,
+  opts: { isOverride?: boolean; notes?: string } = {},
+): Promise<CheckinCallResult> {
+  try {
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) {
+      showErrorModal({
+        message: "Sesi telah berakhir. Silakan login kembali untuk melanjutkan.",
+        buttons: [{ text: "Masuk", className: "btn btn-primary" }],
+      });
+      return { ok: false };
+    }
+
+    const resp = await fetch(
+      `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reservation_id: resId,
+          delta,
+          method: "qr",
+          is_override: opts.isOverride,
+          notes: opts.notes,
+          idempotency_key: crypto.randomUUID(),
+        }),
+      },
+    );
+
+    let result: Record<string, unknown>;
+    try {
+      result = await resp.json();
+    } catch {
+      showToast("Server tidak merespon — coba lagi nanti", true);
+      return { ok: false };
+    }
+    if (!resp.ok) {
+      const msg =
+        resp.status === 401
+          ? "Sesi tidak valid — silakan login kembali"
+          : resp.status === 409
+            ? "Kuota melebihi jumlah tamu — gunakan override"
+            : (result.error as string) || "Gagal check-in";
+      showToast(msg, true);
+      return { ok: false };
+    }
+
+    const guestName =
+      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
+    return { ok: true, guestName };
+  } catch (err: unknown) {
+    showErrorModal({
+      message:
+        "Gagal memproses check-in: " +
+        (err instanceof Error ? err.message : String(err)),
+      buttons: [{ text: "Tutup", className: "btn btn-primary" }],
+    });
+    throw err;
+  }
+}
+
 async function doPostscanCheckinAll(): Promise<void> {
   const overlay = document.getElementById("postscan-modal-overlay");
   const resId = overlay?.dataset.reservationId;
@@ -469,63 +547,21 @@ async function doPostscanCheckinAll(): Promise<void> {
   const checkedIn = parseInt(overlay?.dataset.checkedIn ?? "0", 10);
   const delta = guestCount - checkedIn;
 
-  try {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    if (!token) {
-      showToast("Sesi tidak valid — silakan login kembali", true);
-      isProcessing = false;
-      return;
-    }
-
-    const resp = await fetch(
-      `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reservation_id: resId, delta, method: "qr", idempotency_key: crypto.randomUUID() }),
-      },
-    );
-
-    let result: Record<string, unknown>;
-    try {
-      result = await resp.json();
-    } catch {
-      showToast("Server tidak merespon — coba lagi nanti", true);
-      isProcessing = false;
-      return;
-    }
-    if (!resp.ok) {
-      if (resp.status === 401) {
-        showToast("Sesi tidak valid — silakan login kembali", true);
-      } else if (resp.status === 409) {
-        showToast("Kuota melebihi jumlah tamu — gunakan override", true);
-      } else {
-        showToast((result.error as string) || "Gagal check-in", true);
-      }
-      return;
-    }
-
-    const guestName =
-      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
-    addScanResult(guestName, true, `Check-in +${delta} berhasil`);
-    showScanSuccessFlash(guestName, delta);
-
-    await fetchGuests();
-    renderNotifications();
-    window.dispatchEvent(new CustomEvent("checkin-updated"));
-
-    // Refresh post-scan modal — tetap di modal yang sama
-    await refreshPostScanModal(resId);
-  } catch (err: unknown) {
-    showToast(
-      "Gagal: " + (err instanceof Error ? err.message : String(err)),
-      true,
-    );
+  const { ok, guestName } = await doCheckinCall(resId, delta);
+  if (!ok) {
     isProcessing = false;
+    return;
   }
+
+  addScanResult(guestName!, true, `Check-in +${delta} berhasil`);
+  showScanSuccessFlash(guestName!, delta);
+
+  await fetchGuests();
+  renderNotifications();
+  window.dispatchEvent(new CustomEvent("checkin-updated"));
+
+  // Refresh post-scan modal — tetap di modal yang sama
+  await refreshPostScanModal(resId);
 }
 
 async function doPostscanCheckinPartial(): Promise<void> {
@@ -573,48 +609,14 @@ async function doPostscanCheckinPartial(): Promise<void> {
   }
 
   try {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    if (!token) {
-      showToast("Sesi tidak valid — silakan login kembali", true);
+    const { ok, guestName } = await doCheckinCall(resId, delta);
+    if (!ok) {
       isProcessing = false;
       return;
     }
 
-    const resp = await fetch(
-      `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reservation_id: resId, delta, method: "qr", idempotency_key: crypto.randomUUID() }),
-      },
-    );
-
-    let result: Record<string, unknown>;
-    try {
-      result = await resp.json();
-    } catch {
-      showToast("Server tidak merespon — coba lagi nanti", true);
-      isProcessing = false;
-      return;
-    }
-    if (!resp.ok) {
-      if (resp.status === 401) {
-        showToast("Sesi tidak valid — silakan login kembali", true);
-      } else if (resp.status === 409) {
-        showToast("Kuota melebihi jumlah tamu — gunakan override", true);
-      } else {
-        showToast((result.error as string) || "Gagal check-in", true);
-      }
-      return;
-    }
-
-    const guestName =
-      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
-    addScanResult(guestName, true, `Check-in +${delta} berhasil`);
-    showScanSuccessFlash(guestName, delta);
+    addScanResult(guestName!, true, `Check-in +${delta} berhasil`);
+    showScanSuccessFlash(guestName!, delta);
 
     await fetchGuests();
     renderNotifications();
@@ -623,10 +625,6 @@ async function doPostscanCheckinPartial(): Promise<void> {
     // Refresh post-scan modal dengan data terbaru
     await refreshPostScanModal(resId);
   } catch (err: unknown) {
-    showToast(
-      "Gagal: " + (err instanceof Error ? err.message : String(err)),
-      true,
-    );
     isProcessing = false;
   }
 }
@@ -689,78 +687,32 @@ async function doPostscanOverrideConfirm(): Promise<void> {
     return;
   }
 
-  try {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    if (!token) {
-      showToast("Sesi tidak valid — silakan login kembali", true);
-      isProcessing = false;
-      return;
-    }
-
-    const resp = await fetch(
-      `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          reservation_id: resId,
-          delta,
-          method: "qr",
-          is_override: true,
-          notes,
-          idempotency_key: crypto.randomUUID(),
-        }),
-      },
-    );
-
-    let result: Record<string, unknown>;
-    try {
-      result = await resp.json();
-    } catch {
-      showToast(
-        `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
-        true,
-      );
-      isProcessing = false;
-      return;
-    }
-    if (!resp.ok) {
-      showToast((result.error as string) || "Gagal override", true);
-      return;
-    }
-
-    // Tutup HANYA override modal
-    hideModal("override-modal-overlay");
-
-    const guestName =
-      ((result as Record<string, unknown>).guest_name as string) || "Tamu";
-    addScanResult(guestName, true, `Override +${delta} berhasil`);
-    showScanSuccessFlash(guestName, delta);
-
-    await fetchGuests();
-    renderNotifications();
-    window.dispatchEvent(new CustomEvent("checkin-updated"));
-
-    // Jika override berasal dari checkin dialog, refresh dialog manual
-    if (source === "checkin-dialog") {
-      window.dispatchEvent(
-        new CustomEvent("open-checkin-dialog", { detail: { id: resId } }),
-      );
-      return;
-    }
-
-    // Default: refresh post-scan modal
-    await refreshPostScanModal(resId);
-  } catch (err: unknown) {
-    showToast(
-      "Gagal: " + (err instanceof Error ? err.message : String(err)),
-      true,
-    );
+  const { ok, guestName } = await doCheckinCall(resId, delta, { isOverride: true, notes });
+  if (!ok) {
     isProcessing = false;
+    return;
   }
+
+  // Tutup HANYA override modal
+  hideModal("override-modal-overlay");
+
+  addScanResult(guestName!, true, `Override +${delta} berhasil`);
+  showScanSuccessFlash(guestName!, delta);
+
+  await fetchGuests();
+  renderNotifications();
+  window.dispatchEvent(new CustomEvent("checkin-updated"));
+
+  // Jika override berasal dari checkin dialog, refresh dialog manual
+  if (source === "checkin-dialog") {
+    window.dispatchEvent(
+      new CustomEvent("open-checkin-dialog", { detail: { id: resId } }),
+    );
+    return;
+  }
+
+  // Default: refresh post-scan modal
+  await refreshPostScanModal(resId);
 }
 
 // --- Refresh post-scan modal setelah check-in/override ---

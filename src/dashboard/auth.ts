@@ -1,6 +1,6 @@
 // src/dashboard/auth.ts — Supabase Auth: login, logout, session, route protection
 
-import { showToast, show, hide } from '@/shared/ui';
+import { showToast, showErrorModal, show, hide } from '@/shared/ui';
 import { supabase } from './supabase-client';
 import { setCurrentAdmin, applyRoleRestrictions, currentAdminRole } from './state';
 
@@ -87,10 +87,14 @@ export async function initAuth(): Promise<boolean> {
       window.location.hash = '';
     }
     if (event === 'TOKEN_REFRESHED' && !session) {
-      showToast("Sesi berakhir, silakan login kembali", true);
+      // Fatal: sesi login berakhir, alur dashboard berhenti — blokir dengan modal.
       hide(document.getElementById("view-app"));
       show(document.getElementById("view-login"));
       window.location.hash = '';
+      showErrorModal({
+        message: "Sesi login telah berakhir. Silakan login kembali untuk melanjutkan.",
+        buttons: [{ text: "Masuk", className: "btn btn-primary" }],
+      });
     }
     if (event === 'SIGNED_IN') {
       checkSession().catch((err) => {
@@ -114,9 +118,13 @@ export async function initAuth(): Promise<boolean> {
     // Jaringan blip saat cek session — jangan biarkan dashboard mati diam-diam.
     // Tampilkan login view + toast; session-check diulang otomatis via hashchange.
     console.warn("[auth] checkSession gagal saat init", err);
-    showToast("Gagal memeriksa sesi. Muat ulang halaman dan coba lagi.", true);
     show(document.getElementById("view-login"));
     hide(document.getElementById("view-app"));
+    // Fatal: dashboard tidak bisa berjalan tanpa verifikasi sesi — blokir sampai user memuat ulang.
+    showErrorModal({
+      message: "Gagal memeriksa sesi. Muat ulang halaman dan coba lagi.",
+      buttons: [{ text: "Muat Ulang", className: "btn btn-primary", onClick: () => location.reload() }],
+    });
   }
 
   // Login form (3.1)

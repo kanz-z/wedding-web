@@ -1,7 +1,7 @@
 // src/dashboard/reservations.ts — Fase 6C: Reservasi grid + approval + copy link
 
 import { show, hide, debounce } from '@/shared/ui';
-import { showToast, escapeHtml, escapeAttr, generateInviteMessage, copyTextToClipboard } from '@/shared/ui';
+import { showToast, showErrorModal, escapeHtml, escapeAttr, generateInviteMessage, copyTextToClipboard } from '@/shared/ui';
 import {
   guestList,
   fetchGuests,
@@ -195,7 +195,11 @@ function renderReservations(): void {
         showToast('Status dikembalikan ke pending');
         await loadReservations();
       } catch {
-        showToast('Gagal mengubah status', true);
+        // Aksi utama gagal total — blokir sampai user menutup modal
+        showErrorModal({
+          message: 'Gagal mengubah status reservasi. Coba lagi.',
+          buttons: [{ text: 'Tutup', className: 'btn btn-primary' }],
+        });
       }
     });
   });

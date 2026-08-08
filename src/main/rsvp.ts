@@ -2,7 +2,8 @@
 import { getGuestName, getGuestId, getGuestToken, slug } from "./slug-router";
 import { supabaseClient } from "./supabase-client";
 import { config } from "../config";
-import { showToast, showRsvpModal, hideRsvpModal } from "./utils";
+import { showToast } from "../shared/ui";
+import { showRsvpModal, hideRsvpModal } from "./utils";
 
 
 interface RsvpSubmitResult {
