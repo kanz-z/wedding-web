@@ -169,13 +169,21 @@ function isNameSimilar(a: string, b: string): boolean {
 
 // --- Data fetching (4.1) ---
 
-let fetchAbortController: AbortController | null = null;
+// Dedupe panggilan bersamaan: daripada abort panggilan in-flight (yang, jika di-
+// abort, membuat renderSummaryCards/.then() tidak pernah jalan karena postgrest
+// mengembalikan {error: AbortError} bukan reject), pemanggil kedua menunggu
+// hasil yang sama.
+let fetchGuestsInFlight: Promise<GuestWithMeta[]> | null = null;
 
-export async function fetchGuests(): Promise<GuestWithMeta[]> {
-  // Cancel previous in-flight request
-  fetchAbortController?.abort();
-  fetchAbortController = new AbortController();
+export function fetchGuests(): Promise<GuestWithMeta[]> {
+  if (fetchGuestsInFlight) return fetchGuestsInFlight;
+  fetchGuestsInFlight = doFetchGuests().finally(() => {
+    fetchGuestsInFlight = null;
+  });
+  return fetchGuestsInFlight;
+}
 
+async function doFetchGuests(): Promise<GuestWithMeta[]> {
   guestLoading = true;
   guestError = null;
 
@@ -183,12 +191,10 @@ export async function fetchGuests(): Promise<GuestWithMeta[]> {
     supabase
       .from("reservations")
       .select("*")
-      .order("name", { ascending: true })
-      .abortSignal(fetchAbortController.signal),
+      .order("name", { ascending: true }),
     supabase
       .from("check_in_transactions")
-      .select("reservation_id, delta, created_at")
-      .abortSignal(fetchAbortController.signal),
+      .select("reservation_id, delta, created_at"),
   ]);
 
   if (resResult.error) {
