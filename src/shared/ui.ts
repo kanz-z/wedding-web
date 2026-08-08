@@ -119,6 +119,83 @@ export function showToast(msg: string, isError?: boolean): void {
   }, TOAST_DURATION);
 }
 
+// --- Error modal (error fatal yang memblokir alur) ---
+
+export interface ErrorModalButton {
+  text: string;
+  className?: string;
+  onClick?: () => void;
+}
+
+export interface ErrorModalOptions {
+  message: string;
+  buttons?: ErrorModalButton[];
+}
+
+/**
+ * Modal untuk error fatal — aksi utama gagal total dan aplikasi tidak bisa lanjut.
+ * Memblokir layar sampai pengguna menekan tombol (mis. "Coba Lagi", "Tutup").
+ * Berlaku di index.html maupun dashboard.html (dibuat otomatis bila belum ada).
+ */
+export function showErrorModal(options: ErrorModalOptions): void {
+  let overlay = document.getElementById("error-modal-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "error-modal-overlay";
+    overlay.className = "error-modal-overlay";
+    overlay.innerHTML = `
+      <div class="error-modal" role="alertdialog" aria-modal="true" aria-live="assertive">
+        <button type="button" class="error-modal-close" aria-label="Tutup">&times;</button>
+        <div class="error-modal-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <p class="error-modal-message"></p>
+        <div class="error-modal-actions"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", function (e: Event) {
+      if (e.target === overlay) hideErrorModal();
+    });
+    overlay
+      .querySelector<HTMLElement>(".error-modal-close")
+      ?.addEventListener("click", hideErrorModal);
+    document.addEventListener("keydown", function (e: KeyboardEvent) {
+      if (e.key === "Escape") hideErrorModal();
+    });
+  }
+
+  const msgEl = overlay.querySelector<HTMLElement>(".error-modal-message");
+  if (msgEl) msgEl.textContent = options.message;
+
+  const actions = overlay.querySelector<HTMLElement>(".error-modal-actions");
+  actions?.replaceChildren();
+
+  options.buttons?.forEach((buttonOption) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = buttonOption.text;
+    button.className = buttonOption.className ?? "btn btn-primary";
+    button.addEventListener("click", () => {
+      hideErrorModal();
+      buttonOption.onClick?.();
+    });
+    actions?.appendChild(button);
+  });
+
+  overlay.style.display = "flex";
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+  overlay.querySelector<HTMLElement>(".error-modal-actions button")?.focus();
+}
+
+export function hideErrorModal(): void {
+  const overlay = document.getElementById("error-modal-overlay");
+  if (!overlay || !overlay.classList.contains("show")) return;
+  overlay.classList.remove("show");
+  setTimeout(function () {
+    overlay.style.display = "none";
+  }, 150);
+}
+
 /**
  * Show a DOM element (remove d-none-important).
  */

@@ -700,8 +700,84 @@ footer li {
   color: #aaa;
 }
 
+/* ===== Error modal (error fatal yang memblokir alur) ===== */
+.error-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10001;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.error-modal-overlay.show {
+  display: flex;
+  opacity: 1;
+}
+.error-modal {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: #1c1c1c;
+  border: 1px solid rgba(220, 53, 69, 0.45);
+  border-radius: 16px;
+  padding: 2rem 1.75rem 1.75rem;
+  text-align: center;
+  color: #f3f3f3;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  transform: translateY(28px);
+  opacity: 0;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+.error-modal-overlay.show .error-modal {
+  transform: translateY(0);
+  opacity: 1;
+}
+.error-modal-icon {
+  font-size: 2.25rem;
+  color: #dc3545;
+  margin-bottom: 0.5rem;
+}
+.error-modal-message {
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0;
+}
+.error-modal-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.error-modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #f3f3f3;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+.error-modal-close:hover {
+  opacity: 1;
+}
+
 @media (max-width: 420px) {
-  .rsvp-modal {
+  .error-modal {
     padding: 1.75rem 1.25rem 1.5rem;
   }
 }
