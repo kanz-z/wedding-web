@@ -77,10 +77,6 @@ export function navigateTo(hash: string): void {
   window.location.hash = hash;
 }
 
-function normalizeHash(raw: string): string {
-  return raw.replace('#', '') || 'hub';
-}
-
 export async function initAuth(): Promise<boolean> {
   // 3.3 + 3.4: Route protection + session management
   supabase.auth.onAuthStateChange((event, session) => {
@@ -97,7 +93,9 @@ export async function initAuth(): Promise<boolean> {
       window.location.hash = '';
     }
     if (event === 'SIGNED_IN') {
-      checkSession();
+      checkSession().catch((err) => {
+        console.warn("[auth] checkSession gagal saat SIGNED_IN", err);
+      });
     }
   });
 
@@ -109,7 +107,17 @@ export async function initAuth(): Promise<boolean> {
   });
 
   // Pastikan session sudah ter-resolve sebelum caller melanjutkan (agar RLS tidak menolak query)
-  const sessionOk = await checkSession();
+  let sessionOk = false;
+  try {
+    sessionOk = await checkSession();
+  } catch (err) {
+    // Jaringan blip saat cek session — jangan biarkan dashboard mati diam-diam.
+    // Tampilkan login view + toast; session-check diulang otomatis via hashchange.
+    console.warn("[auth] checkSession gagal saat init", err);
+    showToast("Gagal memeriksa sesi. Muat ulang halaman dan coba lagi.", true);
+    show(document.getElementById("view-login"));
+    hide(document.getElementById("view-app"));
+  }
 
   // Login form (3.1)
   document.getElementById("login-form")?.addEventListener("submit", async function (e: Event) {
@@ -117,16 +125,18 @@ export async function initAuth(): Promise<boolean> {
 
     // Rate limiting: max 5 percobaan dalam 30 detik
     const RL_KEY = "login_rl";
-    const now = Date.now();
     const RL_WINDOW = 30_000;
     const RL_MAX = 5;
 
     function trackLoginFailure(): void {
+      // `Date.now()` dihitung per-event, bukan saat page load — window
+      // rate-limit harus relatif terhadap momen submit, bukan momen halaman dibuka.
+      const t = Date.now();
       const raw = sessionStorage.getItem(RL_KEY);
       let rl: { count: number; first: number } | null = null;
       try { if (raw) rl = JSON.parse(raw); } catch { /* ignore */ }
-      if (!rl || now - rl.first >= RL_WINDOW) {
-        sessionStorage.setItem(RL_KEY, JSON.stringify({ count: 1, first: now }));
+      if (!rl || t - rl.first >= RL_WINDOW) {
+        sessionStorage.setItem(RL_KEY, JSON.stringify({ count: 1, first: t }));
       } else {
         sessionStorage.setItem(RL_KEY, JSON.stringify({ count: rl.count + 1, first: rl.first }));
       }
@@ -148,15 +158,16 @@ export async function initAuth(): Promise<boolean> {
       const raw = sessionStorage.getItem(RL_KEY);
       let rl: { count: number; first: number } | null = null;
       try { if (raw) rl = JSON.parse(raw); } catch { /* ignore */ }
-      if (rl && now - rl.first < RL_WINDOW && rl.count >= RL_MAX) {
-        const wait = Math.ceil((RL_WINDOW - (now - rl.first)) / 1000);
+      const t = Date.now();
+      if (rl && t - rl.first < RL_WINDOW && rl.count >= RL_MAX) {
+        const wait = Math.ceil((RL_WINDOW - (t - rl.first)) / 1000);
         if (errorText) errorText.textContent = "Terlalu banyak percobaan. Coba lagi dalam " + wait + " detik.";
         show(errorBox);
         return;
       }
 
       const email = (document.getElementById("login-email") as HTMLInputElement | null)?.value.trim() ?? "";
-      const pass = (document.getElementById("login-password") as HTMLInputElement | null)?.value.trim() ?? "";
+      const pass = (document.getElementById("login-password") as HTMLInputElement | null)?.value ?? "";
       hide(errorBox);
       document.getElementById("field-email")?.classList.remove("has-error");
       document.getElementById("field-password")?.classList.remove("has-error");
@@ -176,11 +187,19 @@ export async function initAuth(): Promise<boolean> {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
 
       if (error) {
-        if (errorText) errorText.textContent = "Email atau password tidak valid.";
-        show(errorBox);
         document.getElementById("field-email")?.classList.add("has-error");
         document.getElementById("field-password")?.classList.add("has-error");
-        trackLoginFailure();
+        // Business error (stage 1) vs system error (stage 5): kredensial salah
+        // dihitung sebagai percobaan gagal; kegagalan jaringan/rate-limit tidak —
+        // kalau dihitung, user terkunci padahal password benar.
+        if (error.status === 400 || error.status === 401 || error.status === 422) {
+          if (errorText) errorText.textContent = "Email atau password tidak valid.";
+          trackLoginFailure();
+        } else {
+          console.error("[auth] login system error", error.status, error.message);
+          if (errorText) errorText.textContent = "Terjadi kesalahan. Silakan coba lagi.";
+        }
+        show(errorBox);
         return;
       }
 
@@ -220,8 +239,13 @@ export async function initAuth(): Promise<boolean> {
 
   // Logout (3.6)
   document.getElementById("btn-logout")?.addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    // onAuthStateChange handles UI toggle
+    try {
+      await supabase.auth.signOut();
+      // onAuthStateChange handles UI toggle
+    } catch (err) {
+      console.error("[auth] logout gagal", err);
+      showToast("Gagal logout. Coba lagi.", true);
+    }
   });
 
   return sessionOk;
