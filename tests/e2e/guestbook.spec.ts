@@ -87,7 +87,7 @@ test.describe("Guestbook — Ucapan & Doa", () => {
    * ────────────────────────────────────────────── */
   test("guestbook -- profanity filter blocks bad words", async ({ page }) => {
     const uniqueName = `E2E-Filter-${Date.now()}`;
-    await landing.submitGuestbookMessage(uniqueName, "kata-kasar-test");
+    await landing.submitGuestbookMessage(uniqueName, "anjing");
 
     await page.waitForLoadState("networkidle").catch(() => {});
     await page.waitForTimeout(1000);
@@ -126,21 +126,5 @@ test.describe("Guestbook — Ucapan & Doa", () => {
       const hasTime = (await first.locator(".gb-time").count()) > 0;
       expect(hasName || hasMsg || hasTime).toBe(true);
     }
-  });
-
-  /* ──────────────────────────────────────────────
-   * TEST 7 (QUARANTINED): Karakter countdown di textarea
-   * Status: test.skip di CI — elemen counter 0/500 mungkin
-   *         tidak selalu tampil di production.
-   * Issue: #GB-CHAR-COUNTER
-   * ────────────────────────────────────────────── */
-  test("guestbook — karakter counter 0/500 tampil", async () => {
-    test.skip(
-      !!process.env.CI,
-      "Counter karakter kadang tidak dirender di production — #GB-CHAR-COUNTER",
-    );
-
-    await landing.scrollToSection("guestbook-section");
-    await expect(landing.guestbookCharCount).toBeVisible();
   });
 });

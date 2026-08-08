@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
 
       - run: npm ci
 
@@ -37,7 +37,7 @@ jobs:
       - name: Run E2E tests (${{ matrix.project.name }})
         run: npx playwright test --project=${{ matrix.project.name }}
         env:
-          BASE_URL: ${{ vars.BASE_URL || 'https://wedding-web-reza-shila-2026.vercel.app' }}
+          BASE_URL: ${{ vars.BASE_URL || 'https://rezashila2026.vercel.app' }}
 
       - name: Upload Playwright report
         if: always()

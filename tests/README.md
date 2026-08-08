@@ -2,7 +2,7 @@
 
 ## Strategi Testing
 
-Testing dilakukan secara end-to-end (E2E) menggunakan [Playwright](https://playwright.dev/) terhadap URL production https://wedding-web-reza-shila-2026.vercel.app. Tidak ada test unit atau integration. Seluruh verifikasi dilakukan melalui interaksi browser sungguhan.
+Testing dilakukan secara end-to-end (E2E) menggunakan [Playwright](https://playwright.dev/) terhadap URL production https://rezashila2026.vercel.app. Tidak ada test unit atau integration. Seluruh verifikasi dilakukan melalui interaksi browser sungguhan.
 
 | Dimensi       | Pendekatan                                                                                           |
 | ------------- | ---------------------------------------------------------------------------------------------------- |

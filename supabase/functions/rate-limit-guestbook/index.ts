@@ -14,7 +14,7 @@ const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 menit
 
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
-  "https://wedding-web-reza-shila-2026.vercel.app",
+  "https://rezashila2026.vercel.app",
   "https://rezashila2026.vercel.app",
   "https://wedding-invitation-1-git-main-kanzzs-projects.vercel.app",
   "http://localhost:3000",
@@ -171,16 +171,14 @@ serve(async (req) => {
 
     // Insert guestbook (pakai service_role, tembus RLS)
     console.log("[guestbook] step 5: insert guestbook");
-    const { error: insertError } = await sb
-      .from("guestbook")
-      .insert([
-        {
-          reservation_id: reservation_id || null,
-          name: nama,
-          message: pesan,
-          is_approved: true,
-        },
-      ]);
+    const { error: insertError } = await sb.from("guestbook").insert([
+      {
+        reservation_id: reservation_id || null,
+        name: nama,
+        message: pesan,
+        is_approved: true,
+      },
+    ]);
 
     if (insertError) {
       console.error(

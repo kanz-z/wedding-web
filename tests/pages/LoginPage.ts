@@ -47,12 +47,18 @@ export class LoginPage {
    * Jika auth state sudah di-cache oleh Playwright (storageState),
    * navigasi ke dashboard langsung tanpa login ulang.
    */
+  /**
+   * Login + tunggu dashboard tampil (#view-app visible, hash bisa kosong → 'hub').
+   * Jika storageState aktif, app langsung menampilkan hub tanpa login UI.
+   */
   async loginAndWaitForDashboard(email: string, password: string) {
-    const hash = await this.page.evaluate(() => location.hash);
-    if (hash === '#hub' && (await this.brandName.isVisible().catch(() => false))) {
-      return; // ponytail: auth cached via storageState, skip login UI
-    }
+    // storageState aktif → login form tidak pernah muncul; tunggu dashboard langsung
+    const appVisible = await this.page
+      .locator('#view-app')
+      .isVisible()
+      .catch(() => false);
+    if (appVisible) return;
     await this.login(email, password);
-    await this.page.waitForURL('**/dashboard.html#hub', { timeout: 15_000 });
+    await this.page.locator('#view-app').waitFor({ state: 'visible', timeout: 15_000 });
   }
 }

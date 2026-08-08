@@ -448,6 +448,9 @@ async function saveEdit(): Promise<void> {
   if (!activeGuestId) return;
   const overlay = document.getElementById("edit-modal-overlay");
   const v = parseInt(overlay?.dataset.version ?? "0", 10);
+  const btn = document.getElementById("edit-guest-save-btn") as HTMLButtonElement | null;
+  if (btn?.disabled) return; // klik ganda saat masih menyimpan
+  if (btn) btn.disabled = true;
 
   const nm  = document.getElementById("edit-guest-name")     as HTMLInputElement | null;
   const cnt = document.getElementById("edit-guest-count")    as HTMLInputElement | null;
@@ -500,15 +503,21 @@ async function saveEdit(): Promise<void> {
     showToast("Data tamu berhasil diperbarui");
     renderNotifications();
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Gagal memperbarui";
-    showToast(
-      msg.includes("Data telah berubah")
-        ? msg + " — refresh untuk lihat data terbaru."
-        : msg,
-      true,
-    );
+    const msg = err instanceof Error ? err.message : "";
+    // Business error (konflik versi) — pesan spesifik + langkah berikutnya
+    if (msg.includes("Data telah berubah")) {
+      showToast(msg + " — refresh untuk lihat data terbaru.", true);
+    } else {
+      // System error — pesan generik, jangan expose detail internal
+      console.error("saveEdit gagal:", err);
+      showToast("Gagal memperbarui data. Coba lagi.", true);
+    }
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
+
+// --- Check-in dialog (4.16) ---
 
 // --- Check-in dialog (4.16) ---
 function openCheckinDialog(id: string): void {
@@ -516,17 +525,17 @@ function openCheckinDialog(id: string): void {
   if (!g) return;
   activeGuestId = id;
 
-  (document.getElementById("checkin-dialog-name") as HTMLElement).textContent =
-    g.name;
+  const nameEl = document.getElementById("checkin-dialog-name");
+  if (nameEl) nameEl.textContent = g.name;
 
   const rem = g.guest_count - g.checkedIn;
   const isComplete = rem <= 0;
 
-  (
-    document.getElementById("checkin-dialog-detail") as HTMLElement
-  ).textContent = isComplete
-    ? `Sudah check-in: ${g.checkedIn}/${g.guest_count} — semua sudah hadir`
-    : `Sudah check-in: ${g.checkedIn}/${g.guest_count} — sisa ${rem}`;
+  const detailEl = document.getElementById("checkin-dialog-detail");
+  if (detailEl)
+    detailEl.textContent = isComplete
+      ? `Sudah check-in: ${g.checkedIn}/${g.guest_count} — semua sudah hadir`
+      : `Sudah check-in: ${g.checkedIn}/${g.guest_count} — sisa ${rem}`;
 
   // Counter display
   const counterEl = document.getElementById("checkin-dialog-counter");
@@ -549,8 +558,8 @@ function openCheckinDialog(id: string): void {
 
   const allBtn = document.getElementById(
     "checkin-dialog-all",
-  ) as HTMLButtonElement;
-  allBtn.disabled = isComplete;
+  ) as HTMLButtonElement | null;
+  if (allBtn) allBtn.disabled = isComplete;
 
   const allLabel = document.getElementById("checkin-dialog-all-label");
   if (allLabel)
@@ -558,12 +567,13 @@ function openCheckinDialog(id: string): void {
       ? "Semua sudah check-in"
       : `Masuk Semua (+${Math.max(1, rem)})`;
 
-  (
-    document.getElementById("checkin-dialog-partial-input") as HTMLInputElement
-  ).value = String(Math.max(1, rem));
-  (
-    document.getElementById("checkin-dialog-partial-input") as HTMLInputElement
-  ).max = String(Math.max(1, rem));
+  const partialInput = document.getElementById(
+    "checkin-dialog-partial-input",
+  ) as HTMLInputElement | null;
+  if (partialInput) {
+    partialInput.value = String(Math.max(1, rem));
+    partialInput.max = String(Math.max(1, rem));
+  }
 
   const overrideBtn = document.getElementById(
     "checkin-dialog-override-btn",
@@ -579,6 +589,10 @@ async function doCheckinAll(): Promise<void> {
   if (!g) return;
   const rem = g.guest_count - g.checkedIn;
   const delta = rem > 0 ? rem : g.guest_count;
+
+  const btn = document.getElementById("checkin-dialog-all") as HTMLButtonElement | null;
+  if (btn?.disabled) return; // klik ganda saat check-in sedang berjalan
+  if (btn) btn.disabled = true;
 
   try {
     const {
@@ -596,6 +610,8 @@ async function doCheckinAll(): Promise<void> {
       "Gagal: " + (err instanceof Error ? err.message : String(err)),
       true,
     );
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -605,18 +621,18 @@ async function doCheckinPartial(): Promise<void> {
   if (!g) return;
 
   const rem = g.guest_count - g.checkedIn;
-  const delta = parseInt(
-    (
-      document.getElementById(
-        "checkin-dialog-partial-input",
-      ) as HTMLInputElement
-    ).value,
-    10,
-  );
+  const partialInput = document.getElementById(
+    "checkin-dialog-partial-input",
+  ) as HTMLInputElement | null;
+  const delta = parseInt(partialInput?.value ?? "", 10);
   if (!delta || delta < 1) {
     showToast("Jumlah tidak valid", true);
     return;
   }
+
+  const btn = document.getElementById("checkin-dialog-partial-btn") as HTMLButtonElement | null;
+  if (btn?.disabled) return; // klik ganda saat check-in sedang berjalan
+  if (btn) btn.disabled = true;
 
   // Jika delta melebihi remaining, arahkan ke override modal
   if (delta > rem) {
@@ -661,6 +677,8 @@ async function doCheckinPartial(): Promise<void> {
       "Gagal: " + (err instanceof Error ? err.message : String(err)),
       true,
     );
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -716,6 +734,10 @@ async function doManualOverrideConfirm(): Promise<void> {
     return;
   }
 
+  const btn = document.getElementById("checkin-dialog-override-btn") as HTMLButtonElement | null;
+  if (btn?.disabled) return; // klik ganda saat override sedang berjalan
+  if (btn) btn.disabled = true;
+
   try {
     const {
       data: { user },
@@ -742,6 +764,8 @@ async function doManualOverrideConfirm(): Promise<void> {
       "Gagal: " + (err instanceof Error ? err.message : String(err)),
       true,
     );
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -770,7 +794,10 @@ async function saveNewGuest(): Promise<void> {
   const kt  = document.getElementById("add-guest-kategori")  as HTMLSelectElement | null;
   const wa  = document.getElementById("add-guest-wa")       as HTMLInputElement | null;
   const nts = document.getElementById("add-guest-notes")    as HTMLTextAreaElement | null;
+  const btn = document.getElementById("add-guest-save-btn") as HTMLButtonElement | null;
   if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
+  if (btn?.disabled) return; // klik ganda saat masih menyimpan
+  if (btn) btn.disabled = true;
 
   const name = nm.value.trim();
   const gc = parseInt(cnt.value, 10);
@@ -809,6 +836,8 @@ async function saveNewGuest(): Promise<void> {
       "Gagal: " + (err instanceof Error ? err.message : String(err)),
       true,
     );
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -1400,7 +1429,7 @@ function updateBlastProgress(index: number, total: number, guestName: string): v
   const statusEl = document.getElementById("wa-blast-status");
   const sentEl = document.getElementById("wa-blast-sent");
 
-  const pct = Math.round(((index + 1) / total) * 100);
+  const pct = total > 0 ? Math.round(((index + 1) / total) * 100) : 0;
   if (progressFill) progressFill.style.width = pct + "%";
   if (statusEl) statusEl.textContent = `${index + 1}/${total} — ${escapeHtml(guestName)}`;
   if (sentEl) sentEl.textContent = String(index + 1);
@@ -1459,6 +1488,11 @@ function openWaBlastModal(ids: string[]): void {
 function sendNextWa(): void {
   if (waBlastIndex >= waBlastTargetIds.length) return;
 
+  // Double-submit guard: butuh user gesture agar popup tidak diblokir,
+  // jadi mencegah klik ganda yang memicu window.open berlebihan
+  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  if (sendBtn) sendBtn.disabled = true;
+
   const id = waBlastTargetIds[waBlastIndex];
   const g = guestList.find((x) => x.id === id);
   if (!g) {
@@ -1495,6 +1529,7 @@ function sendNextWa(): void {
     showBlastComplete(waBlastSent, waBlastErrors);
   } else {
     updateSendButton(waBlastIndex, waBlastTargetIds.length);
+    if (sendBtn) sendBtn.disabled = false;
   }
 }
 
@@ -1616,9 +1651,14 @@ function captureCard(element: HTMLElement): Promise<HTMLCanvasElement> {
   });
 }
 
-/** Wrap canvas.toBlob in Promise */
+/** Wrap canvas.toBlob in Promise — toBlob bisa callback null jika canvas gagal */
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
-  return new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+  return new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => {
+      if (b) resolve(b);
+      else reject(new Error("Gagal membuat gambar kartu."));
+    }, "image/png"),
+  );
 }
 
 /** Download single PNG blob via anchor click */

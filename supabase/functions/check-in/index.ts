@@ -12,7 +12,7 @@ const sb = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
-  "https://wedding-web-reza-shila-2026.vercel.app",
+  "https://rezashila2026.vercel.app",
   "https://rezashila2026.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173",
@@ -131,9 +131,11 @@ serve(async (req: Request) => {
     }
 
     // Hanya superadmin, admin, operator yang bisa check-in
-    if (!['superadmin', 'admin', 'operator'].includes(adminRow.role)) {
+    if (!["superadmin", "admin", "operator"].includes(adminRow.role)) {
       return new Response(
-        JSON.stringify({ error: "Forbidden — role tidak memiliki akses check-in" }),
+        JSON.stringify({
+          error: "Forbidden — role tidak memiliki akses check-in",
+        }),
         {
           status: 403,
           headers: {

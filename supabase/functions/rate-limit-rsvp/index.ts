@@ -14,7 +14,7 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 menit
 
 const ALLOWED_ORIGINS = [
   "https://wedding-web-reza-shila-2026.netlify.app",
-  "https://wedding-web-reza-shila-2026.vercel.app",
+  "https://rezashila2026.vercel.app",
   "https://rezashila2026.vercel.app",
   "https://wedding-invitation-1-git-main-kanzzs-projects.vercel.app",
   "http://localhost:3000",

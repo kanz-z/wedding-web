@@ -14,53 +14,63 @@ test.describe('Kelola Tamu — Tabel & Interaksi', () => {
     await guests.goto();
   });
 
+  /**
+   * State area Kelola Tamu — salah satu dari: tabel data, empty state,
+   * empty-first state, atau skeleton. Poll boolean per-elemen: benjir
+   * strict-mode violation dan aman tanpa .first().
+   */
+  const contentState = () =>
+    guests.page
+      .locator('#guest-table-wrap')
+      .or(guests.page.locator('#guest-empty'))
+      .or(guests.page.locator('#guest-empty-first'))
+      .or(guests.page.locator('#guest-skeleton'));
+
+  const expectContentState = async (timeout = 10_000) => {
+    await expect
+      .poll(async () => {
+        const visibleFlags = await Promise.all(
+          ['#guest-table-wrap', '#guest-empty', '#guest-empty-first', '#guest-skeleton'].map(
+            (sel) => guests.page.locator(sel).isVisible().catch(() => false),
+          ),
+        );
+        return visibleFlags.some(Boolean);
+      }, { timeout })
+      .toBe(true);
+  };
+
   test('guests -- table renders with data', async () => {
-    const content = guests.page.locator('#guest-table-wrap, #guest-empty, #guest-empty-first, #guest-skeleton');
-    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+    await expectContentState();
   });
 
   test('guests -- search filters results', async () => {
-    if (await guests.searchInput.isVisible()) {
-      await guests.search('Test');
-      const content = guests.page.locator('#guest-table-wrap, #guest-empty, #guest-skeleton');
-      await expect(content.first()).toBeVisible({ timeout: 5000 });
-    }
+    await guests.search('Test');
+    await expectContentState();
   });
 
   test('guests -- filter by RSVP status', async () => {
-    if (await guests.filterRsvp.isVisible()) {
-      await guests.filterRsvp.selectOption('hadir');
-      await guests.page.waitForTimeout(500);
-      await expect(guests.page.locator('body')).toBeVisible();
-    }
+    await guests.filterRsvp.selectOption('hadir');
+    await expectContentState();
   });
 
   test('guests -- filter by checkin status', async () => {
-    if (await guests.filterCheckin.isVisible()) {
-      await guests.filterCheckin.selectOption('sudah');
-      await guests.page.waitForTimeout(500);
-      await expect(guests.page.locator('body')).toBeVisible();
-    }
+    await guests.filterCheckin.selectOption('sudah');
+    await expectContentState();
   });
 
   test('guests -- filter by kategori', async () => {
-    if (await guests.filterKategori.isVisible()) {
-      await guests.filterKategori.selectOption('keluarga');
-      await guests.page.waitForTimeout(500);
-      await expect(guests.page.locator('body')).toBeVisible();
-    }
+    await guests.filterKategori.selectOption('keluarga');
+    await expectContentState();
   });
 
   test('guests -- pagination changes page', async () => {
-    if (await guests.pageSizeSelect.isVisible()) {
-      await guests.pageSizeSelect.selectOption('25');
-      await guests.page.waitForTimeout(500);
-      await expect(guests.page.locator('body')).toBeVisible();
-    }
+    await guests.pageSizeSelect.selectOption('25');
+    await expectContentState();
   });
 
   test('guests -- select all shows bulk bar', async () => {
-    if (await guests.selectAll.isVisible() && await guests.tableWrap.isVisible()) {
+    // Bulk bar hanya relevan saat ada baris yang bisa dipilih
+    if ((await guests.selectAll.isVisible()) && (await guests.tableWrap.isVisible())) {
       await guests.selectAll.click();
       await guests.page.waitForTimeout(300);
       const bulkVisible = await guests.bulkBar.isVisible().catch(() => false);
@@ -69,45 +79,47 @@ test.describe('Kelola Tamu — Tabel & Interaksi', () => {
   });
 
   test('guests -- detail modal opens', async () => {
+    await expectContentState();
     const count = await guests.detailBtns.count();
     if (count > 0) {
       await guests.detailBtns.first().click();
       await guests.page.waitForTimeout(500);
       const visible = await guests.guestModalOverlay.isVisible().catch(() => false);
-      expect(typeof visible).toBe('boolean');
+      expect(visible).toBe(true);
     }
   });
 
   test('guests -- edit modal opens', async () => {
+    await expectContentState();
     const count = await guests.editBtns.count();
     if (count > 0) {
       await guests.editBtns.first().click();
       await guests.page.waitForTimeout(500);
       const visible = await guests.editModalOverlay.isVisible().catch(() => false);
-      expect(typeof visible).toBe('boolean');
+      expect(visible).toBe(true);
     }
   });
 
   test('guests -- checkin dialog opens', async () => {
-    const count = await guests.checkinBtns.count();
+    await expectContentState();
+    // Hanya tombol check-in aktif (belum check-in penuh) yang bisa diklik
+    const activeCheckin = guests.page.locator('[data-action="checkin"]:not(.is-disabled)');
+    const count = await activeCheckin.count();
     if (count > 0) {
-      await guests.checkinBtns.first().click();
+      await activeCheckin.first().click();
       await guests.page.waitForTimeout(500);
       const visible = await guests.checkinDialogOverlay.isVisible().catch(() => false);
-      expect(typeof visible).toBe('boolean');
+      expect(visible).toBe(true);
     }
   });
 
   test('guests -- reload button refreshes data', async () => {
-    if (await guests.reloadBtn.isVisible()) {
-      await guests.reloadBtn.click();
-      await guests.page.waitForTimeout(1000);
-      await expect(guests.page.locator('body')).toBeVisible();
-    }
+    await expectContentState();
+    await guests.reloadBtn.click();
+    await expectContentState();
   });
 
   test('guests -- skeleton loading state', async () => {
-    const content = guests.page.locator('#guest-skeleton, #guest-table-wrap, #guest-empty, #guest-empty-first');
-    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+    await expectContentState();
   });
 });

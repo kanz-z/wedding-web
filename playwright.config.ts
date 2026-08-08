@@ -25,8 +25,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL:
-      process.env.BASE_URL || "https://wedding-web-reza-shila-2026.vercel.app",
+    baseURL: process.env.BASE_URL || "https://rezashila2026.vercel.app",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -68,22 +67,42 @@ export default defineConfig({
     // === Publik: 4 browser (UX tamu — cross-browser dibutuhkan) ===
     {
       name: "chromium",
-      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
+      testMatch: [
+        "landing.spec.ts",
+        "rsvp.spec.ts",
+        "guestbook.spec.ts",
+        "card.spec.ts",
+      ],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "firefox",
-      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
+      testMatch: [
+        "landing.spec.ts",
+        "rsvp.spec.ts",
+        "guestbook.spec.ts",
+        "card.spec.ts",
+      ],
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit",
-      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
+      testMatch: [
+        "landing.spec.ts",
+        "rsvp.spec.ts",
+        "guestbook.spec.ts",
+        "card.spec.ts",
+      ],
       use: { ...devices["Desktop Safari"] },
     },
     {
       name: "mobile-chrome",
-      testMatch: ["landing.spec.ts", "rsvp.spec.ts", "guestbook.spec.ts", "card.spec.ts"],
+      testMatch: [
+        "landing.spec.ts",
+        "rsvp.spec.ts",
+        "guestbook.spec.ts",
+        "card.spec.ts",
+      ],
       use: { ...devices["Pixel 5"] },
     },
   ],

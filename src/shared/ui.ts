@@ -201,6 +201,7 @@ export function generateInviteMessage(
   nameOrOptions?: string | { name?: string; guestCount?: number },
 ): string {
   const inviteUrl = `${config.SITE_URL}/invitation/${slug}`;
+  const linkQR = `${config.SITE_URL}/invitation/${slug}/card`;
 
   let name: string | undefined;
   let guestCount: number | undefined;
@@ -215,53 +216,52 @@ export function generateInviteMessage(
   const greeting = name
     ? `Kepada Yth.\nBapak/Ibu/Saudara/i\n*${name}*`
     : "Kepada Yth.\nBapak/Ibu/Saudara/i";
-  const quotaLine =
-    guestCount != null && guestCount > 1
-      ? `\n*Undangan ini berlaku untuk ${guestCount} orang.*\n`
-      : "";
+  const quotaLine = `\n*Undangan ini berlaku untuk ${guestCount} orang.*\n`;
 
   return `${greeting}
-\n\n
+
 *Assalamu'alaikum Wr. Wb.*
 *Bismillahirahmanirrahim.*
-\n\n
+
 Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat untuk menghadiri acara resepsi pernikahan kami, yang akan diselenggarakan pada:
-\n\n
+
 🗓️ Tanggal: Sabtu, 22 Agustus 2026
 🕧 Jam Acara: 12.30 - 14.30
 📍 Tempat: RIVEA Riverside Cafe and Space
-\n\n
+
 Berikut link untuk info lengkap dari acara kami:
 ${inviteUrl}
-\n\n
+
+Berikut link kartu QR Code:
+${linkQR}
 ${quotaLine}
 Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.
-\n\n
+
 *Wassalamu'alaikum Wr. Wb.*
-\n\n
+
 Terima Kasih.
-\n\n
+
 Hormat kami,
 *Ashila Luqyana Danurdoro & Muhammad Reza Ramadhan*
-\n\n
+
 ----------------
-\n\n
+
  *Ketentuan Kehadiran:* 
  *Mohon Berkenan* 
 * Membawa serta menunjukkan QR Code yang tertera pada undangan pada saat registrasi.
 * Menghadiri acara sesuai dengan jumlah tamu yang tercantum pada undangan.
 * Hadir beberapa saat sebelum acara dimulai guna mendukung kelancaran proses registrasi.
 * Memberikan konfirmasi kehadiran (RSVP) melalui tautan yang tersedia apabila memungkinkan.
-\n\n
+
  *Mohon Tidak Diperkenankan* 
 * Meneruskan tautan maupun QR Code undangan kepada pihak lain tanpa seizin kami.
 * Menggunakan QR Code yang bukan diperuntukkan bagi Bapak/Ibu/Saudara/i.
 * Menghadiri acara dengan jumlah tamu melebihi kuota yang tercantum pada undangan.
-\n\n
+
 Ketentuan tersebut kami sampaikan demi menjaga ketertiban dan kelancaran penyelenggaraan acara. 
-\n\n
+
 Jika ada pertanyaan bisa menghubungi 089614285558 (Ashila) / 0895405092900 (Reza)
-\n\n
+
 Atas perhatian, pengertian, dan kerja sama Bapak/Ibu/Saudara/i, kami ucapkan terima kasih.`;
 }
 
