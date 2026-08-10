@@ -425,20 +425,34 @@ function openEditModal(id: string): void {
   if (!g) return;
   activeGuestId = id;
 
-  const nm  = document.getElementById("edit-guest-name")     as HTMLInputElement | null;
-  const cnt = document.getElementById("edit-guest-count")    as HTMLInputElement | null;
-  const kl  = document.getElementById("edit-guest-kelompok")  as HTMLSelectElement | null;
-  const kt  = document.getElementById("edit-guest-kategori")  as HTMLSelectElement | null;
-  const wa  = document.getElementById("edit-guest-wa")       as HTMLInputElement | null;
-  const nts = document.getElementById("edit-guest-notes")    as HTMLTextAreaElement | null;
-  const ov  = document.getElementById("edit-modal-overlay")  as HTMLElement | null;
+  const nm = document.getElementById(
+    "edit-guest-name",
+  ) as HTMLInputElement | null;
+  const cnt = document.getElementById(
+    "edit-guest-count",
+  ) as HTMLInputElement | null;
+  const kl = document.getElementById(
+    "edit-guest-kelompok",
+  ) as HTMLSelectElement | null;
+  const kt = document.getElementById(
+    "edit-guest-kategori",
+  ) as HTMLSelectElement | null;
+  const wa = document.getElementById(
+    "edit-guest-wa",
+  ) as HTMLInputElement | null;
+  const nts = document.getElementById(
+    "edit-guest-notes",
+  ) as HTMLTextAreaElement | null;
+  const ov = document.getElementById(
+    "edit-modal-overlay",
+  ) as HTMLElement | null;
   if (!nm || !cnt || !kl || !kt || !wa || !nts || !ov) return;
 
-  nm.value  = g.name;
+  nm.value = g.name;
   cnt.value = String(g.guest_count);
-  kl.value  = g.kelompok || "";
-  kt.value  = g.kategori;
-  wa.value  = g.nomor_wa || "";
+  kl.value = g.kelompok || "";
+  kt.value = g.kategori;
+  wa.value = g.nomor_wa || "";
   nts.value = g.notes || "";
   ov.dataset.version = String(g.version);
 
@@ -449,16 +463,30 @@ async function saveEdit(): Promise<void> {
   if (!activeGuestId) return;
   const overlay = document.getElementById("edit-modal-overlay");
   const v = parseInt(overlay?.dataset.version ?? "0", 10);
-  const btn = document.getElementById("edit-guest-save-btn") as HTMLButtonElement | null;
+  const btn = document.getElementById(
+    "edit-guest-save-btn",
+  ) as HTMLButtonElement | null;
   if (btn?.disabled) return; // klik ganda saat masih menyimpan
   if (btn) btn.disabled = true;
 
-  const nm  = document.getElementById("edit-guest-name")     as HTMLInputElement | null;
-  const cnt = document.getElementById("edit-guest-count")    as HTMLInputElement | null;
-  const kl  = document.getElementById("edit-guest-kelompok")  as HTMLSelectElement | null;
-  const kt  = document.getElementById("edit-guest-kategori")  as HTMLSelectElement | null;
-  const wa  = document.getElementById("edit-guest-wa")       as HTMLInputElement | null;
-  const nts = document.getElementById("edit-guest-notes")    as HTMLTextAreaElement | null;
+  const nm = document.getElementById(
+    "edit-guest-name",
+  ) as HTMLInputElement | null;
+  const cnt = document.getElementById(
+    "edit-guest-count",
+  ) as HTMLInputElement | null;
+  const kl = document.getElementById(
+    "edit-guest-kelompok",
+  ) as HTMLSelectElement | null;
+  const kt = document.getElementById(
+    "edit-guest-kategori",
+  ) as HTMLSelectElement | null;
+  const wa = document.getElementById(
+    "edit-guest-wa",
+  ) as HTMLInputElement | null;
+  const nts = document.getElementById(
+    "edit-guest-notes",
+  ) as HTMLTextAreaElement | null;
   if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
 
   const name = nm.value.trim();
@@ -508,10 +536,9 @@ async function saveEdit(): Promise<void> {
     // Business error (konflik versi) — pesan spesifik + langkah berikutnya.
     // Fatal: data tidak tersimpan, user harus refresh agar tidak menimpa data terbaru.
     showErrorModal({
-      message:
-        msg.includes("Data telah berubah")
-          ? msg + " — muat ulang halaman untuk melihat data terbaru."
-          : "Gagal memperbarui data. Coba lagi.",
+      message: msg.includes("Data telah berubah")
+        ? msg + " — muat ulang halaman untuk melihat data terbaru."
+        : "Gagal memperbarui data. Coba lagi.",
       buttons: [{ text: "Tutup", className: "btn btn-primary" }],
     });
     if (!msg.includes("Data telah berubah")) {
@@ -596,7 +623,9 @@ async function doCheckinAll(): Promise<void> {
   const rem = g.guest_count - g.checkedIn;
   const delta = rem > 0 ? rem : g.guest_count;
 
-  const btn = document.getElementById("checkin-dialog-all") as HTMLButtonElement | null;
+  const btn = document.getElementById(
+    "checkin-dialog-all",
+  ) as HTMLButtonElement | null;
   if (btn?.disabled) return; // klik ganda saat check-in sedang berjalan
   if (btn) btn.disabled = true;
 
@@ -636,7 +665,9 @@ async function doCheckinPartial(): Promise<void> {
     return;
   }
 
-  const btn = document.getElementById("checkin-dialog-partial-btn") as HTMLButtonElement | null;
+  const btn = document.getElementById(
+    "checkin-dialog-partial-btn",
+  ) as HTMLButtonElement | null;
   if (btn?.disabled) return; // klik ganda saat check-in sedang berjalan
   if (btn) btn.disabled = true;
 
@@ -740,7 +771,9 @@ async function doManualOverrideConfirm(): Promise<void> {
     return;
   }
 
-  const btn = document.getElementById("checkin-dialog-override-btn") as HTMLButtonElement | null;
+  const btn = document.getElementById(
+    "checkin-dialog-override-btn",
+  ) as HTMLButtonElement | null;
   if (btn?.disabled) return; // klik ganda saat override sedang berjalan
   if (btn) btn.disabled = true;
 
@@ -777,30 +810,52 @@ async function doManualOverrideConfirm(): Promise<void> {
 
 // --- Add guest (4.13) ---
 function openAddGuestModal(): void {
-  const nm  = document.getElementById("add-guest-name")     as HTMLInputElement | null;
-  const cnt = document.getElementById("add-guest-count")    as HTMLInputElement | null;
-  const kl  = document.getElementById("add-guest-kelompok")  as HTMLSelectElement | null;
-  const kt  = document.getElementById("add-guest-kategori")  as HTMLSelectElement | null;
-  const wa  = document.getElementById("add-guest-wa")       as HTMLInputElement | null;
-  const nts = document.getElementById("add-guest-notes")    as HTMLTextAreaElement | null;
+  const nm = document.getElementById(
+    "add-guest-name",
+  ) as HTMLInputElement | null;
+  const cnt = document.getElementById(
+    "add-guest-count",
+  ) as HTMLInputElement | null;
+  const kl = document.getElementById(
+    "add-guest-kelompok",
+  ) as HTMLSelectElement | null;
+  const kt = document.getElementById(
+    "add-guest-kategori",
+  ) as HTMLSelectElement | null;
+  const wa = document.getElementById("add-guest-wa") as HTMLInputElement | null;
+  const nts = document.getElementById(
+    "add-guest-notes",
+  ) as HTMLTextAreaElement | null;
   if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
-  nm.value  = "";
+  nm.value = "";
   cnt.value = "1";
-  kl.value  = "";
-  kt.value  = "bukan";
-  wa.value  = "";
+  kl.value = "";
+  kt.value = "bukan";
+  wa.value = "";
   nts.value = "";
   showModal("add-modal-overlay");
 }
 
 async function saveNewGuest(): Promise<void> {
-  const nm  = document.getElementById("add-guest-name")     as HTMLInputElement | null;
-  const cnt = document.getElementById("add-guest-count")    as HTMLInputElement | null;
-  const kl  = document.getElementById("add-guest-kelompok")  as HTMLSelectElement | null;
-  const kt  = document.getElementById("add-guest-kategori")  as HTMLSelectElement | null;
-  const wa  = document.getElementById("add-guest-wa")       as HTMLInputElement | null;
-  const nts = document.getElementById("add-guest-notes")    as HTMLTextAreaElement | null;
-  const btn = document.getElementById("add-guest-save-btn") as HTMLButtonElement | null;
+  const nm = document.getElementById(
+    "add-guest-name",
+  ) as HTMLInputElement | null;
+  const cnt = document.getElementById(
+    "add-guest-count",
+  ) as HTMLInputElement | null;
+  const kl = document.getElementById(
+    "add-guest-kelompok",
+  ) as HTMLSelectElement | null;
+  const kt = document.getElementById(
+    "add-guest-kategori",
+  ) as HTMLSelectElement | null;
+  const wa = document.getElementById("add-guest-wa") as HTMLInputElement | null;
+  const nts = document.getElementById(
+    "add-guest-notes",
+  ) as HTMLTextAreaElement | null;
+  const btn = document.getElementById(
+    "add-guest-save-btn",
+  ) as HTMLButtonElement | null;
   if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
   if (btn?.disabled) return; // klik ganda saat masih menyimpan
   if (btn) btn.disabled = true;
@@ -860,9 +915,10 @@ function openGroupPicker(chip: HTMLElement): void {
   const rect = chip.getBoundingClientRect();
   const pickerWidth = 240;
   picker.style.top = window.scrollY + rect.bottom + 6 + "px";
-  const left = rect.left + pickerWidth > window.innerWidth
-    ? Math.max(8, window.innerWidth - pickerWidth - 8)
-    : Math.max(8, rect.left);
+  const left =
+    rect.left + pickerWidth > window.innerWidth
+      ? Math.max(8, window.innerWidth - pickerWidth - 8)
+      : Math.max(8, rect.left);
   picker.style.left = window.scrollX + left + "px";
   picker.style.maxWidth = Math.min(pickerWidth, window.innerWidth - 16) + "px";
 
@@ -994,9 +1050,13 @@ function exportGuests(): void {
     g.notes ?? "",
   ]);
   const bom = "﻿"; // BOM UTF-8 agar Excel mengenali encoding
-  const csv = bom + [header, ...rows]
-    .map((cols) => cols.map((c) => '"' + c.replace(/"/g, '""') + '"').join(","))
-    .join("\n");
+  const csv =
+    bom +
+    [header, ...rows]
+      .map((cols) =>
+        cols.map((c) => '"' + c.replace(/"/g, '""') + '"').join(","),
+      )
+      .join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1112,13 +1172,17 @@ export function initGuestEvents(): void {
     });
 
   // Export / Import (GAP-016)
-  document.getElementById("btn-export-guests")?.addEventListener("click", () => {
-    exportGuests();
-  });
-  document.getElementById("btn-import-guests")?.addEventListener("click", () => {
-    // Delegasi ke ImportModal (di-init oleh dashboard.ts)
-    import("./import-modal").then((m) => m.importModal?.open());
-  });
+  document
+    .getElementById("btn-export-guests")
+    ?.addEventListener("click", () => {
+      exportGuests();
+    });
+  document
+    .getElementById("btn-import-guests")
+    ?.addEventListener("click", () => {
+      // Delegasi ke ImportModal (di-init oleh dashboard.ts)
+      import("./import-modal").then((m) => m.importModal?.open());
+    });
 
   // Edit guest save (4.15)
   document
@@ -1162,8 +1226,7 @@ export function initGuestEvents(): void {
       else if (wa && !wa.hasAttribute("disabled")) {
         const g = guestList.find((x) => x.id === wa.dataset.id);
         if (g?.nomor_wa) window.open(buildWaUrl(g.slug, g.nomor_wa), "_blank");
-      }
-      else if (dl) openDownloadModal([dl.dataset.id!]);
+      } else if (dl) openDownloadModal([dl.dataset.id!]);
       else if (ch) openGroupPicker(ch);
     });
 
@@ -1223,7 +1286,7 @@ export function initGuestEvents(): void {
       if (btn) btn.disabled = false;
     }
   });
-document.getElementById("bulk-clear")?.addEventListener("click", () => {
+  document.getElementById("bulk-clear")?.addEventListener("click", () => {
     selectedIds.clear();
     updateBulkBar();
     renderGuestTable();
@@ -1242,16 +1305,28 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
   });
 
   // WA blast events
-  document.getElementById("wa-blast-send-btn")?.addEventListener("click", () => sendNextWa());
-  document.getElementById("wa-blast-close-modal-btn")?.addEventListener("click", () => hideModal("wa-blast-overlay"));
+  document
+    .getElementById("wa-blast-send-btn")
+    ?.addEventListener("click", () => sendNextWa());
+  document
+    .getElementById("wa-blast-close-modal-btn")
+    ?.addEventListener("click", () => hideModal("wa-blast-overlay"));
 
   // Download card events
-  document.getElementById("download-card-download-btn")?.addEventListener("click", () => {
-    const landscapeRadio = document.getElementById("download-card-format-landscape") as HTMLInputElement | null;
-    const format: "landscape" | "portrait" = landscapeRadio?.checked ? "landscape" : "portrait";
-    downloadCards(downloadCardIds, format);
-  });
-  document.getElementById("download-card-close-modal-btn")?.addEventListener("click", () => hideModal("download-card-overlay"));
+  document
+    .getElementById("download-card-download-btn")
+    ?.addEventListener("click", () => {
+      const landscapeRadio = document.getElementById(
+        "download-card-format-landscape",
+      ) as HTMLInputElement | null;
+      const format: "landscape" | "portrait" = landscapeRadio?.checked
+        ? "landscape"
+        : "portrait";
+      downloadCards(downloadCardIds, format);
+    });
+  document
+    .getElementById("download-card-close-modal-btn")
+    ?.addEventListener("click", () => hideModal("download-card-overlay"));
 
   // Detail modal check-in button
   document
@@ -1284,14 +1359,14 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
       updateGuest(activeKelompokGuestId, current.version, {
         kelompok: item.dataset.group ?? null,
       })
-          .then(() => {
-            closeGroupPicker();
-            populateKelompokFilter();
-            renderGuestTable();
-            showToast("Kelompok diperbarui");
-            renderNotifications();
-          })
-          .catch(() => showToast("Gagal mengubah kelompok", true));
+        .then(() => {
+          closeGroupPicker();
+          populateKelompokFilter();
+          renderGuestTable();
+          showToast("Kelompok diperbarui");
+          renderNotifications();
+        })
+        .catch(() => showToast("Gagal mengubah kelompok", true));
     });
 
   document.getElementById("group-add-btn")?.addEventListener("click", () => {
@@ -1307,15 +1382,15 @@ document.getElementById("bulk-clear")?.addEventListener("click", () => {
       return;
     }
     updateGuest(activeKelompokGuestId, current.version, { kelompok: val })
-        .then(() => {
-          if (inp) inp.value = "";
-          closeGroupPicker();
-          populateKelompokFilter();
-          renderGuestTable();
-          showToast("Kelompok baru dibuat");
-          renderNotifications();
-        })
-        .catch(() => showToast("Gagal membuat kelompok", true));
+      .then(() => {
+        if (inp) inp.value = "";
+        closeGroupPicker();
+        populateKelompokFilter();
+        renderGuestTable();
+        showToast("Kelompok baru dibuat");
+        renderNotifications();
+      })
+      .catch(() => showToast("Gagal membuat kelompok", true));
   });
 
   document.addEventListener("click", (e) => {
@@ -1419,7 +1494,9 @@ function resetBlastUI(total: number): void {
   hide(document.getElementById("wa-blast-progress"));
   hide(document.getElementById("wa-blast-summary"));
 
-  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  const sendBtn = document.getElementById(
+    "wa-blast-send-btn",
+  ) as HTMLButtonElement | null;
   if (sendBtn) {
     sendBtn.disabled = total === 0;
     sendBtn.innerHTML = '<i class="bi bi-whatsapp"></i> Kirim';
@@ -1427,25 +1504,34 @@ function resetBlastUI(total: number): void {
 }
 
 function updateSendButton(index: number, total: number): void {
-  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  const sendBtn = document.getElementById(
+    "wa-blast-send-btn",
+  ) as HTMLButtonElement | null;
   if (sendBtn) {
     sendBtn.innerHTML = `<i class="bi bi-whatsapp"></i> Kirim (${index + 1}/${total})`;
   }
 }
 
-function updateBlastProgress(index: number, total: number, guestName: string): void {
+function updateBlastProgress(
+  index: number,
+  total: number,
+  guestName: string,
+): void {
   const progressFill = document.getElementById("wa-blast-progress-fill");
   const statusEl = document.getElementById("wa-blast-status");
   const sentEl = document.getElementById("wa-blast-sent");
 
   const pct = total > 0 ? Math.round(((index + 1) / total) * 100) : 0;
   if (progressFill) progressFill.style.width = pct + "%";
-  if (statusEl) statusEl.textContent = `${index + 1}/${total} — ${escapeHtml(guestName)}`;
+  if (statusEl)
+    statusEl.textContent = `${index + 1}/${total} — ${escapeHtml(guestName)}`;
   if (sentEl) sentEl.textContent = String(index + 1);
 }
 
 function showBlastComplete(sent: number, errors: number): void {
-  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  const sendBtn = document.getElementById(
+    "wa-blast-send-btn",
+  ) as HTMLButtonElement | null;
   if (sendBtn) {
     sendBtn.disabled = true;
     sendBtn.innerHTML = '<i class="bi bi-check-circle"></i> Selesai';
@@ -1499,7 +1585,9 @@ function sendNextWa(): void {
 
   // Double-submit guard: butuh user gesture agar popup tidak diblokir,
   // jadi mencegah klik ganda yang memicu window.open berlebihan
-  const sendBtn = document.getElementById("wa-blast-send-btn") as HTMLButtonElement | null;
+  const sendBtn = document.getElementById(
+    "wa-blast-send-btn",
+  ) as HTMLButtonElement | null;
   if (sendBtn) sendBtn.disabled = true;
 
   const id = waBlastTargetIds[waBlastIndex];
@@ -1526,7 +1614,8 @@ function sendNextWa(): void {
   if (!waTab) {
     waBlastErrors++;
     const statusEl = document.getElementById("wa-blast-status");
-    if (statusEl) statusEl.textContent = `${waBlastIndex + 1}/${waBlastTargetIds.length} — popup diblokir, izinkan popup untuk situs ini`;
+    if (statusEl)
+      statusEl.textContent = `${waBlastIndex + 1}/${waBlastTargetIds.length} — popup diblokir, izinkan popup untuk situs ini`;
   } else {
     waBlastSent++;
   }
@@ -1569,8 +1658,12 @@ function openDownloadModal(ids: string[]): void {
   }
 
   // Reset radio ke landscape
-  const landscapeRadio = document.getElementById("download-card-format-landscape") as HTMLInputElement | null;
-  const portraitRadio = document.getElementById("download-card-format-portrait") as HTMLInputElement | null;
+  const landscapeRadio = document.getElementById(
+    "download-card-format-landscape",
+  ) as HTMLInputElement | null;
+  const portraitRadio = document.getElementById(
+    "download-card-format-portrait",
+  ) as HTMLInputElement | null;
   if (landscapeRadio) landscapeRadio.checked = true;
   if (portraitRadio) portraitRadio.checked = false;
 
@@ -1581,7 +1674,9 @@ function openDownloadModal(ids: string[]): void {
   if (errorsEl) errorsEl.classList.add("d-none-important");
 
   // Enable download button
-  const downloadBtn = document.getElementById("download-card-download-btn") as HTMLButtonElement | null;
+  const downloadBtn = document.getElementById(
+    "download-card-download-btn",
+  ) as HTMLButtonElement | null;
   if (downloadBtn) downloadBtn.disabled = false;
 
   showModal("download-card-overlay");
@@ -1651,7 +1746,9 @@ function captureCard(element: HTMLElement): Promise<HTMLCanvasElement> {
     backgroundColor: "#ffffff",
     logging: false,
     onclone: (clonedDoc: Document) => {
-      const clonedCard = clonedDoc.querySelector(".invitation-card") as HTMLElement | null;
+      const clonedCard = clonedDoc.querySelector(
+        ".invitation-card",
+      ) as HTMLElement | null;
       if (clonedCard) {
         clonedCard.style.transition = "none";
         clonedCard.style.transform = "none";
@@ -1696,23 +1793,36 @@ async function fetchTokenForGuest(guestId: string): Promise<string | null> {
 }
 
 /** Orchestrator: render, capture, dan download kartu untuk satu atau banyak tamu */
-async function downloadCards(ids: string[], format: "landscape" | "portrait"): Promise<void> {
+async function downloadCards(
+  ids: string[],
+  format: "landscape" | "portrait",
+): Promise<void> {
   const container = document.getElementById("card-render-container");
-  const downloadBtn = document.getElementById("download-card-download-btn") as HTMLButtonElement | null;
+  const downloadBtn = document.getElementById(
+    "download-card-download-btn",
+  ) as HTMLButtonElement | null;
   const progressBar = document.getElementById("download-card-progress");
-  const progressFill = document.getElementById("download-card-progress-fill") as HTMLElement | null;
-  const progressStatus = document.getElementById("download-card-progress-status");
+  const progressFill = document.getElementById(
+    "download-card-progress-fill",
+  ) as HTMLElement | null;
+  const progressStatus = document.getElementById(
+    "download-card-progress-status",
+  );
   const errorsEl = document.getElementById("download-card-errors");
 
   if (!container) return;
 
-  const downloadBody = document.querySelector("#download-card-overlay .modal-dash__body") as HTMLElement | null;
+  const downloadBody = document.querySelector(
+    "#download-card-overlay .modal-dash__body",
+  ) as HTMLElement | null;
   if (!downloadBody) return;
   const dl = createDownloadLoading(downloadBody);
 
   try {
     // 1. Fetch token untuk semua tamu
-    const tokenResults = await Promise.allSettled(ids.map((id) => fetchTokenForGuest(id)));
+    const tokenResults = await Promise.allSettled(
+      ids.map((id) => fetchTokenForGuest(id)),
+    );
 
     // 2. Build array valid guests: punya slug dan qr_token
     interface ValidGuest {
@@ -1741,7 +1851,8 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
     if (valid.length === 0) {
       if (errorsEl) {
         errorsEl.classList.remove("d-none-important");
-        errorsEl.textContent = "Semua tamu dipilih tidak valid — tidak memiliki slug atau token QR.";
+        errorsEl.textContent =
+          "Semua tamu dipilih tidak valid — tidak memiliki slug atau token QR.";
       }
       if (downloadBtn) downloadBtn.disabled = true;
       return;
@@ -1781,24 +1892,31 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
           if (qrEl && v.qrToken) {
             const qrCanvas = document.createElement("canvas");
             await new Promise<void>((resolveQr, rejectQr) => {
-              QRCode.toCanvas(qrCanvas, v.qrToken, {
-                width: 300,
-                margin: 2,
-                color: { dark: "#0a0a0a", light: "#ffffff" },
-                errorCorrectionLevel: "H",
-              }, (err: Error | null | undefined) => {
-                if (err) rejectQr(err);
-                else {
-                  qrEl.classList.remove("card-qr--loading");
-                  qrEl.appendChild(qrCanvas);
-                  resolveQr();
-                }
-              });
+              QRCode.toCanvas(
+                qrCanvas,
+                v.qrToken,
+                {
+                  width: 300,
+                  margin: 2,
+                  color: { dark: "#0a0a0a", light: "#ffffff" },
+                  errorCorrectionLevel: "H",
+                },
+                (err: Error | null | undefined) => {
+                  if (err) rejectQr(err);
+                  else {
+                    qrEl.classList.remove("card-qr--loading");
+                    qrEl.appendChild(qrCanvas);
+                    resolveQr();
+                  }
+                },
+              );
             });
           }
 
           // Capture
-          const card = container.querySelector(".invitation-card") as HTMLElement | null;
+          const card = container.querySelector(
+            ".invitation-card",
+          ) as HTMLElement | null;
           if (!card) throw new Error("Card element not found");
           card.classList.add("exporting");
           const canvas = await captureCard(card);
@@ -1846,7 +1964,10 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
       3000,
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh kartu.";
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Terjadi kesalahan saat mengunduh kartu.";
     showToast(message, true);
     dl.setError(message);
   } finally {
@@ -1856,4 +1977,3 @@ async function downloadCards(ids: string[], format: "landscape" | "portrait"): P
     hideModal("download-card-overlay");
   }
 }
-
