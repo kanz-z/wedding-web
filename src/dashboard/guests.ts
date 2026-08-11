@@ -419,6 +419,21 @@ export function openGuestModal(id: string): void {
   showModal("guest-modal-overlay");
 }
 
+// --- Populate dropdown kelompok di modal ---
+function populateModalKelompok(selectId: string): void {
+  const sel = document.getElementById(selectId) as HTMLSelectElement | null;
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML =
+    '<option value="">Tanpa Kelompok</option>' +
+    [...new Set(guestList.map((g) => g.kelompok).filter(Boolean))]
+      .map(
+        (g) => `<option value="${escapeAttr(g!)}">${escapeHtml(g!)}</option>`,
+      )
+      .join("");
+  sel.value = cur;
+}
+
 // --- Modal edit (4.15) ---
 function openEditModal(id: string): void {
   const g = guestList.find((x) => x.id === id);
@@ -447,6 +462,9 @@ function openEditModal(id: string): void {
     "edit-modal-overlay",
   ) as HTMLElement | null;
   if (!nm || !cnt || !kl || !kt || !wa || !nts || !ov) return;
+
+  // Populasi dropdown sebelum set nilai — agar value yang ada dikenali
+  populateModalKelompok("edit-guest-kelompok");
 
   nm.value = g.name;
   cnt.value = String(g.guest_count);
@@ -829,10 +847,11 @@ function openAddGuestModal(): void {
   if (!nm || !cnt || !kl || !kt || !wa || !nts) return;
   nm.value = "";
   cnt.value = "1";
-  kl.value = "";
   kt.value = "bukan";
   wa.value = "";
   nts.value = "";
+  populateModalKelompok("add-guest-kelompok");
+  kl.value = "";
   showModal("add-modal-overlay");
 }
 
