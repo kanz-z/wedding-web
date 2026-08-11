@@ -166,8 +166,11 @@ body {
   cursor: not-allowed;
 }
 
-/* --- select dropdown — dark theme override --- */
-.dash-field select.form-control {
+/* --- select dropdown — dark theme universal --- */
+select.form-control,
+select.filter-select,
+.page-size-select select,
+#filter-group select {
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%23f14e95' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -176,7 +179,10 @@ body {
   padding-right: 40px;
   cursor: pointer;
 }
-.dash-field select.form-control option {
+select.form-control option,
+select.filter-select option,
+.page-size-select select option,
+#filter-group select option {
   background: #161616;
   color: var(--ink);
   padding: 8px 12px;
