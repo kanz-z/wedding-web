@@ -19,10 +19,8 @@ import { fetchGuests } from "./dashboard/state";
 
 // Initialize all modules
 async function initDashboard(): Promise<void> {
-  // Panggil initAuth() dulu — pastikan session valid sebelum query DB (RLS)
-  const sessionOk = await initAuth();
-  if (!sessionOk) return;
-
+  // Inisialisasi modul UI SELALU — tanpa session pun listener click/DOM harus siap.
+  // initAuth() dipanggil setelahnya agar SIGNED_IN handler bisa memicu fetch data.
   initRouting();
   initNotifications();
   initModals();
@@ -34,17 +32,19 @@ async function initDashboard(): Promise<void> {
   initAdmin();
   initImportModal();
 
-  // Fetch data tamu eagerly agar summary card di hub terisi sejak awal
-  fetchGuests().then(() => {
-    renderSummaryCards();
-    renderNotifications();
-  }).catch((err) => {
-    console.warn("[dashboard] fetchGuests awal gagal", err);
-  });
-
-  // Init guest table pada first visit, reload data pada kunjungan berikutnya
+  // page-changed listener: handle fetch data + render tabel
   let guestTableInited = false;
+  let hubDataInited = false;
   window.addEventListener("page-changed", ((e: CustomEvent) => {
+    if (e.detail.page === "hub" && !hubDataInited) {
+      hubDataInited = true;
+      fetchGuests().then(() => {
+        renderSummaryCards();
+        renderNotifications();
+      }).catch((err) => {
+        console.warn("[dashboard] fetchGuests awal gagal", err);
+      });
+    }
     if (e.detail.page === "guests") {
       if (!guestTableInited) {
         guestTableInited = true;
@@ -55,6 +55,16 @@ async function initDashboard(): Promise<void> {
     }
     if (e.detail.page === "checkin") renderCheckinLog();
   }) as EventListener);
+
+  // Panggil initAuth() — jika session sudah ada, checkSession() → handleHashChange()
+  // akan dispatch page-changed "hub" dan listener di atas akan fetch data.
+  const sessionOk = await initAuth();
+  if (!sessionOk) {
+    // Belum login — view-login ditampilkan. Setelah user login,
+    // SIGNED_IN → checkSession() → handleHashChange() akan dispatch
+    // page-changed "hub" dan listener akan fetch data.
+    return;
+  }
 }
 
 // initDashboard() secara internal menunggu initAuth() → checkSession() sebelum fetch data
