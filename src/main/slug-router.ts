@@ -15,8 +15,6 @@ export interface GuestData {
   nama: string;
   slug: string;
   token: string | null;
-  phone?: string | null;
-  address?: string | null;
 }
 
 /** Tipe route yang terdeteksi */
@@ -90,8 +88,6 @@ export async function fetchGuestData(): Promise<void> {
         nama: raw.name as string,
         slug: raw.slug as string,
         token: raw.qr_token as string | null,
-        phone: raw.nomor_wa as string | null | undefined,
-        address: null,
       };
     } catch (err) {
       console.error("Gagal fetch data tamu:", err);
