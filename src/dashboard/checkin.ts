@@ -227,7 +227,7 @@ async function switchCamera(): Promise<void> {
   }
 
   if (!html5QrCode || !isScanning) {
-    showToast("Scanner tidak aktif — mulai scan terlebih dahulu", true);
+    showToast("Scanner tidak aktif. Mulai scan terlebih dahulu", true);
     return;
   }
 
@@ -260,7 +260,7 @@ async function switchCamera(): Promise<void> {
       await html5QrCode.stop().catch(() => {});
       await restartWithCamera(prevCameraId);
       setScannerStatus(
-        "Kamera tidak tersedia — kembali ke kamera sebelumnya",
+        "Kamera tidak tersedia. Kembali ke kamera sebelumnya",
         true,
       );
       setTimeout(
@@ -302,7 +302,7 @@ async function onScanSuccess(decodedText: string): Promise<void> {
         "QR code tidak terdaftar di database",
       );
       showToast("QR code tidak terdaftar di database", true);
-      setScannerStatus("QR tidak terdaftar — coba scan ulang", true);
+      setScannerStatus("QR tidak terdaftar. Coba scan ulang", true);
       setTimeout(() => {
         setScannerStatus("Arahkan kamera ke QR code tamu");
         isProcessing = false;
@@ -329,7 +329,7 @@ async function onScanSuccess(decodedText: string): Promise<void> {
         `Sudah check-in ${checkedIn}/${reservation.guest_count}`,
       );
       showToast(`${reservation.name} sudah check-in semua`, true);
-      setScannerStatus("Tamu sudah check-in semua — coba scan lain", true);
+      setScannerStatus("Tamu sudah check-in semua. Coba scan lain", true);
       setTimeout(() => {
         setScannerStatus("Arahkan kamera ke QR code tamu");
         isProcessing = false;
@@ -404,8 +404,8 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
 
   if (detailEl) {
     detailEl.textContent = isComplete
-      ? `Sudah check-in: ${checkedIn}/${reservation.guest_count} — semua sudah hadir`
-      : `Sudah check-in: ${checkedIn}/${reservation.guest_count} — sisa ${remaining}`;
+      ? `Sudah check-in: ${checkedIn}/${reservation.guest_count}, semua sudah hadir`
+      : `Sudah check-in: ${checkedIn}/${reservation.guest_count}, sisa ${remaining}`;
   }
 
   if (countEl) {
@@ -507,15 +507,15 @@ async function doCheckinCall(
     try {
       result = await resp.json();
     } catch {
-      showToast("Server tidak merespon — coba lagi nanti", true);
+      showToast("Server tidak merespon, coba lagi nanti", true);
       return { ok: false };
     }
     if (!resp.ok) {
       const msg =
         resp.status === 401
-          ? "Sesi tidak valid — silakan login kembali"
+          ? "Sesi tidak valid. Silakan login kembali"
           : resp.status === 409
-            ? "Kuota melebihi jumlah tamu — gunakan override"
+            ? "Kuota melebihi jumlah tamu. Gunakan override"
             : (result.error as string) || "Gagal check-in";
       showToast(msg, true);
       return { ok: false };
@@ -760,8 +760,8 @@ async function refreshPostScanModal(reservationId: string): Promise<void> {
   const isComplete = checkedIn >= reservation.guest_count;
   if (detailEl) {
     detailEl.textContent = isComplete
-      ? `Sudah check-in: ${checkedIn}/${reservation.guest_count} — semua sudah hadir`
-      : `Sudah check-in: ${checkedIn}/${reservation.guest_count} — sisa ${remaining}`;
+      ? `Sudah check-in: ${checkedIn}/${reservation.guest_count}, semua sudah hadir`
+      : `Sudah check-in: ${checkedIn}/${reservation.guest_count}, sisa ${remaining}`;
   }
 
   // Update button states

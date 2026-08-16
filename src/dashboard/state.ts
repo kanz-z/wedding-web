@@ -132,7 +132,7 @@ function detectAnomaly(
   allGuests: readonly GuestWithMeta[],
 ): string | null {
   if (checkedIn > g.guest_count)
-    return "Check-in melebihi kuota — override oleh admin";
+    return "Check-in melebihi kuota. Override oleh admin";
   if (rsvp === "hadir" && g.kategori === "bukan" && g.guest_count > 2)
     return "RSVP lebih dari 2 orang di luar keluarga";
   if (rsvp === "tidak" && checkedIn > 0)
@@ -357,7 +357,7 @@ export async function addCheckin(
 ): Promise<void> {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
-  if (!token) throw new Error("Sesi tidak valid — silakan login kembali");
+  if (!token) throw new Error("Sesi tidak valid. Silakan login kembali");
 
   const idempotencyKey = crypto.randomUUID();
 
@@ -385,16 +385,16 @@ export async function addCheckin(
     result = await resp.json();
   } catch {
     throw new Error(
-      `Server error (${resp.status}) — ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
+      `Server error (${resp.status}) ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
     );
   }
 
   if (!resp.ok) {
     if (resp.status === 401) {
-      throw new Error("Sesi tidak valid — silakan login kembali");
+      throw new Error("Sesi tidak valid. Silakan login kembali");
     }
     if (resp.status === 409) {
-      throw new Error("Kuota check-in melebihi jumlah tamu — gunakan override jika diperlukan");
+      throw new Error("Kuota check-in melebihi jumlah tamu. Gunakan override jika diperlukan");
     }
     throw new Error(
       ((result as Record<string, unknown>).error as string) || "Gagal check-in",
@@ -431,7 +431,7 @@ export async function undoCheckin(
 ): Promise<void> {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
-  if (!token) throw new Error("Sesi tidak valid — silakan login kembali");
+  if (!token) throw new Error("Sesi tidak valid. Silakan login kembali");
 
   const resp = await fetch(
     `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,

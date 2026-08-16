@@ -1,4 +1,4 @@
-# Wedding Invitation — Reza & Ashila
+# Wedding Invitation Reza & Ashila
 
 Sebuah website undangan pernikahan digital interaktif yang dilengkapi dengan dashboard admin untuk mengelola tamu, RSVP, buku tamu, dan banyak lagi.
 

@@ -82,7 +82,7 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized — token tidak ditemukan" }),
+        JSON.stringify({ error: "Unauthorized. Token tidak ditemukan" }),
         {
           status: 401,
           headers: {
@@ -99,7 +99,7 @@ serve(async (req: Request) => {
     const { data: userData, error: userError } = await sb.auth.getUser(token);
     if (userError || !userData.user) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized — token tidak valid" }),
+        JSON.stringify({ error: "Unauthorized. Token tidak valid" }),
         {
           status: 401,
           headers: {
@@ -119,7 +119,7 @@ serve(async (req: Request) => {
 
     if (!adminRow) {
       return new Response(
-        JSON.stringify({ error: "Forbidden — bukan admin" }),
+        JSON.stringify({ error: "Forbidden. Bukan admin" }),
         {
           status: 403,
           headers: {
@@ -134,7 +134,7 @@ serve(async (req: Request) => {
     if (!["superadmin", "admin", "operator"].includes(adminRow.role)) {
       return new Response(
         JSON.stringify({
-          error: "Forbidden — role tidak memiliki akses check-in",
+          error: "Forbidden. Role tidak memiliki akses check-in",
         }),
         {
           status: 403,

@@ -224,8 +224,8 @@ function initEventStatusToggle(): void {
     label.className = `status-toggle__label ${status === 'online' ? 'is-online' : 'is-offline'}`;
     showToast(
       status === 'online'
-        ? 'Undangan online — publik dapat mengakses'
-        : 'Undangan offline — publik tidak dapat mengakses',
+        ? 'Undangan online. Publik dapat mengakses'
+        : 'Undangan offline. Publik tidak dapat mengakses',
     );
     renderNotifications();
   });

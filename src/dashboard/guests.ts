@@ -602,8 +602,8 @@ function openCheckinDialog(id: string): void {
   const detailEl = document.getElementById("checkin-dialog-detail");
   if (detailEl)
     detailEl.textContent = isComplete
-      ? `Sudah check-in: ${g.checkedIn}/${g.guest_count} — semua sudah hadir`
-      : `Sudah check-in: ${g.checkedIn}/${g.guest_count} — sisa ${rem}`;
+      ? `Sudah check-in: ${g.checkedIn}/${g.guest_count}, semua sudah hadir`
+      : `Sudah check-in: ${g.checkedIn}/${g.guest_count}, sisa ${rem}`;
 
   // Counter display
   const counterEl = document.getElementById("checkin-dialog-counter");
@@ -1651,7 +1651,7 @@ function sendNextWa(): void {
     waBlastErrors++;
     const statusEl = document.getElementById("wa-blast-status");
     if (statusEl)
-      statusEl.textContent = `${waBlastIndex + 1}/${waBlastTargetIds.length} — popup diblokir, izinkan popup untuk situs ini`;
+      statusEl.textContent = `${waBlastIndex + 1}/${waBlastTargetIds.length}. Popup diblokir, izinkan popup untuk situs ini`;
   } else {
     waBlastSent++;
   }
@@ -1888,7 +1888,7 @@ async function downloadCards(
       if (errorsEl) {
         errorsEl.classList.remove("d-none-important");
         errorsEl.textContent =
-          "Semua tamu dipilih tidak valid — tidak memiliki slug atau token QR.";
+          "Semua tamu dipilih tidak memiliki slug atau token QR.";
       }
       if (downloadBtn) downloadBtn.disabled = true;
       return;
