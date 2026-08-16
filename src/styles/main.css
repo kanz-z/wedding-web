@@ -133,11 +133,6 @@ body {
 }
 
 /* home */
-.home {
-  min-height: 100vh;
-  padding: 5rem 0;
-}
-
 .home h2,
 .info h2,
 .cd h2,
@@ -244,6 +239,7 @@ body {
 }
 
 /* section padding */
+.home,
 .thankyou,
 .guestbook-section,
 .info,
@@ -966,16 +962,16 @@ footer li {
   color: #f3f3f3;
 }
 .loading-spinner {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   margin: 0 auto 1rem;
-  border: 3px solid rgba(241, 78, 149, 0.2);
+  border: 6px solid rgba(241, 78, 149, 0.2);
   border-top-color: var(--pink);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s linear infinite;
 }
 .loading-text {
-  font-size: 1rem;
+  font-size: 1.25rem;
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
 }

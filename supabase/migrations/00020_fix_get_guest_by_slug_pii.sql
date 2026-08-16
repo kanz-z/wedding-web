@@ -12,7 +12,7 @@
 
 -- 42P13: CREATE OR REPLACE tidak bisa mengubah row type (jumlah kolom OUT),
 -- jadi fungsi lama harus di-drop dulu sebelum didefinisikan ulang.
-DROP FUNCTION IF EXISTS get_guest_by_slug(text);
+DROP FUNCTION IF EXISTS get_guest_by_slug(slug_param text);
 
 CREATE OR REPLACE FUNCTION get_guest_by_slug(slug_param TEXT)
 RETURNS TABLE (

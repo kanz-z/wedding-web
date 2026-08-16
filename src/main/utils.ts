@@ -1,7 +1,7 @@
 // src/main/utils.ts — ES module version
 // GAP-022: escapeHtml dan showToast diimpor dari shared/ui, tidak duplikat
 
-import { escapeHtml, showToast } from "@/shared/ui";
+import { escapeHtml, showToast, computePageItems } from "@/shared/ui";
 
 export { escapeHtml, showToast };
 
@@ -164,35 +164,70 @@ export function renderPagination(config: {
   container.classList.remove("d-none");
   const ul = document.createElement("ul");
   ul.className = "pagination justify-content-center";
-  const prevLi = createPageItem(
-    '<span aria-hidden="true">&laquo;</span>',
-    currentPage > 0,
-    function () {
-      if (currentPage > 0) onPageChange(currentPage - 1);
-    },
+  // Geser ke halaman pertama
+  ul.appendChild(
+    createPageItem(
+      '<span aria-hidden="true">&laquo;</span>',
+      currentPage > 0,
+      function () {
+        onPageChange(0);
+      },
+    ),
   );
-  ul.appendChild(prevLi);
-  for (let i = 0; i < totalPages; i++) {
+  // Geser satu halaman ke kiri
+  ul.appendChild(
+    createPageItem(
+      '<span aria-hidden="true">&lsaquo;</span>',
+      currentPage > 0,
+      function () {
+        onPageChange(currentPage - 1);
+      },
+    ),
+  );
+  for (const item of computePageItems(currentPage, totalPages)) {
+    if (item === "…") {
+      const li = document.createElement("li");
+      li.className = "page-item disabled";
+      const span = document.createElement("span");
+      span.className = "page-link";
+      span.setAttribute("aria-hidden", "true");
+      span.textContent = "…";
+      li.appendChild(span);
+      ul.appendChild(li);
+      continue;
+    }
     ul.appendChild(
       createPageItem(
-        String(i + 1),
+        String(item + 1),
         true,
         (function (p: number) {
           return function () {
             onPageChange(p);
           };
-        })(i),
-        i === currentPage,
+        })(item),
+        item === currentPage,
       ),
     );
   }
-  const nextLi = createPageItem(
-    '<span aria-hidden="true">&raquo;</span>',
-    currentPage < totalPages - 1,
-    function () {
-      if (currentPage < totalPages - 1) onPageChange(currentPage + 1);
-    },
+  // Geser satu halaman ke kanan
+  ul.appendChild(
+    createPageItem(
+      '<span aria-hidden="true">&rsaquo;</span>',
+      currentPage < totalPages - 1,
+      function () {
+        onPageChange(currentPage + 1);
+      },
+    ),
   );
-  ul.appendChild(nextLi);
+  // Geser ke halaman terakhir
+  ul.appendChild(
+    createPageItem(
+      '<span aria-hidden="true">&raquo;</span>',
+      currentPage < totalPages - 1,
+      function () {
+        onPageChange(totalPages - 1);
+      },
+    ),
+  );
   container.appendChild(ul);
 }

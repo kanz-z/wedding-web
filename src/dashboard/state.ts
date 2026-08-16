@@ -296,7 +296,7 @@ export async function insertGuest(guest: {
     ...(data as Reservation),
     checkedIn: 0,
     checkedInAt: null,
-    rsvp: "hadir",
+    rsvp: "belum",
     flag: null,
   };
   guestList = [...guestList, g].sort((a, b) => a.name.localeCompare(b.name));
@@ -540,12 +540,20 @@ export function setupRealtime(
         old: Record<string, unknown>;
       }) => {
         if (payload.eventType === "INSERT") {
+          // Guard duplikat: insertGuest() sudah memasukkan tamu ini ke guestList
+          // (optimistic). Event realtime untuk baris yang sama datang sesaat setelahnya.
+          if (guestList.some((g) => g.id === payload.new.id)) return;
+
+          // rsvp adalah derived field — hitung dengan aturan yang sama seperti doFetchGuests:
+          // "hadir" hanya jika tamu sendiri yang RSVP (edited_status === "rsvp") DAN disetujui.
           const rsvp: GuestWithMeta["rsvp"] =
-            payload.new.approval_status === "approved"
-              ? "hadir"
-              : payload.new.approval_status === "rejected"
-                ? "tidak"
-                : "belum";
+            payload.new.edited_status === "rsvp"
+              ? payload.new.approval_status === "approved"
+                ? "hadir"
+                : payload.new.approval_status === "rejected"
+                  ? "tidak"
+                  : "belum"
+              : "belum";
           const g: GuestWithMeta = {
             ...payload.new,
             checkedIn: 0,

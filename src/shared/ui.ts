@@ -396,3 +396,35 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
     }
   }
 }
+
+/**
+ * Hitung daftar halaman untuk pagination "condensed":
+ * selalu tampilkan halaman pertama & terakhir, halaman aktif ± 1,
+ * dan sisipkan "…" pada celah antar halaman.
+ * currentPage & nilai kembalian berindeks 0.
+ */
+export function computePageItems(
+  currentPage: number,
+  totalPages: number,
+): Array<number | "…"> {
+  const last = totalPages - 1;
+  // Jendela 3 halaman berpusat pada halaman aktif; menempel ke tepi saat
+  // aktif di dekat ujung, mis. halaman 1 → "1 2 3 … 20", halaman 20 → "1 … 18 19 20".
+  let start = Math.max(0, currentPage - 1);
+  let end = Math.min(last, currentPage + 1);
+  while (end - start < 2 && (start > 0 || end < last)) {
+    if (start > 0) start--;
+    else end++;
+  }
+  const show = new Set<number>([0, last]);
+  for (let i = start; i <= end; i++) show.add(i);
+  const items: Array<number | "…"> = [];
+  let prev = -1;
+  for (let i = 0; i < totalPages; i++) {
+    if (!show.has(i)) continue;
+    if (prev >= 0 && i - prev > 1) items.push("…");
+    items.push(i);
+    prev = i;
+  }
+  return items;
+}

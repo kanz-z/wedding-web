@@ -12,6 +12,7 @@ import {
   hide,
   debounce,
   createDownloadLoading,
+  computePageItems,
 } from "@/shared/ui";
 import {
   guestList,
@@ -315,26 +316,42 @@ function renderPaginationNav(totalPages: number): void {
 
   ul.appendChild(
     createPageItem("&laquo;", currentPage > 0, false, () => {
+      setCurrentPage(0);
+      renderGuestTable();
+    }),
+  );
+  ul.appendChild(
+    createPageItem("&lsaquo;", currentPage > 0, false, () => {
       setCurrentPage(currentPage - 1);
       renderGuestTable();
     }),
   );
-  for (let i = 0; i < totalPages; i++) {
+  for (const item of computePageItems(currentPage, totalPages)) {
+    if (item === "…") {
+      ul.appendChild(createPageItem("…", false, false, () => {}));
+      continue;
+    }
     ul.appendChild(
       createPageItem(
-        String(i + 1),
+        String(item + 1),
         true,
-        i === currentPage,
+        item === currentPage,
         ((p) => () => {
           setCurrentPage(p);
           renderGuestTable();
-        })(i),
+        })(item),
       ),
     );
   }
   ul.appendChild(
-    createPageItem("&raquo;", currentPage < totalPages - 1, false, () => {
+    createPageItem("&rsaquo;", currentPage < totalPages - 1, false, () => {
       setCurrentPage(currentPage + 1);
+      renderGuestTable();
+    }),
+  );
+  ul.appendChild(
+    createPageItem("&raquo;", currentPage < totalPages - 1, false, () => {
+      setCurrentPage(totalPages - 1);
       renderGuestTable();
     }),
   );
