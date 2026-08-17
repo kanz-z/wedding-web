@@ -425,7 +425,7 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
   html += `<dt>Kelompok</dt><dd>${escapeHtml(reservation.kelompok || "–")}</dd>`;
   html += `<dt>Kategori</dt><dd>${reservation.kategori === "keluarga" ? "Keluarga" : "Bukan Keluarga"}</dd>`;
   html += `<dt>No. WhatsApp</dt><dd>${escapeHtml(reservation.nomor_wa || "–")}</dd>`;
-  html += `<dt>RSVP</dt><dd>${reservation.approval_status === "approved" ? "Hadir" : reservation.approval_status === "rejected" ? "Tidak Hadir" : "Belum Respon"}</dd>`;
+  html += `<dt>RSVP</dt><dd>${reservation.rsvp === "hadir" ? "Hadir" : reservation.rsvp === "tidak" ? "Tidak Hadir" : "Belum Respon"}</dd>`;
   if (reservation.notes)
     html += `<dt>Catatan</dt><dd>${escapeHtml(reservation.notes)}</dd>`;
   html += "</dl>";

@@ -300,6 +300,7 @@ serve(async (req) => {
       name: nama,
       nomor_wa: waClean || null,
       approval_status: newApprovalStatus,
+      rsvp: isHadir ? "hadir" : "tidak",
       notes: pesan || existing.notes,
       edited_status: "rsvp",
       version: (existing.version || 1) + 1,

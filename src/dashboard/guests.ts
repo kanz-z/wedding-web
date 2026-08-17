@@ -572,7 +572,7 @@ async function saveEdit(): Promise<void> {
     // Fatal: data tidak tersimpan, user harus refresh agar tidak menimpa data terbaru.
     showErrorModal({
       message: msg.includes("Data telah berubah")
-        ? msg + " — muat ulang halaman untuk melihat data terbaru."
+        ? msg + ". muat ulang halaman untuk melihat data terbaru."
         : "Gagal memperbarui data. Coba lagi.",
       buttons: [{ text: "Tutup", className: "btn btn-primary" }],
     });

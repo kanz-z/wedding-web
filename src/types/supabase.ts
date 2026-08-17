@@ -6,10 +6,11 @@ export interface Reservation {
   name: string;
   guest_count: number;
   kelompok: string | null;
-  kategori: 'keluarga' | 'bukan';
+  kategori: "keluarga" | "bukan";
   nomor_wa: string | null;
-  approval_status: 'pending' | 'approved' | 'rejected' | 'cancelled';
-  edited_status: 'rsvp' | 'admin' | 'couple' | null;
+  approval_status: "pending" | "approved" | "rejected" | "cancelled";
+  edited_status: "rsvp" | "admin" | "couple" | null;
+  rsvp: "hadir" | "tidak" | null;
   notes: string | null;
   version: number;
   created_at: string;
@@ -24,7 +25,7 @@ export interface CheckInTransaction {
   reservation_id: string;
   admin_id: string;
   delta: number;
-  method: 'qr' | 'manual';
+  method: "qr" | "manual";
   is_override: boolean;
   notes: string | null;
   created_at: string;
@@ -34,7 +35,7 @@ export interface CheckInTransaction {
 export interface AdminUser {
   id: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'operator' | 'couple';
+  role: "superadmin" | "admin" | "operator" | "couple";
   created_at: string;
 }
 
@@ -82,7 +83,7 @@ export interface DbRsvp {
   guest_id: string;
   nama: string;
   jumlah_hadir: number;
-  status: 'hadir' | 'tidak_hadir' | 'pending';
+  status: "hadir" | "tidak_hadir" | "pending";
   pesan: string | null;
   nomor_wa: string | null;
   is_approved: boolean;

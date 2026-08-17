@@ -5,7 +5,7 @@ import { supabase } from "./supabase-client";
 import type { Reservation, GuestbookEntry, AdminUser } from "@/types/supabase";
 
 /** Reservation + derived fields dari check_in_transactions */
-export interface GuestWithMeta extends Reservation {
+export interface GuestWithMeta extends Omit<Reservation, "rsvp"> {
   checkedIn: number;
   checkedInAt: string | null;
   rsvp: "hadir" | "tidak" | "belum";
@@ -126,7 +126,7 @@ export function getAnomalySnapshot(): string {
 // --- Anomaly detection (4.17) ---
 
 function detectAnomaly(
-  g: Reservation,
+  g: Pick<Reservation, "id" | "name" | "guest_count" | "kategori" | "nomor_wa">,
   checkedIn: number,
   rsvp: GuestWithMeta["rsvp"],
   allGuests: readonly GuestWithMeta[],
@@ -229,12 +229,7 @@ async function doFetchGuests(): Promise<GuestWithMeta[]> {
   const rawList: GuestWithMeta[] = (resResult.data || []).map(
     (r: Reservation) => {
       const ci = ciMap.get(r.id) ?? { checkedIn: 0, checkedInAt: null };
-      const rsvp: GuestWithMeta["rsvp"] =
-    r.edited_status === "rsvp"
-      ? r.approval_status === "approved" ? "hadir"
-      : r.approval_status === "rejected" ? "tidak"
-      : "belum"
-    : "belum";
+      const rsvp: GuestWithMeta["rsvp"] = r.rsvp ?? "belum";
       return {
         ...r,
         checkedIn: ci.checkedIn,
@@ -394,7 +389,9 @@ export async function addCheckin(
       throw new Error("Sesi tidak valid. Silakan login kembali");
     }
     if (resp.status === 409) {
-      throw new Error("Kuota check-in melebihi jumlah tamu. Gunakan override jika diperlukan");
+      throw new Error(
+        "Kuota check-in melebihi jumlah tamu. Gunakan override jika diperlukan",
+      );
     }
     throw new Error(
       ((result as Record<string, unknown>).error as string) || "Gagal check-in",
@@ -546,14 +543,7 @@ export function setupRealtime(
 
           // rsvp adalah derived field — hitung dengan aturan yang sama seperti doFetchGuests:
           // "hadir" hanya jika tamu sendiri yang RSVP (edited_status === "rsvp") DAN disetujui.
-          const rsvp: GuestWithMeta["rsvp"] =
-            payload.new.edited_status === "rsvp"
-              ? payload.new.approval_status === "approved"
-                ? "hadir"
-                : payload.new.approval_status === "rejected"
-                  ? "tidak"
-                  : "belum"
-              : "belum";
+          const rsvp: GuestWithMeta["rsvp"] = payload.new.rsvp ?? "belum";
           const g: GuestWithMeta = {
             ...payload.new,
             checkedIn: 0,
@@ -571,6 +561,7 @@ export function setupRealtime(
             guestList[idx] = {
               ...guestList[idx],
               ...payload.new,
+              rsvp: payload.new.rsvp ?? "belum",
               flag: detectAnomaly(
                 payload.new,
                 guestList[idx].checkedIn,
@@ -604,7 +595,10 @@ export function setupRealtime(
             if (lastGuest) onUpdate(lastGuest);
           })
           .catch((err) => {
-            console.warn("[realtime] fetchGuests gagal setelah check_in_transactions update", err);
+            console.warn(
+              "[realtime] fetchGuests gagal setelah check_in_transactions update",
+              err,
+            );
           });
       },
     )
@@ -684,7 +678,10 @@ export async function fetchPrivateMessages(): Promise<PrivateMessage[]> {
 
 // --- Reservasi Approval (Fase 6C) ---
 
-export async function approveReservation(id: string, version: number = 1): Promise<void> {
+export async function approveReservation(
+  id: string,
+  version: number = 1,
+): Promise<void> {
   const { error } = await supabase
     .from("reservations")
     .update({
@@ -696,7 +693,10 @@ export async function approveReservation(id: string, version: number = 1): Promi
   if (error) throw error;
 }
 
-export async function rejectReservation(id: string, version: number = 1): Promise<void> {
+export async function rejectReservation(
+  id: string,
+  version: number = 1,
+): Promise<void> {
   const { error } = await supabase
     .from("reservations")
     .update({
@@ -735,12 +735,6 @@ export async function updateReservationStatus(
     guestList[idx] = {
       ...guestList[idx],
       approval_status: newStatus,
-      rsvp:
-        newStatus === "approved"
-          ? "hadir"
-          : newStatus === "rejected"
-            ? "tidak"
-            : "belum",
     };
   }
 }
@@ -819,27 +813,27 @@ export function applyRoleRestrictions(): void {
   const role = currentAdminRole;
 
   // Hanya superadmin yang lihat tab Admin
-  if (role !== 'superadmin') {
-    document.querySelector('[data-goto="admin"]')?.classList.add('d-none');
+  if (role !== "superadmin") {
+    document.querySelector('[data-goto="admin"]')?.classList.add("d-none");
   }
 
-  if (role === 'couple') {
+  if (role === "couple") {
     // Tab QR Scanner / Check-in
-    document.querySelector('[data-goto="checkin"]')?.classList.add('d-none');
+    document.querySelector('[data-goto="checkin"]')?.classList.add("d-none");
 
     // Status toggle (ONLINE/OFFLINE) — couple tidak bisa nonaktifkan server
-    const toggleRow = document.querySelector('.status-toggle');
-    if (toggleRow) (toggleRow as HTMLElement).style.display = 'none';
+    const toggleRow = document.querySelector(".status-toggle");
+    if (toggleRow) (toggleRow as HTMLElement).style.display = "none";
   }
 
   // Bulk delete — superadmin, admin, dan couple
-  if (role !== 'superadmin' && role !== 'admin' && role !== 'couple') {
-    document.getElementById('bulk-del')?.classList.add('d-none');
+  if (role !== "superadmin" && role !== "admin" && role !== "couple") {
+    document.getElementById("bulk-del")?.classList.add("d-none");
   }
 
   // Row check-in & guestbook toggle — couple tidak bisa (diterapkan via CSS class pada body)
-  if (role === 'couple') {
-    document.body.classList.add('role-couple');
+  if (role === "couple") {
+    document.body.classList.add("role-couple");
   }
 }
 
@@ -860,10 +854,7 @@ export async function deleteGuests(ids: string[]): Promise<void> {
     .in("reservation_id", ids);
   if (checkinErr) throw checkinErr;
 
-  const { error } = await supabase
-    .from("reservations")
-    .delete()
-    .in("id", ids);
+  const { error } = await supabase.from("reservations").delete().in("id", ids);
   if (error) throw error;
 
   guestList = guestList.filter((g) => !ids.includes(g.id));
