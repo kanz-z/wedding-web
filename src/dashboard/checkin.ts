@@ -2,7 +2,15 @@
 // Fase 5: integrasi html5-qrcode sungguhan + halaman reservasi post-scan
 
 import { Html5Qrcode } from "html5-qrcode";
-import { escapeHtml, formatTime, showToast, showErrorModal, show, hide, debounce } from "@/shared/ui";
+import {
+  escapeHtml,
+  formatTime,
+  showToast,
+  showErrorModal,
+  show,
+  hide,
+  debounce,
+} from "@/shared/ui";
 import { showModal, hideModal, renderNotifications } from "./ui";
 import { guestList, checkinStatus, fetchGuests } from "./state";
 import { supabase } from "./supabase-client";
@@ -247,7 +255,8 @@ async function switchCamera(): Promise<void> {
   ) as HTMLButtonElement | null;
   if (switchBtn) {
     switchBtn.disabled = true;
-    switchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Ganti...';
+    switchBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-1"></span> Ganti...';
   }
 
   try {
@@ -398,7 +407,7 @@ function showPostScanModal(reservation: Reservation, checkedIn: number): void {
       overlay.dataset.guestCount = String(reservation.guest_count);
       overlay.dataset.checkedIn = String(checkedIn);
     }
-    doPostscanCheckinAll();
+    doPostscanCheckinAll(true);
     return;
   }
 
@@ -478,7 +487,8 @@ async function doCheckinCall(
     const token = (await supabase.auth.getSession()).data.session?.access_token;
     if (!token) {
       showErrorModal({
-        message: "Sesi telah berakhir. Silakan login kembali untuk melanjutkan.",
+        message:
+          "Sesi telah berakhir. Silakan login kembali untuk melanjutkan.",
         buttons: [{ text: "Masuk", className: "btn btn-primary" }],
       });
       return { ok: false };
@@ -535,7 +545,7 @@ async function doCheckinCall(
   }
 }
 
-async function doPostscanCheckinAll(): Promise<void> {
+async function doPostscanCheckinAll(isAutoCheckin = false): Promise<void> {
   const overlay = document.getElementById("postscan-modal-overlay");
   const resId = overlay?.dataset.reservationId;
   if (!resId) {
@@ -560,7 +570,16 @@ async function doPostscanCheckinAll(): Promise<void> {
   renderNotifications();
   window.dispatchEvent(new CustomEvent("checkin-updated"));
 
-  // Refresh post-scan modal — tetap di modal yang sama
+  if (isAutoCheckin) {
+    // Modal tidak pernah dibuka untuk kuota 1 — tidak perlu refresh modal,
+    // tapi WAJIB lepas isProcessing supaya scanner tidak macet.
+    setTimeout(() => {
+      setScannerStatus("Arahkan kamera ke QR code tamu");
+      isProcessing = false;
+    }, RESCAN_DELAY);
+    return;
+  }
+
   await refreshPostScanModal(resId);
 }
 
@@ -687,7 +706,10 @@ async function doPostscanOverrideConfirm(): Promise<void> {
     return;
   }
 
-  const { ok, guestName } = await doCheckinCall(resId, delta, { isOverride: true, notes });
+  const { ok, guestName } = await doCheckinCall(resId, delta, {
+    isOverride: true,
+    notes,
+  });
   if (!ok) {
     isProcessing = false;
     return;
@@ -917,7 +939,7 @@ export function initCheckinEvents(): void {
   // Post-scan buttons
   document
     .getElementById("postscan-btn-all")
-    ?.addEventListener("click", doPostscanCheckinAll);
+    ?.addEventListener("click", () => doPostscanCheckinAll());
   document
     .getElementById("postscan-btn-partial")
     ?.addEventListener("click", doPostscanCheckinPartial);
