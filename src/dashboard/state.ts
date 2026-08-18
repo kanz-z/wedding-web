@@ -2,6 +2,7 @@
 // Fase 4: data dari Supabase, bukan dummy
 
 import { supabase } from "./supabase-client";
+import { postCheckIn } from "./checkin-request";
 import type { Reservation, GuestbookEntry, AdminUser } from "@/types/supabase";
 
 /** Reservation + derived fields dari check_in_transactions */
@@ -354,41 +355,26 @@ export async function addCheckin(
   const token = sessionData.session?.access_token;
   if (!token) throw new Error("Sesi tidak valid. Silakan login kembali");
 
-  const idempotencyKey = crypto.randomUUID();
-
-  const resp = await fetch(
-    `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
+  const { status, result } = await postCheckIn(
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        reservation_id: reservationId,
-        delta,
-        method,
-        is_override: isOverride,
-        notes,
-        idempotency_key: idempotencyKey,
-      }),
+      reservation_id: reservationId,
+      delta,
+      method,
+      is_override: isOverride,
+      notes,
     },
+    token,
   );
 
-  let result: Record<string, unknown>;
-  try {
-    result = await resp.json();
-  } catch {
-    throw new Error(
-      `Server error (${resp.status}) ${resp.status >= 500 ? "server sedang sibuk" : "permintaan tidak valid"}`,
-    );
+  if (status === 0) {
+    throw new Error("Server tidak merespon. Silakan coba lagi.");
   }
 
-  if (!resp.ok) {
-    if (resp.status === 401) {
+  if (status >= 400) {
+    if (status === 401) {
       throw new Error("Sesi tidak valid. Silakan login kembali");
     }
-    if (resp.status === 409) {
+    if (status === 409) {
       throw new Error(
         "Kuota check-in melebihi jumlah tamu. Gunakan override jika diperlukan",
       );

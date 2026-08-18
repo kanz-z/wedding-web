@@ -12,6 +12,7 @@ import {
   debounce,
 } from "@/shared/ui";
 import { showModal, hideModal, renderNotifications } from "./ui";
+import { postCheckIn } from "./checkin-request";
 import { guestList, checkinStatus, fetchGuests } from "./state";
 import { supabase } from "./supabase-client";
 import type { GuestWithMeta } from "./state";
@@ -494,37 +495,26 @@ async function doCheckinCall(
       return { ok: false };
     }
 
-    const resp = await fetch(
-      `${import.meta.env.VITE_CHECK_IN_EDGE_FUNCTION}/check-in`,
+    const { status, result } = await postCheckIn(
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          reservation_id: resId,
-          delta,
-          method: "qr",
-          is_override: opts.isOverride,
-          notes: opts.notes,
-          idempotency_key: crypto.randomUUID(),
-        }),
+        reservation_id: resId,
+        delta,
+        method: "qr",
+        is_override: opts.isOverride,
+        notes: opts.notes,
       },
+      token,
     );
 
-    let result: Record<string, unknown>;
-    try {
-      result = await resp.json();
-    } catch {
+    if (status === 0) {
       showToast("Server tidak merespon, coba lagi nanti", true);
       return { ok: false };
     }
-    if (!resp.ok) {
+    if (status >= 400) {
       const msg =
-        resp.status === 401
+        status === 401
           ? "Sesi tidak valid. Silakan login kembali"
-          : resp.status === 409
+          : status === 409
             ? "Kuota melebihi jumlah tamu. Gunakan override"
             : (result.error as string) || "Gagal check-in";
       showToast(msg, true);

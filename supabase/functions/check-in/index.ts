@@ -146,33 +146,7 @@ serve(async (req: Request) => {
       );
     }
 
-    // Idempotency check — jika key sudah dipakai, return hasil sebelumnya
-    if (body.idempotency_key) {
-      const { data: existing } = await sb
-        .from("check_in_transactions")
-        .select("id, delta, method, created_at")
-        .eq("idempotency_key", body.idempotency_key)
-        .maybeSingle();
-
-      if (existing) {
-        return new Response(
-          JSON.stringify({
-            success: true,
-            idempotent: true,
-            ...existing,
-          }),
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json",
-              ...(isAllowed && { "Access-Control-Allow-Origin": origin }),
-            },
-          },
-        );
-      }
-    }
-
-    // Call atomic check-in function
+    // Call atomic check-in function — idempotensi ditangani di dalam fn_check_in
     const { data, error } = await sb.rpc("fn_check_in", {
       p_reservation_id: body.reservation_id,
       p_admin_id: userData.user.id,
@@ -180,6 +154,7 @@ serve(async (req: Request) => {
       p_method: body.method,
       p_is_override: body.is_override ?? false,
       p_notes: body.notes ?? null,
+      p_idempotency_key: body.idempotency_key ?? null,
     });
 
     if (error) {
