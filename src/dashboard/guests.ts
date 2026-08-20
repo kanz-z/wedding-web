@@ -174,8 +174,7 @@ function renderGuestRow(g: GuestWithMeta): string {
     ? `<i class="bi bi-exclamation-triangle-fill anomaly-flag" title="${escapeAttr(g.flag)}"></i>`
     : "";
 
-  // Check-in hanya diblokir jika semua tamu sudah check-in. RSVP bersifat opsional.
-  const cDisabled = status === "sudah" ? "is-disabled" : "";
+  // Check-in selalu dapat dibuka agar admin bisa override meski semua sudah check-in.
 
   return `<tr class="${rowClass}" data-id="${g.id}">
     <td><input type="checkbox" class="row-check" ${selectedIds.has(g.id) ? "checked" : ""} data-select="${g.id}" aria-label="Pilih ${escapeAttr(g.name)}"></td>
@@ -187,7 +186,7 @@ function renderGuestRow(g: GuestWithMeta): string {
     <td><div class="row-actions">
       <button type="button" data-action="detail" data-id="${g.id}" title="Detail" aria-label="Detail ${escapeAttr(g.name)}"><i class="bi bi-eye"></i></button>
       <button type="button" data-action="edit" data-id="${g.id}" title="Edit" aria-label="Edit ${escapeAttr(g.name)}"><i class="bi bi-pencil"></i></button>
-      <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeAttr(g.name)}" class="${cDisabled}"><i class="bi bi-qr-code-scan"></i></button>
+      <button type="button" data-action="checkin" data-id="${g.id}" title="Check-in" aria-label="Check-in ${escapeAttr(g.name)}"><i class="bi bi-qr-code-scan"></i></button>
       <button type="button" data-action="wa" data-id="${g.id}" title="${!g.nomor_wa ? "Tamu tidak memiliki nomor WhatsApp" : "Kirim WA"}" aria-label="Kirim WA ke ${escapeAttr(g.name)}" ${!g.nomor_wa ? "disabled" : ""}><i class="bi bi-whatsapp"></i></button>
       <button type="button" data-action="download" data-id="${g.id}" title="Unduh Kartu" aria-label="Unduh kartu ${escapeAttr(g.name)}"><i class="bi bi-download"></i></button>
     </div></td></tr>`;
@@ -415,12 +414,9 @@ export function openGuestModal(id: string): void {
     "modal-checkin-btn",
   ) as HTMLButtonElement | null;
   if (cBtn) {
-    // Check-in hanya diblokir jika semua tamu sudah check-in. RSVP bersifat opsional.
-    cBtn.disabled = status === "sudah";
-    cBtn.innerHTML =
-      status === "sudah"
-        ? '<i class="bi bi-check2-circle"></i> Sudah Check-in'
-        : '<i class="bi bi-qr-code-scan"></i> Check-in';
+    // Check-in selalu dapat dibuka agar admin bisa override meski semua sudah check-in.
+    cBtn.disabled = false;
+    cBtn.innerHTML = '<i class="bi bi-qr-code-scan"></i> Check-in';
   }
 
   const editBtn = document.getElementById(
@@ -646,7 +642,7 @@ function openCheckinDialog(id: string): void {
   const overrideBtn = document.getElementById(
     "checkin-dialog-override-btn",
   ) as HTMLButtonElement | null;
-  if (overrideBtn) overrideBtn.disabled = isComplete;
+  if (overrideBtn) overrideBtn.disabled = false;
 
   showModal("checkin-dialog-overlay");
 }
@@ -669,7 +665,6 @@ async function doCheckinAll(): Promise<void> {
       data: { user },
     } = await supabase.auth.getUser();
     await addCheckin(activeGuestId, user?.id ?? "", delta, "manual", false);
-    hideModal("checkin-dialog-overlay");
     renderGuestTable();
     flashRow(activeGuestId);
     showToast(g.name + " berhasil check-in (+" + delta + ")");
@@ -680,9 +675,14 @@ async function doCheckinAll(): Promise<void> {
       "Gagal: " + (err instanceof Error ? err.message : String(err)),
       true,
     );
+    return;
   } finally {
     if (btn) btn.disabled = false;
   }
+
+  // Modal tetap terbuka agar admin bisa override bila hadir melebihi kuota.
+  // Dipanggil setelah finally supaya disabled state tombol tidak tertimpa.
+  openCheckinDialog(activeGuestId);
 }
 
 async function doCheckinPartial(): Promise<void> {
@@ -1257,8 +1257,7 @@ export function initGuestEvents(): void {
 
       if (d) openGuestModal(d.dataset.id!);
       else if (ed) openEditModal(ed.dataset.id!);
-      else if (c && !c.classList.contains("is-disabled"))
-        openCheckinDialog(c.dataset.id!);
+      else if (c) openCheckinDialog(c.dataset.id!);
       else if (wa && !wa.hasAttribute("disabled")) {
         const g = guestList.find((x) => x.id === wa.dataset.id);
         if (g?.nomor_wa) window.open(buildWaUrl(g.slug, g.nomor_wa), "_blank");

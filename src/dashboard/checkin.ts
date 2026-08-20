@@ -13,7 +13,7 @@ import {
 } from "@/shared/ui";
 import { showModal, hideModal, renderNotifications } from "./ui";
 import { postCheckIn } from "./checkin-request";
-import { guestList, checkinStatus, fetchGuests } from "./state";
+import { guestList, fetchGuests } from "./state";
 import { supabase } from "./supabase-client";
 import type { GuestWithMeta } from "./state";
 import type { Reservation } from "@/types/supabase";
@@ -987,7 +987,6 @@ export function initCheckinEvents(): void {
     const matches = guestList
       .filter(
         (g) =>
-          checkinStatus(g) !== "sudah" &&
           (g.name.toLowerCase().includes(q) || (g.nomor_wa ?? "").includes(q)),
       )
       .slice(0, 3);
