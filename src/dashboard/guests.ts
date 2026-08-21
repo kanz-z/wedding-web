@@ -89,19 +89,24 @@ function kategoriBadge(kategori: string): string {
 export function renderSummaryCards(): void {
   const s = getGuestSummary();
   const cards = document.querySelectorAll<HTMLElement>(".guest-summary-card");
-  if (cards.length < 6) return;
-  const vals = [
-    s.total,
-    s.hadirRsvp,
-    s.tidakRsvp,
-    s.belumRsvp,
-    s.sudahCheckin,
-    s.belumCheckin,
-  ];
-  // Gunakan i % 6 karena ada beberapa grup 6 card di halaman berbeda (Hub + Kelola Tamu)
-  cards.forEach((c, i) => {
+  if (cards.length === 0) return;
+  // Map label → nilai. Dipetakan per-label (bukan per-index) agar kartu
+  // "Sudah Check-in" / "Belum Check-in" di halaman Check-in — yang hanya punya
+  // 2 kartu, bukan 6 — tetap menerima nilai yang benar.
+  const byLabel: Record<string, number> = {
+    "Total Tamu": s.total,
+    "Hadir RSVP": s.hadirRsvp,
+    "Tidak Hadir": s.tidakRsvp,
+    "Belum Merespons": s.belumRsvp,
+    "Sudah Check-in": s.sudahCheckin,
+    "Belum Check-in": s.belumCheckin,
+  };
+  cards.forEach((c) => {
+    const labelEl = c.querySelector(".summary-card__label");
     const valEl = c.querySelector(".summary-card__value");
-    if (valEl) valEl.textContent = String(vals[i % 6] ?? 0);
+    if (!labelEl || !valEl) return;
+    const key = labelEl.textContent?.trim() ?? "";
+    if (key in byLabel) valEl.textContent = String(byLabel[key]);
   });
 
   // GAP-014: badge anomali
@@ -991,17 +996,27 @@ async function renderAuditLog(): Promise<void> {
         '<p style="color:var(--ink-muted);font-size:0.8125rem;text-align:center">Belum ada aktivitas check-in.</p>';
       return;
     }
+    // Net check-in per tamu (diperlukan untuk menentukan apakah undo masih
+    // memungkinkan — tombol undo hanya valid jika net >= delta transaksi).
+    const netByGuest = new Map<string, number>();
+    for (const g of guestList) netByGuest.set(g.id, g.checkedIn);
+
     el.innerHTML = entries
       .map(
-        (e: CheckinLogEntry) => `
+        (e: CheckinLogEntry) => {
+          const deltaStr = e.delta > 0 ? `+${e.delta}` : String(e.delta);
+          const canUndo =
+            e.delta > 0 && (netByGuest.get(e.reservationId) ?? 0) >= e.delta;
+          return `
       <div class="scan-result-item${e.isOverride ? " is-invalid" : ""}">
         <div class="scan-result-item__icon"><i class="bi bi-${e.isOverride ? "shield-exclamation" : "clock-history"}"></i></div>
         <div style="flex:1">
           <div class="scan-result-item__name">${escapeHtml(e.guestName)} ${e.isOverride ? '<span class="badge-dash badge-dash--danger ms-1">Override</span>' : ""}</div>
-          <div class="scan-result-item__meta">+${e.delta} tamu via ${e.method === "qr" ? "QR" : "manual"}${e.notes ? " · " + escapeHtml(e.notes) : ""} · oleh ${escapeHtml(e.adminName)} · ${formatTime(e.createdAt)}</div>
+          <div class="scan-result-item__meta">${deltaStr} tamu via ${e.method === "qr" ? "QR" : "manual"}${e.notes ? " · " + escapeHtml(e.notes) : ""} · oleh ${escapeHtml(e.adminName)} · ${formatTime(e.createdAt)}</div>
         </div>
-        ${e.delta > 0 ? `<button type="button" class="btn btn-sm btn-outline-danger ms-2 undo-checkin-btn" data-reservation-id="${e.reservationId}" data-delta="${e.delta}" title="Undo check-in"><i class="bi bi-arrow-counterclockwise"></i></button>` : ""}
-      </div>`,
+        ${canUndo ? `<button type="button" class="btn btn-sm btn-outline-danger ms-2 undo-checkin-btn" data-reservation-id="${e.reservationId}" data-delta="${e.delta}" title="Undo check-in"><i class="bi bi-arrow-counterclockwise"></i></button>` : ""}
+      </div>`;
+        },
       )
       .join("");
   } catch {

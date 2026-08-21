@@ -50,6 +50,7 @@ export default defineConfig({
         "guests.spec.ts",
         "reservations.spec.ts",
         "checkin.spec.ts",
+        "checkin-summary.spec.ts",
         "public-messages.spec.ts",
         "private-messages.spec.ts",
         "admin-management.spec.ts",
